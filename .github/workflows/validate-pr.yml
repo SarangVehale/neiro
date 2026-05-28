@@ -57,6 +57,6 @@ jobs:
 
       - name: Post summary comment
         if: always()
-        uses: marocchino/sticky-pull-request-comment@v2
+        uses: marocchino/sticky-pull-request-comment@v3
         with:
           path: pr_summary.md
