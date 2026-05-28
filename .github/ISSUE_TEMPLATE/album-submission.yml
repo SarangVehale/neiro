@@ -1,0 +1,66 @@
+name: Album submission
+description: Propose an album for the archive before opening a PR (optional)
+title: "submission: <Artist> — <Album>"
+labels: ["submission"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Most submissions go in by PR directly — see
+        [CONTRIBUTING.md](../blob/main/CONTRIBUTING.md). Use this form if
+        you'd like a quick sanity check before uploading large files, or
+        if you're not sure the material is in scope.
+  - type: input
+    id: artist
+    attributes:
+      label: Artist
+      placeholder: Kaoru Tanaka
+    validations:
+      required: true
+  - type: input
+    id: album
+    attributes:
+      label: Album
+      placeholder: River Without Banks
+    validations:
+      required: true
+  - type: input
+    id: year
+    attributes:
+      label: Year
+      placeholder: "2019"
+    validations:
+      required: true
+  - type: dropdown
+    id: format
+    attributes:
+      label: Best available format
+      options: [FLAC, ALAC / M4A, MP3 320, MP3 192, Other]
+    validations:
+      required: true
+  - type: dropdown
+    id: license
+    attributes:
+      label: Licence under which you can donate it
+      options:
+        - CC0 (public-domain dedication)
+        - CC-BY 4.0
+        - CC-BY-SA 4.0
+        - CC-BY-NC 4.0
+        - Public domain (expired copyright)
+        - All rights reserved — donated with written permission
+    validations:
+      required: true
+  - type: textarea
+    id: rights
+    attributes:
+      label: Rights statement
+      description: How do you know you have the right to share this?
+      placeholder: I am the artist. / I have written permission from the artist (attached). / The work is in the public domain because …
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else
+      placeholder: Liner notes, recording context, links, etc.

@@ -1,0 +1,77 @@
+{
+  "meta": {
+    "total_songs": 3,
+    "total_artists": 1,
+    "built_at": "2026-05-28T18:15:36.760061+00:00",
+    "contributors": [
+      {
+        "handle": "@waveform_rin",
+        "albums": 1,
+        "songs": 3,
+        "first": "2026-05-28",
+        "latest": "2026-05-28"
+      }
+    ]
+  },
+  "artists": [
+    {
+      "id": "kaoru-tanaka",
+      "name": "Kaoru Tanaka",
+      "kana": "TANAKA · KAORU",
+      "origin": "Kyoto, JP",
+      "genre": "Ambient",
+      "links": [
+        {
+          "label": "Bandcamp",
+          "url": "https://example.com/kaoru-tanaka"
+        }
+      ],
+      "bio": "Kaoru Tanaka has spent twenty-three years recording in a converted ryokan above the Kamo river. Each release is a single long-form composition; the album divisions are concessions to physical media. Her work treats silence as material, not absence — listen for what she chose not to play.",
+      "albums": [
+        {
+          "id": "kaoru-tanaka-river-without-banks",
+          "title": "River Without Banks",
+          "year": 2019,
+          "genre": "Ambient",
+          "notes": "Recorded over four winter mornings in Higashiyama. The hum at 4:12 is the heater; she kept it.",
+          "license": "CC-BY-4.0",
+          "cover": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2Q==",
+          "total_size_mb": 0.0,
+          "shards": [
+            {
+              "label": "Full album ZIP",
+              "path": "_zips/Kaoru Tanaka - River Without Banks [Full album ZIP].zip",
+              "size_mb": 0.0
+            }
+          ],
+          "tracks": [
+            {
+              "number": 1,
+              "title": "Mist Inventory",
+              "duration_sec": 0,
+              "format": "FLAC",
+              "size_mb": 0.0,
+              "path": "music/Kaoru Tanaka/River Without Banks/01 - Mist Inventory.flac"
+            },
+            {
+              "number": 2,
+              "title": "First Light, Held",
+              "duration_sec": 0,
+              "format": "FLAC",
+              "size_mb": 0.0,
+              "path": "music/Kaoru Tanaka/River Without Banks/02 - First Light, Held.flac"
+            },
+            {
+              "number": 3,
+              "title": "Stone Counting Stones",
+              "duration_sec": 0,
+              "format": "FLAC",
+              "size_mb": 0.0,
+              "path": "music/Kaoru Tanaka/River Without Banks/03 - Stone Counting Stones.flac"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+name: Build & Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (with LFS)
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install metadata deps
+        run: pip install mutagen Pillow PyYAML
+
+      - name: Generate catalogue + sharded ZIPs
+        run: python scripts/build_catalogue.py --zips
+
+      - name: Assemble static site
+        run: |
+          # public/ is the vanilla web root; fold in generated data, ZIPs, and
+          # the music/ tree (audio paths in catalogue.json are repo-relative,
+          # so the tracks must be reachable under the served root).
+          mkdir -p public/_catalogue public/_zips
+          cp -f _catalogue/catalogue.json public/_catalogue/ 2>/dev/null || true
+          cp -f _zips/*.zip public/_zips/ 2>/dev/null || true
+          if [ -d music ]; then
+            rm -rf public/music
+            cp -r music public/music
+          fi
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

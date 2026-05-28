@@ -1,0 +1,37 @@
+name: Bug report
+description: Something on the site or in the build pipeline is broken.
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What did you expect? What did you see instead?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to …
+        2. Click …
+        3. Observe …
+    validations:
+      required: true
+  - type: input
+    id: url
+    attributes:
+      label: URL (if relevant)
+      placeholder: https://…/artists/kaoru-tanaka
+  - type: input
+    id: browser
+    attributes:
+      label: Browser / OS
+      placeholder: Firefox 124 on macOS 14.5
+  - type: textarea
+    id: console
+    attributes:
+      label: DevTools console output
+      render: shell

@@ -1,0 +1,13 @@
+{
+  "name": "HIBIKI 響",
+  "short_name": "HIBIKI",
+  "description": "A free, public music archive. Browse, preview, and download freely.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#f5f0e8",
+  "theme_color": "#c9667a",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

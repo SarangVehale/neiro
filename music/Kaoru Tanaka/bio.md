@@ -1,0 +1,1 @@
+Kaoru Tanaka has spent twenty-three years recording in a converted ryokan above the Kamo river. Each release is a single long-form composition; the album divisions are concessions to physical media. Her work treats silence as material, not absence — listen for what she chose not to play.

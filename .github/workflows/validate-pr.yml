@@ -1,0 +1,62 @@
+name: Validate contribution
+
+on:
+  pull_request:
+    paths:
+      - "music/**"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install mutagen PyYAML
+
+      - name: Validate submitted files
+        id: check
+        run: |
+          python - <<'PY'
+          import os, pathlib, sys
+          AUDIO = {".flac", ".mp3", ".m4a", ".aac"}
+          MAX_FILE_MB, MAX_TOTAL_MB = 100, 500
+          music = pathlib.Path("music")
+          errors, warnings, total = [], [], 0.0
+          audio_files = [p for p in music.rglob("*") if p.suffix.lower() in AUDIO] if music.exists() else []
+          for p in audio_files:
+              mb = p.stat().st_size / (1024*1024); total += mb
+              if mb > MAX_FILE_MB:
+                  errors.append(f"{p.name}: {mb:.1f} MB exceeds {MAX_FILE_MB} MB/file")
+          if total > MAX_TOTAL_MB:
+              errors.append(f"total {total:.0f} MB exceeds {MAX_TOTAL_MB} MB/PR")
+          covers = list(music.rglob("cover.*")) if music.exists() else []
+          if audio_files and not covers:
+              warnings.append("no cover art found")
+          summary = [
+              "## Automated checks",
+              f"- {'❌' if errors else '✅'} Within size limits ({total:.0f} MB total, {len(audio_files)} files)",
+              f"- {'⚠️' if not covers else '✅'} Cover art present",
+              f"- {'✅' if audio_files else '⚠️'} Audio files detected",
+          ]
+          if errors: summary += ["", "### Errors", *[f"- {e}" for e in errors]]
+          if warnings: summary += ["", "### Warnings", *[f"- {w}" for w in warnings]]
+          pathlib.Path("pr_summary.md").write_text("\n".join(summary))
+          print("\n".join(summary))
+          sys.exit(1 if errors else 0)
+          PY
+
+      - name: Post summary comment
+        if: always()
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          path: pr_summary.md

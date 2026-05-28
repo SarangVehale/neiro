@@ -1,0 +1,9 @@
+node_modules/
+_zips/*.zip
+public/_zips/
+public/_catalogue/
+public/music/
+.DS_Store
+__pycache__/
+*.pyc
+.pytest_cache/

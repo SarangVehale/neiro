@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#c9667a" />
+    <meta name="description" content="HIBIKI 響 — a free, public music archive. Browse, preview, and download freely." />
+    <title>HIBIKI | 響</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&family=Zen+Kaku+Gothic+New:wght@300;400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css"
+    />
+    <link rel="stylesheet" href="hibiki.css" />
+  </head>
+  <body>
+    <nav class="nav" role="navigation" aria-label="Main navigation">
+      <div class="nav-left">
+        <a href="#" class="nav-logo" data-route="library" aria-label="Home">
+          <span class="logo-wordmark">HIBIKI</span>
+          <span class="logo-rule" aria-hidden="true"></span>
+          <span class="logo-kanji" aria-label="Hibiki in kanji">響</span>
+        </a>
+        <ul class="nav-links" role="list">
+          <li><a href="#" class="route-link active" data-route="library">Library</a></li>
+          <li><a href="#" class="route-link" data-route="artists">Artists</a></li>
+          <li><a href="#" class="route-link" data-route="contribute">Contribute</a></li>
+          <li><a href="#" class="route-link" data-route="contributors">Contributors</a></li>
+          <li><a href="#" class="route-link" data-route="about">About</a></li>
+        </ul>
+      </div>
+      <div class="nav-right">
+        <div class="search-field" role="search">
+          <i class="ti ti-search" aria-hidden="true"></i>
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Search artist, album, track…"
+            aria-label="Search library"
+          />
+          <kbd class="kbd">/</kbd>
+        </div>
+        <span class="count-badge" id="songCountBadge">— songs</span>
+      </div>
+    </nav>
+
+    <div class="hero-strip" aria-hidden="true">
+      <span class="hero-strip-text">
+        Free music archive — download freely — share openly — 無料音楽アーカイブ
+      </span>
+      <div class="sakura-ornament">
+        <span class="s-dot" style="width:4px;height:4px;opacity:0.5"></span>
+        <span class="s-dot" style="width:6px;height:6px"></span>
+        <span class="s-dot" style="width:4px;height:4px;opacity:0.5"></span>
+      </div>
+    </div>
+
+    <main id="app" class="app-shell"></main>
+
+    <div class="player-bar" id="playerBar" role="complementary" aria-label="Now playing">
+      <div class="pb-art" id="pbArt" aria-hidden="true">響</div>
+      <div class="pb-track">
+        <div class="pb-title" id="pbTitle">—</div>
+        <div class="pb-artist" id="pbArtist">No track selected</div>
+      </div>
+      <div class="pb-controls" role="group" aria-label="Playback controls">
+        <button class="pb-btn" id="pbPrev" aria-label="Previous track">
+          <i class="ti ti-player-skip-back" aria-hidden="true"></i>
+        </button>
+        <button class="pb-play" id="pbPlay" aria-label="Play">
+          <i class="ti ti-player-play" id="pbPlayIcon" aria-hidden="true"></i>
+        </button>
+        <button class="pb-btn" id="pbNext" aria-label="Next track">
+          <i class="ti ti-player-skip-forward" aria-hidden="true"></i>
+        </button>
+      </div>
+      <div class="pb-timeline">
+        <span class="pb-time" id="pbCurrent">0:00</span>
+        <div class="pb-bar" id="pbBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div class="pb-bar-fill" id="pbBarFill"></div>
+        </div>
+        <span class="pb-time" id="pbTotal">0:00</span>
+      </div>
+      <span class="pb-fmt-badge" id="pbFmt">—</span>
+      <button class="pb-dl" id="pbDl">↓ track</button>
+      <div class="vol-wrap" aria-label="Volume">
+        <i class="ti ti-volume vol-icon" id="pbVolIcon" aria-hidden="true"></i>
+        <div class="vol-bar" id="pbVolBar">
+          <div class="vol-fill" id="pbVolFill"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast-region" id="toastRegion" aria-live="polite"></div>
+
+    <script src="hibiki-data.js"></script>
+    <script src="hibiki.js"></script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", function () {
+          navigator.serviceWorker.register("sw.js").catch(function () {});
+        });
+      }
+    </script>
+  </body>
+</html>
