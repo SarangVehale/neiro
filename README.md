@@ -18,7 +18,10 @@ ads, no paywall. Donated material only.
   any directory depth, reads ID3/MP4 tags, generates `_catalogue/catalogue.json`,
   and pre-builds sharded iPod-structure ZIPs per album.
 - **A GitHub Actions workflow** runs the build on every push to `main` and
-  deploys to GitHub Pages. Audio is served from Cloudflare R2 (zero egress cost).
+  deploys to GitHub Pages. Audio is served from `media.githubusercontent.com`
+  (LFS CDN), with Cloudflare R2 as the recommended upgrade for large collections.
+- **Fully responsive** — scales from iPhone 13 mini (375 px) to projector screens,
+  with a hamburger nav on mobile and a full-screen player overlay.
 
 There is no backend, no database, no analytics, no tracking. It scales to
 any number of concurrent users because every response is a static file from a CDN.
@@ -28,15 +31,21 @@ any number of concurrent users because every response is a static file from a CD
 ```bash
 git clone git@github.com:SarangVehale/hibiki.git
 cd hibiki
-git lfs install                       # audio is tracked via Git LFS
-pip install mutagen Pillow PyYAML     # optional but recommended
+
+# Audio files are in Git LFS. Pull them only if you need local playback;
+# the catalogue can be built from file metadata alone without downloading audio.
+git lfs pull                          # optional — ~5.6 GB
+
+pip install mutagen Pillow PyYAML     # optional but recommended for rich tags
 
 python scripts/build_catalogue.py     # writes _catalogue/catalogue.json
-                                      # 96×96 thumbnails, ~200 KB output
+                                      # 96×96 thumbnails, ~245 KB output
 
-# serve locally (file:// won't work — app fetches catalogue.json via XHR)
+# Inject a CDN base URL for the local server (makes audio paths relative)
+python scripts/inject_cdn.py http://localhost:8000/music
+
+# Serve locally (file:// won't work — app fetches catalogue.json via XHR)
 cd public
-cp -r ../_catalogue ../music .
 python3 -m http.server 8000
 open http://localhost:8000
 ```
@@ -48,10 +57,10 @@ open http://localhost:8000
 ├── public/                     # static web root deployed to GitHub Pages
 │   ├── index.html              #   PWA shell — no framework, no build step
 │   ├── hibiki.css              #   styles (1987 Japanese magazine × retro Mac)
-│   ├── hibiki.js               #   full app logic (~750 LOC, vanilla JS)
-│   ├── hibiki-data.js          #   catalogue loader & CDN URL adapter
+│   ├── hibiki.js               #   full app logic (~830 LOC, vanilla JS)
+│   ├── hibiki-data.js          #   catalogue loader, CDN URL adapter & path encoder
 │   ├── manifest.json           #   PWA manifest
-│   ├── sw.js                   #   service worker (caches shell, never audio)
+│   ├── sw.js                   #   service worker v2 (caches shell; never audio/catalogue)
 │   └── icon.svg                #   app icon
 ├── music/                      # the archive — source of truth
 │   └── <Artist>/
@@ -66,7 +75,11 @@ open http://localhost:8000
 │   ├── build_catalogue.py      # catalogue + ZIP builder (Python, zero hard deps)
 │   ├── extract_metadata.py     # one-time migration: writes tracks.yaml per album
 │   └── sync_r2.py              # upload music/ to Cloudflare R2 (boto3)
-├── tests/                      # pytest suite for the catalogue builder
+├── tests/
+│   ├── test_build_catalogue.py # pytest suite for the catalogue builder (12 tests)
+│   └── playwright/             # Playwright e2e tests
+│       ├── tests/live.spec.js  #   8 smoke tests against deployed GitHub Pages
+│       └── tests/local-verify.spec.js # 11 tests against localhost:18080
 ├── _catalogue/
 │   └── catalogue.json          # generated artefact; committed for convenience
 ├── contributors.yaml           # one entry per contributor handle

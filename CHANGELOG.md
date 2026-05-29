@@ -7,6 +7,93 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-05-29
+
+### Added
+
+**Full-screen player**
+- Clicking the player-bar art or track-title area slides up a full-screen player
+  overlay (CSS `translateY` transition, z-index 400).
+- Shows full-size album art (CDN URL, base64 fallback, kanji placeholder),
+  track title, album, artist, seekable progress bar, and prev/play/next controls.
+- All controls stay in sync with the bottom player bar via `syncFullPlayer()`
+  called from `updateBar()`, `updateProgress()`, and `updatePlayState()`.
+- Close with the chevron-down button or by tapping outside the overlay area.
+
+**Responsive layout — full breakpoint ladder**
+- Hamburger menu (`#navToggle`) replaces nav links at ≤ 768 px. The `.mobile-nav`
+  drawer uses opacity + translateY instead of display-toggling so `flex-direction: column`
+  is always set and the slide-in animation is reliable.
+- New breakpoints: 1920 px (scale up font/columns), 1280 px, 1024 px, 768 px,
+  640 px, 480 px, 375 px (iPhone 13 mini).
+- Player bar strips art/volume/format badge at ≤ 768 px; further compacts at ≤ 640 px.
+- Tracklist hides Format / Size / Download columns at ≤ 640 px.
+- Hero strip hidden at ≤ 480 px to recover screen real-estate.
+- Logo wordmark hidden at ≤ 480 px; only the 響 kanji remains.
+
+**Album art in all slots**
+- Album cards now render `<img src="album.cover">` (base64 96 px thumbnail) when
+  available, with a kanji fallback.
+- Album detail hero uses the full-size CDN image (`album.coverUrl`) with base64
+  fallback.
+- Now-playing sidebar and player bar art slot both updated.
+- `onerror` handler on every `<img>` hides broken images gracefully.
+
+**`cover_path` field in catalogue**
+- `build_catalogue.py` now exposes `find_cover_file()` and records the
+  repo-relative cover image path as `cover_path` on each album entry.
+- `hibiki-data.js` constructs `album.coverUrl` at load time from
+  `mediaBase + encoded(cover_path)`.
+- SVG covers are recorded in `cover_path` but produce no base64 thumbnail.
+
+**Playwright live smoke tests** (`tests/playwright/tests/live.spec.js`)
+- Eight tests run against the deployed GitHub Pages site on every push to `main`:
+  page title, catalogue load count, album card render, `media_base_url` present,
+  all nav routes (no JS errors), album detail tracklist, audio title update, no
+  console errors.
+
+**Service worker v2 — cache-busting and catalogue exclusion**
+- `VERSION` bumped `"hibiki-v1"` → `"hibiki-v2"` so users stuck on the old cache
+  get fresh assets on next visit.
+- `_catalogue/` added to the never-cache list alongside audio; catalogue is always
+  fetched from the network.
+
+### Fixed
+
+**Playback — LFS files not served by `raw.githubusercontent.com`**
+- Changed fallback CDN from `https://raw.githubusercontent.com/…` to
+  `https://media.githubusercontent.com/media/…`. The `raw` endpoint returns
+  the LFS pointer file (plain text); `media` serves the actual binary.
+
+**URL encoding — 474 track paths and 20 cover paths with spaces**
+- `hibiki-data.js` now encodes each path segment with `encodeURIComponent` before
+  constructing the full CDN URL for both audio (`t.path`) and images (`coverUrl`).
+- `loadTrack()` no longer applies `encodeURI()` on top (would double-encode `%`).
+
+**Corrupt cover thumbnails — LFS pointer stubs**
+- `cover_thumb()` now rejects files shorter than 128 bytes (LFS pointer stubs)
+  and files PIL cannot open. Eliminated one 55-byte phantom entry (Kaoru Tanaka).
+
+**NaN decade filter**
+- `DECADES` sidebar list now filters out `NaN` values produced by albums with
+  `year: null` (`Math.floor(null/10)*10 === NaN`).
+- Decade filter predicate guards with `!a.year` to prevent albums without years
+  from disappearing when any decade is selected.
+
+### Changed
+
+- Album grid: `minmax(200 px, 1fr)` → `minmax(140 px, 1fr)`, gap 14 px → 8 px.
+  Typical card width drops from ~200 px to ~161 px; more albums visible at once.
+- Card body padding and font sizes reduced proportionally (title 13 px → 11 px,
+  artist 11 px → 10 px, meta 9 px → 8 px).
+- Art-wrap kanji font: `clamp(34 px, 4 vw, 52 px)` → `clamp(24 px, 3 vw, 40 px)`.
+- CI build: inject step now injects `media.githubusercontent.com` CDN URL in the
+  R2-absent fallback (was `raw.githubusercontent.com`).
+- Local verification suite added: `tests/playwright/tests/local-verify.spec.js`
+  (11 tests against `localhost:18080`).
+
+---
+
 ## [0.2.0] — 2026-05-29
 
 ### Added
@@ -117,6 +204,7 @@ into `music/`, push, CI generates a catalogue, deploys to GitHub Pages.
 - Typefaces: Shippori Mincho (editorial) + DM Mono (data) + Zen Kaku Gothic New (body).
 - Kanji placeholders for missing album art, assigned by `albumIndex % 6`.
 
-[Unreleased]: https://github.com/SarangVehale/hibiki/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/SarangVehale/hibiki/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/SarangVehale/hibiki/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/SarangVehale/hibiki/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/SarangVehale/hibiki/releases/tag/v0.1.0
