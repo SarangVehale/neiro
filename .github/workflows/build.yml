@@ -18,16 +18,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      # No lfs: true — audio files are too large for the LFS bandwidth quota.
-      # The catalogue is built locally (python scripts/build_catalogue.py)
-      # and committed; CI injects the CDN URL and deploys.
+      # No lfs: true — LFS bandwidth quota is exhausted by repeated 5.6 GB pulls.
+      # The catalogue is built locally and committed; CI only injects the CDN URL.
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ── Inject CDN base URL into the committed catalogue ─────────────────
-      # R2 mode: set secrets R2_ACCOUNT_ID + R2_PUBLIC_URL to serve audio
-      #          from Cloudflare R2 (zero egress cost).
-      # LFS mode: falls back to raw.githubusercontent.com CDN.
       - name: Assemble static site
         run: |
           mkdir -p public/_catalogue public/_zips
@@ -38,15 +33,7 @@ jobs:
             MEDIA_BASE="https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}"
           fi
 
-          python3 - "$MEDIA_BASE" <<'PY'
-import json, pathlib, sys
-cat = json.loads(pathlib.Path("_catalogue/catalogue.json").read_text())
-cat["meta"]["media_base_url"] = sys.argv[1]
-pathlib.Path("public/_catalogue/catalogue.json").write_text(
-    json.dumps(cat, ensure_ascii=False, indent=2))
-print("media_base_url →", sys.argv[1])
-PY
-
+          python3 scripts/inject_cdn.py "$MEDIA_BASE"
           cp -f _zips/*.zip public/_zips/ 2>/dev/null || true
 
       - name: Upload Pages artifact
