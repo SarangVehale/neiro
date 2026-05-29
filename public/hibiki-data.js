@@ -46,10 +46,11 @@ function adapt(raw) {
         if (t.format) t.format = t.format.toLowerCase();
         // Prefix path with CDN base so <audio> can stream cross-origin
         if (mediaBase && t.path && !t.path.startsWith("http")) {
-          t.path = mediaBase + "/" + t.path;
+          t.path = mediaBase + "/" + t.path.split('/').map(encodeURIComponent).join('/');
         }
       });
-      album.coverUrl    = (mediaBase && album.cover_path) ? mediaBase + "/" + album.cover_path : null;
+      const _enc = p => p ? p.split('/').map(encodeURIComponent).join('/') : null;
+      album.coverUrl    = (mediaBase && album.cover_path) ? mediaBase + "/" + _enc(album.cover_path) : null;
       album.artist      = artist.name;
       album.artistId    = artist.id;
       album.kanjiIdx    = ai % KANJI.length;

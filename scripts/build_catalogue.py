@@ -218,9 +218,11 @@ def cover_thumb(
     cover_file = find_cover_file(album_dir, artist_dir)
     if cover_file is None:
         return None
-    if cover_file.suffix == ".svg":
-        return None  # SVGs are served as-is via cover_path; no thumbnail needed
+    if cover_file.suffix.lower() == ".svg":
+        return None  # SVGs served as-is via cover_path
     raw = cover_file.read_bytes()
+    if len(raw) < 128:
+        return None  # LFS pointer stub or empty file — not a real image
     if Image is not None:
         try:
             im = Image.open(io.BytesIO(raw)).convert("RGB")
@@ -229,9 +231,9 @@ def cover_thumb(
             im.save(buf, "JPEG", quality=quality, optimize=True)
             raw = buf.getvalue()
         except Exception:
-            pass
+            return None  # PIL can't open it — not a real image
     b64 = base64.b64encode(raw).decode("ascii")
-    mime = "image/png" if cover_file.suffix == ".png" else "image/jpeg"
+    mime = "image/png" if cover_file.suffix.lower() == ".png" else "image/jpeg"
     return f"data:{mime};base64,{b64}"
 
 

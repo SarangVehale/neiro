@@ -112,6 +112,43 @@
       </div>
     </div>
 
+    <!-- Full-screen player overlay -->
+    <div id="fullPlayer" class="full-player" aria-label="Full-screen player">
+      <div class="fp-topbar">
+        <button id="fpDown" class="fp-down" aria-label="Close player">
+          <i class="ti ti-chevron-down" aria-hidden="true"></i>
+        </button>
+        <span class="fp-label">Now Playing</span>
+        <span style="width:40px" aria-hidden="true"></span>
+      </div>
+      <div id="fpArt" class="fp-art-wrap k0" aria-hidden="true">響</div>
+      <div class="fp-meta">
+        <div id="fpTitle" class="fp-title">—</div>
+        <div id="fpAlbum" class="fp-album"></div>
+        <div id="fpArtist" class="fp-artist">No track selected</div>
+      </div>
+      <div class="fp-scrub">
+        <div id="fpScrubBar" class="fp-scrub-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div id="fpScrubFill" class="fp-scrub-fill"></div>
+        </div>
+        <div class="fp-times">
+          <span id="fpCur">0:00</span>
+          <span id="fpTot">0:00</span>
+        </div>
+      </div>
+      <div class="fp-controls" role="group" aria-label="Playback controls">
+        <button id="fpPrev" class="fp-ctrl" aria-label="Previous track">
+          <i class="ti ti-player-skip-back" aria-hidden="true"></i>
+        </button>
+        <button id="fpPlay" class="fp-play" aria-label="Play">
+          <i id="fpPlayIcon" class="ti ti-player-play" aria-hidden="true"></i>
+        </button>
+        <button id="fpNext" class="fp-ctrl" aria-label="Next track">
+          <i class="ti ti-player-skip-forward" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+
     <div class="toast-region" id="toastRegion" aria-live="polite"></div>
 
     <script src="hibiki-data.js"></script>

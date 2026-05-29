@@ -629,7 +629,7 @@ ${upNext.length ? `
     state.player.currentTime=0;
     state.player.duration=item.track.duration_sec||0;
     if(item.track.path) {
-      try { audio.src=encodeURI(item.track.path); } catch(_){}
+      try { audio.src=item.track.path; } catch(_){}
       if(state.player.playing) audio.play().catch(()=>{});
     }
     updateBar();
@@ -640,7 +640,7 @@ ${upNext.length ? `
     updatePlayState();
     if(state.player.playing) {
       const item=state.player.queue[state.player.idx];
-      if(item&&item.track.path&&!audio.src) { try{audio.src=encodeURI(item.track.path);}catch(_){} }
+      if(item&&item.track.path&&!audio.src) { try{audio.src=item.track.path;}catch(_){} }
       audio.play().catch(()=>{});
     } else {
       audio.pause();
@@ -683,23 +683,34 @@ ${upNext.length ? `
     const npFill=app.querySelector('#npFill'), npCur=app.querySelector('#npCur');
     if(npFill) npFill.style.width=pct+'%';
     if(npCur)  npCur.textContent=fmt(p.currentTime);
+    // Sync full player progress
+    const fpFill=document.getElementById('fpScrubFill'), fpC=document.getElementById('fpCur');
+    if(fpFill) fpFill.style.width=pct+'%';
+    if(fpC)    fpC.textContent=fmt(p.currentTime);
   }
 
   function updateBar() {
     const p=state.player; const item=p.queue[p.idx]; if(!item) return;
     const ki=albumIdx(item.album)%6;
-    if(pbArt)    { pbArt.className=`pb-art ${kClass(ki)}`; pbArt.innerHTML=item.album.cover?`<img src="${item.album.cover}" alt="" style="width:100%;height:100%;object-fit:cover">`:kChar(ki); }
+    if(pbArt) {
+      pbArt.className=`pb-art ${kClass(ki)}`;
+      const c=item.album.cover;
+      pbArt.innerHTML=c?`<img src="${c}" alt="" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">`:kChar(ki);
+    }
     if(pbTitle)  pbTitle.textContent=item.track.title;
     if(pbArtist) pbArtist.textContent=`${item.artist} — ${item.album.title}`;
     if(pbTotal)  pbTotal.textContent=fmt(p.duration);
     if(pbCurrent) pbCurrent.textContent=fmt(p.currentTime);
     if(pbFmt)  { pbFmt.textContent=fmtLbl(item.track.format); pbFmt.className='pb-fmt-badge'; }
+    syncFullPlayer();
   }
 
   function updatePlayState() {
-    if(!pbPlayIcon) return;
-    pbPlayIcon.className=`ti ${state.player.playing?'ti-player-pause':'ti-player-play'}`;
-    pbPlay.setAttribute('aria-label', state.player.playing?'Pause':'Play');
+    const cls=`ti ${state.player.playing?'ti-player-pause':'ti-player-play'}`;
+    if(pbPlayIcon) pbPlayIcon.className=cls;
+    if(pbPlay) pbPlay.setAttribute('aria-label', state.player.playing?'Pause':'Play');
+    const fpI=document.getElementById('fpPlayIcon');
+    if(fpI) fpI.className=cls;
   }
 
   function refreshNP() {
@@ -754,6 +765,70 @@ ${upNext.length ? `
   function applyDark(dark) { document.documentElement.classList.toggle('dark', dark); }
   applyDark(darkMQ.matches);
   darkMQ.addEventListener('change', e=>applyDark(e.matches));
+
+  // ── Full-screen player ─────────────────────────────────────
+  const fullPlayer   = document.getElementById('fullPlayer');
+  const fpDown       = document.getElementById('fpDown');
+  const fpArtEl      = document.getElementById('fpArt');
+  const fpTitleEl    = document.getElementById('fpTitle');
+  const fpAlbumEl    = document.getElementById('fpAlbum');
+  const fpArtistEl   = document.getElementById('fpArtist');
+  const fpScrubBarEl = document.getElementById('fpScrubBar');
+  const fpTotEl      = document.getElementById('fpTot');
+  const fpPlayBtn    = document.getElementById('fpPlay');
+  const fpPrevBtn    = document.getElementById('fpPrev');
+  const fpNextBtn    = document.getElementById('fpNext');
+
+  function syncFullPlayer() {
+    const p=state.player, item=p.queue[p.idx];
+    if(!item||!fullPlayer) return;
+    const ki=albumIdx(item.album)%6;
+    if(fpArtEl) {
+      fpArtEl.className=`fp-art-wrap ${kClass(ki)}`;
+      const cover=item.album.coverUrl||item.album.cover;
+      fpArtEl.innerHTML=cover?`<img src="${cover}" alt="" onerror="this.style.display='none'">`:kChar(ki);
+    }
+    if(fpTitleEl)  fpTitleEl.textContent=item.track.title;
+    if(fpAlbumEl)  fpAlbumEl.textContent=item.album.title;
+    if(fpArtistEl) fpArtistEl.textContent=item.artist;
+    if(fpTotEl)    fpTotEl.textContent=fmt(p.duration);
+    const pct=p.duration>0?(p.currentTime/p.duration*100).toFixed(1):0;
+    const fpFill=document.getElementById('fpScrubFill'), fpC=document.getElementById('fpCur');
+    if(fpFill) fpFill.style.width=pct+'%';
+    if(fpC)    fpC.textContent=fmt(p.currentTime);
+    updatePlayState();
+  }
+
+  function openFullPlayer() {
+    if(!fullPlayer||!state.player.queue.length) return;
+    fullPlayer.classList.add('open');
+    syncFullPlayer();
+  }
+  function closeFullPlayer() {
+    if(fullPlayer) fullPlayer.classList.remove('open');
+  }
+
+  // Open on click of player bar art or track info
+  if(pbArt)  pbArt.addEventListener('click', openFullPlayer);
+  document.querySelector('.pb-track')?.addEventListener('click', openFullPlayer);
+  if(fpDown) fpDown.addEventListener('click', closeFullPlayer);
+
+  // Full player controls
+  if(fpPlayBtn) fpPlayBtn.addEventListener('click', ()=>{ togglePlay(); syncFullPlayer(); });
+  if(fpPrevBtn) fpPrevBtn.addEventListener('click', ()=>{ prevTrack(); syncFullPlayer(); });
+  if(fpNextBtn) fpNextBtn.addEventListener('click', ()=>{ nextTrack(); syncFullPlayer(); });
+  if(fpScrubBarEl) fpScrubBarEl.addEventListener('click', e=>{
+    const r=fpScrubBarEl.getBoundingClientRect();
+    const t=Math.floor((e.clientX-r.left)/r.width*state.player.duration);
+    state.player.currentTime=t;
+    if(audio.src&&isFinite(audio.duration)){try{audio.currentTime=t;}catch(_){}}
+    updateProgress();
+  });
+
+  // Sync full player when track changes
+  const _origUpdateBar=updateBar;
+  // (updateBar already called from loadTrack / playFrom — also sync full player)
+  audio.addEventListener('loadedmetadata',()=>{ if(fpTotEl) fpTotEl.textContent=fmt(audio.duration||0); });
 
   // ── Mobile nav ────────────────────────────────────────────
   const navToggle = document.getElementById('navToggle');

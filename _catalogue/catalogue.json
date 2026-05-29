@@ -2,7 +2,7 @@
   "meta": {
     "total_songs": 496,
     "total_artists": 28,
-    "built_at": "2026-05-29T12:59:30.309851+00:00",
+    "built_at": "2026-05-29T13:26:45.297546+00:00",
     "contributors": [
       {
         "handle": "@waveform_rin",
@@ -2313,7 +2313,7 @@
           "genre": "Ambient",
           "notes": "Recorded over four winter mornings in Higashiyama. The hum at 4:12 is the heater; she kept it.",
           "license": "CC-BY-4.0",
-          "cover": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2Q==",
+          "cover": null,
           "cover_path": "music/Kaoru Tanaka/River Without Banks/cover.jpg",
           "total_size_mb": 0.0,
           "shards": [
