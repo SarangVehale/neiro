@@ -275,7 +275,7 @@ ${upNext.length ? `
   </div>
   <div class="download-bar">
     <span class="dl-label">↓ Download album</span>
-    ${album.shards.map(s=>`<button class="dl-part-btn" data-dl>${s.label} · ${fmtMB(s.size_mb)}</button>`).join('')}
+    ${album.shards.map((s,si)=>`<button class="dl-part-btn" data-dl-shard="${album.id}" data-shard-idx="${si}">${esc(s.label)} · ${fmtMB(s.size_mb)}</button>`).join('')}
     <span class="dl-total">${fmtMB(album.totalSize)} total · iPod-ready ZIPs</span>
   </div>
   <div class="tracklist-wrap">
@@ -300,7 +300,7 @@ ${upNext.length ? `
   <td class="td-dur">${fmt(tr.duration_sec)}</td>
   <td class="td-fmt"><span class="fmt-pill ${fmtCls(tr.format)}">${fmtLbl(tr.format)}</span></td>
   <td class="td-size">${tr.size_mb.toFixed(1)} MB</td>
-  <td class="td-dl"><button class="track-dl" data-dl>↓ track</button></td>
+  <td class="td-dl"><button class="track-dl" data-dl-track="${id}" data-track-idx="${i}" aria-label="Download ${esc(tr.title)}">↓ track</button></td>
 </tr>`;}).join('')}
       </tbody>
     </table>
@@ -377,7 +377,7 @@ ${upNext.length ? `
     return `
 <div class="contribute-layout">
   <h1 class="page-heading">Share music <span class="kanji-after">音楽を共有する</span></h1>
-  <p class="page-sub">Your contribution will be reviewed and added to the library</p>
+  <p class="page-sub">Fill the form below — submitting opens a prefilled GitHub issue so the maintainer can review and merge the files</p>
   <div class="form-section">
     <span class="form-section-label">Release info</span>
     <div class="form-grid-2">
@@ -568,8 +568,11 @@ ${upNext.length ? `
       row.addEventListener('click', ()=>navigate('artists','artist',row.dataset.artistId));
       row.addEventListener('keydown', e=>{ if(e.key==='Enter') row.click(); });
     });
-    app.querySelectorAll('[data-dl],[data-dl-album]').forEach(btn=>{
-      btn.addEventListener('click', e=>{ e.stopPropagation(); toast('Download started','↓'); });
+    app.querySelectorAll('[data-dl-album],[data-dl-shard],[data-dl-track]').forEach(btn=>{
+      btn.addEventListener('click', e=>{
+        e.stopPropagation();
+        triggerDownload(btn.dataset);
+      });
     });
     app.querySelectorAll('[data-play]').forEach(row=>{
       row.addEventListener('click', e=>{
@@ -597,7 +600,22 @@ ${upNext.length ? `
       const check=()=>{ submitBtn.disabled=!(['#f-artist','#f-album','#f-year','#f-genre'].every(s=>app.querySelector(s)?.value?.trim())&&app.querySelector('#f-license')?.checked); };
       ['#f-artist','#f-album','#f-year','#f-genre'].forEach(s=>app.querySelector(s)?.addEventListener('input',check));
       app.querySelector('#f-license')?.addEventListener('change',check);
-      submitBtn.addEventListener('click', ()=>{ toast('Submission sent — your music is under review. ありがとう','花'); submitBtn.disabled=true; submitBtn.textContent='Submitted ✓'; });
+      submitBtn.addEventListener('click', ()=>{
+        // Audio file uploads can't be sent directly from a static site.
+        // Open a prefilled GitHub issue so the maintainer can coordinate.
+        const get=s=>app.querySelector(s)?.value?.trim()||'';
+        const params=new URLSearchParams({
+          template:'album-submission.yml',
+          title:`submission: ${get('#f-artist')} — ${get('#f-album')}`,
+          artist:get('#f-artist'),
+          album: get('#f-album'),
+          year:  get('#f-year'),
+          notes: get('#f-notes') ? `${get('#f-notes')}\n\nHandle: ${get('#f-handle')||'anonymous'}` : `Handle: ${get('#f-handle')||'anonymous'}`,
+        });
+        const url=`https://github.com/SarangVehale/hibiki/issues/new?${params.toString()}`;
+        window.open(url,'_blank','noopener,noreferrer');
+        toast('Opening GitHub to finish your submission','花');
+      });
     }
   }
 
@@ -632,6 +650,37 @@ ${upNext.length ? `
     panel.innerHTML=rows.join('');
   }
   function vrow(cls,icon,name,status) { return `<div class="val-row val-${cls}"><i class="ti ${icon}" aria-hidden="true"></i><span class="vr-name">${esc(name)}</span><span class="vr-status">${esc(status)}</span></div>`; }
+
+  // ── Real downloads ────────────────────────────────────────
+  // Resolves a button's data-* attrs into a URL+filename and triggers a download
+  // via a hidden <a download>. Falls back to a toast if no URL is available.
+  function triggerDownload(ds) {
+    let url = null, filename = null;
+    if (ds.dlTrack) {
+      const album = CATALOGUE.allAlbums.find(a => a.id === ds.dlTrack);
+      const tr = album?.tracks[parseInt(ds.trackIdx)];
+      if (tr?.path) { url = tr.path; filename = `${album.artist} - ${tr.title}.${tr.format || 'mp3'}`; }
+    } else if (ds.dlShard) {
+      const album = CATALOGUE.allAlbums.find(a => a.id === ds.dlShard);
+      const sh = album?.shards[parseInt(ds.shardIdx)];
+      if (sh?.path) { url = sh.path; filename = `${album.artist} - ${album.title} (${sh.label}).zip`; }
+    } else if (ds.dlAlbum) {
+      // Card-level "↓ ZIP / ↓ N parts" — go to album page if multi-part
+      const album = CATALOGUE.allAlbums.find(a => a.id === ds.dlAlbum);
+      if (album?.shards?.length > 1) {
+        navigate(state.route==='artists'?'artists':'library','album',album.id);
+        toast('Choose a part to download','↓');
+        return;
+      }
+      const sh = album?.shards[0];
+      if (sh?.path) { url = sh.path; filename = `${album.artist} - ${album.title}.zip`; }
+    }
+    if (!url) { toast('Download not available — file URL missing','⚠'); return; }
+    const a = document.createElement('a');
+    a.href = url; a.download = filename || ''; a.rel = 'noopener';
+    document.body.appendChild(a); a.click(); a.remove();
+    toast('Download started','↓');
+  }
 
   // ── Mobile filter sheet ───────────────────────────────────
   const filterSheet = document.getElementById('filterSheet');
@@ -737,7 +786,9 @@ ${upNext.length ? `
       state.player.queue = allTracks;
       state.player.idx = trackIdx;
     }
-    loadTrack(); state.player.playing=true;
+    // Order matters: set playing=true FIRST so loadTrack's shouldPlay reads true
+    state.player.playing=true;
+    loadTrack();
     updateBar(); updatePlayState(); refreshNP(); updateShuffleRepeatUI();
     if(state.subRoute==='album') render();
   }
@@ -898,7 +949,11 @@ ${upNext.length ? `
     if(audio.volume>0){ audio._prev=audio.volume; audio.volume=0; state.player.volume=0; pbVolFill.style.width='0%'; }
     else { const v=audio._prev||0.7; audio.volume=v; state.player.volume=v; pbVolFill.style.width=(v*100)+'%'; }
   });
-  pbDl.addEventListener('click', ()=>{ if(state.player.queue.length) toast('Track download started','↓'); });
+  pbDl.addEventListener('click', ()=>{
+    const item = state.player.queue[state.player.idx];
+    if (!item) return;
+    triggerDownload({ dlTrack: item.albumId, trackIdx: String(item.trackIdx) });
+  });
 
   // ── Touch-scrub helper ─────────────────────────────────────
   function wireScrubbable(el, getDuration, onSeek) {
@@ -923,9 +978,13 @@ ${upNext.length ? `
     link.addEventListener('click', e=>{ e.preventDefault(); navigate(link.dataset.route); });
   });
   document.querySelector('.nav-logo')?.addEventListener('click', e=>{ e.preventDefault(); navigate('library'); });
+  // Debounce search re-render — avoids rebuilding the whole grid per keystroke
+  let _searchTimer=null;
   searchInput.addEventListener('input', ()=>{
     state.search=searchInput.value;
-    if(state.route==='library'&&!state.subRoute) render();
+    if(state.route!=='library'||state.subRoute) return;
+    clearTimeout(_searchTimer);
+    _searchTimer=setTimeout(render, 120);
   });
 
   // ── Keyboard shortcuts ────────────────────────────────────

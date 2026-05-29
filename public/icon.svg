@@ -1,25 +1,30 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <rect width="100" height="100" rx="22" fill="#2a2318"/>
-  <g transform="translate(50,50)">
-    <!-- 5 sakura petals, each rotated 72° -->
-    <ellipse cx="0" cy="-20" rx="9" ry="14" fill="#c9667a" transform="rotate(0)"/>
-    <ellipse cx="0" cy="-20" rx="9" ry="14" fill="#c9667a" transform="rotate(72)"/>
-    <ellipse cx="0" cy="-20" rx="9" ry="14" fill="#c9667a" transform="rotate(144)"/>
-    <ellipse cx="0" cy="-20" rx="9" ry="14" fill="#c9667a" transform="rotate(216)"/>
-    <ellipse cx="0" cy="-20" rx="9" ry="14" fill="#c9667a" transform="rotate(288)"/>
-    <!-- notch cut from each petal tip -->
-    <ellipse cx="0" cy="-32" rx="4" ry="4" fill="#2a2318" transform="rotate(0)"/>
-    <ellipse cx="0" cy="-32" rx="4" ry="4" fill="#2a2318" transform="rotate(72)"/>
-    <ellipse cx="0" cy="-32" rx="4" ry="4" fill="#2a2318" transform="rotate(144)"/>
-    <ellipse cx="0" cy="-32" rx="4" ry="4" fill="#2a2318" transform="rotate(216)"/>
-    <ellipse cx="0" cy="-32" rx="4" ry="4" fill="#2a2318" transform="rotate(288)"/>
-    <!-- centre -->
-    <circle cx="0" cy="0" r="7" fill="#f5f0e8"/>
-    <!-- stamens -->
-    <circle cx="0"    cy="-5"  r="1.5" fill="#c9667a"/>
-    <circle cx="4.8"  cy="-1.5" r="1.5" fill="#c9667a"/>
-    <circle cx="3"    cy="4"   r="1.5" fill="#c9667a"/>
-    <circle cx="-3"   cy="4"   r="1.5" fill="#c9667a"/>
-    <circle cx="-4.8" cy="-1.5" r="1.5" fill="#c9667a"/>
+  <rect width="100" height="100" rx="22" fill="#fdf3f5"/>
+  <g transform="translate(50,52)">
+    <!-- 5 cleft sakura petals (path with notched tip), each rotated 72° -->
+    <g fill="#f4a8b8" stroke="#e07a90" stroke-width="0.8" stroke-linejoin="round">
+      <path d="M 0,0 C -10,-5 -14,-18 -7,-30 C -4,-34 -2,-32 0,-28 C 2,-32 4,-34 7,-30 C 14,-18 10,-5 0,0 Z"/>
+      <path d="M 0,0 C -10,-5 -14,-18 -7,-30 C -4,-34 -2,-32 0,-28 C 2,-32 4,-34 7,-30 C 14,-18 10,-5 0,0 Z" transform="rotate(72)"/>
+      <path d="M 0,0 C -10,-5 -14,-18 -7,-30 C -4,-34 -2,-32 0,-28 C 2,-32 4,-34 7,-30 C 14,-18 10,-5 0,0 Z" transform="rotate(144)"/>
+      <path d="M 0,0 C -10,-5 -14,-18 -7,-30 C -4,-34 -2,-32 0,-28 C 2,-32 4,-34 7,-30 C 14,-18 10,-5 0,0 Z" transform="rotate(216)"/>
+      <path d="M 0,0 C -10,-5 -14,-18 -7,-30 C -4,-34 -2,-32 0,-28 C 2,-32 4,-34 7,-30 C 14,-18 10,-5 0,0 Z" transform="rotate(288)"/>
+    </g>
+    <!-- centre disc -->
+    <circle r="6" fill="#fff5b8"/>
+    <!-- 5 stamens radiating from centre -->
+    <g stroke="#d49050" stroke-width="1.2" stroke-linecap="round">
+      <line x1="0" y1="0" x2="0"    y2="-9"/>
+      <line x1="0" y1="0" x2="8.6"  y2="-2.8" transform="rotate(0)"/>
+      <line x1="0" y1="0" x2="5.3"  y2="7.3"/>
+      <line x1="0" y1="0" x2="-5.3" y2="7.3"/>
+      <line x1="0" y1="0" x2="-8.6" y2="-2.8"/>
+    </g>
+    <g fill="#d49050">
+      <circle r="1.4" cx="0"    cy="-9"/>
+      <circle r="1.4" cx="8.6"  cy="-2.8"/>
+      <circle r="1.4" cx="5.3"  cy="7.3"/>
+      <circle r="1.4" cx="-5.3" cy="7.3"/>
+      <circle r="1.4" cx="-8.6" cy="-2.8"/>
+    </g>
   </g>
 </svg>
