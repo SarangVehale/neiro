@@ -109,8 +109,10 @@ input::placeholder,textarea::placeholder { color: var(--ink-faint); opacity: 1; 
 .hero-strip-text {
   font-family: var(--font-data); font-size: 10px; letter-spacing: 0.2em;
   text-transform: uppercase; color: var(--cream-dark);
+  min-width: 0; flex: 1; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
 }
-.sakura-ornament { display: flex; align-items: center; gap: 5px; }
+.sakura-ornament { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
 .s-dot { background: var(--sakura); border-radius: 50%; }
 
 /* ── App shell ───────────────────────────────────────────── */
@@ -120,9 +122,10 @@ input::placeholder,textarea::placeholder { color: var(--ink-faint); opacity: 1; 
 }
 .layout {
   display: grid;
-  grid-template-columns: 220px 1fr 232px;
+  grid-template-columns: 220px minmax(0, 1fr) 232px;
   min-height: calc(100vh - 56px - 35px - 64px);
 }
+.main { min-width: 0; }
 
 /* ── LEFT SIDEBAR ────────────────────────────────────────── */
 .sidebar-left {
@@ -195,6 +198,9 @@ input::placeholder,textarea::placeholder { color: var(--ink-faint); opacity: 1; 
 .sort-pill:hover { color: var(--sakura-deep); border-color: var(--sakura); }
 
 /* ── ALBUM GRID ──────────────────────────────────────────── */
+/* minmax(0, 1fr) instead of plain 1fr — without the 0 floor, the grid
+   tracks expand to fit min-content (the full untruncated card title with
+   white-space:nowrap), causing horizontal overflow on narrow viewports. */
 .album-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -204,7 +210,9 @@ input::placeholder,textarea::placeholder { color: var(--ink-faint); opacity: 1; 
   background: var(--cream-dark); border: var(--rule-strong);
   cursor: pointer; transition: border-color 0.15s;
   display: flex; flex-direction: column;
+  min-width: 0; /* allow shrinking inside grid track */
 }
+.album-card .card-body { min-width: 0; }
 .album-card:hover { border-color: var(--ink-light); }
 .album-card:focus-visible { outline: 2px solid var(--sakura); outline-offset: -2px; }
 .art-wrap {
@@ -743,14 +751,19 @@ input::placeholder,textarea::placeholder { color: var(--ink-faint); opacity: 1; 
 }
 
 @media (max-width: 1280px) {
-  .layout { grid-template-columns: 190px 1fr 210px; }
+  .layout { grid-template-columns: 190px minmax(0, 1fr) 210px; }
 }
 
 @media (max-width: 1024px) {
-  .layout { grid-template-columns: 180px 1fr; }
+  .layout { grid-template-columns: 180px minmax(0, 1fr); }
   .sidebar-right { display: none; }
   .artist-header { grid-template-columns: 1fr; gap: 18px; }
   .artist-name { font-size: 36px; }
+  /* nav gets crowded once we still show full links but have less space */
+  .nav-links a { padding: 0 12px; font-size: 10.5px; }
+  .nav-right { gap: 10px; padding: 0 16px; }
+  .search-field { min-width: 0; flex: 1; max-width: 220px; }
+  .count-badge { display: none; }
 }
 
 /* ≤768px — tablet & below: hamburger, single column */
@@ -763,7 +776,7 @@ input::placeholder,textarea::placeholder { color: var(--ink-faint); opacity: 1; 
   .nav-right .search-field { min-width: 0; flex: 1; padding: 5px 9px; }
   .count-badge { display: none; }
   .mobile-nav { top: 52px; }
-  .layout { grid-template-columns: 1fr; min-height: auto; }
+  .layout { grid-template-columns: minmax(0, 1fr); min-height: auto; }
   .sidebar-left { display: none; }
   .mobile-filter-btn { display: inline-flex; }
 
@@ -773,8 +786,8 @@ input::placeholder,textarea::placeholder { color: var(--ink-faint); opacity: 1; 
   .main-title { font-size: 18px; }
   .main-title small { font-size: 10px; margin-left: 6px; }
 
-  /* album grid — 3 cols on tablets */
-  .album-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  /* album grid — 3 cols on tablets, minmax(0,1fr) prevents overflow */
+  .album-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
   .album-card { touch-action: manipulation; }
 
   /* album page hero — stacked, properly sized */
@@ -825,7 +838,7 @@ input::placeholder,textarea::placeholder { color: var(--ink-faint); opacity: 1; 
 
   .album-back { padding: 12px 14px 0; }
   .related-block { padding: 18px 14px; margin-top: 16px; }
-  .related-block .album-grid { grid-template-columns: repeat(3, 1fr) !important; }
+  .related-block .album-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
 
   .hero-strip { padding: 6px 14px; }
   .hero-strip-text { font-size: 9px; letter-spacing: 0.14em; }
@@ -855,7 +868,7 @@ input::placeholder,textarea::placeholder { color: var(--ink-faint); opacity: 1; 
 /* ≤640px — phones: tighter, 2-col grid feels less cramped than 3 here */
 @media (max-width: 640px) {
   .main { padding: 14px 12px 20px; }
-  .album-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .album-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 
   /* on 2-col phone grid the badge is visible noise — hide it */
   .album-card .fmt-badge { display: none; }
@@ -867,7 +880,7 @@ input::placeholder,textarea::placeholder { color: var(--ink-faint); opacity: 1; 
 
   .album-hero-art { width: 180px; height: 180px; }
   .hero-album-title { font-size: 22px; }
-  .related-block .album-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .related-block .album-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
 }
 
 /* ≤480px — small phones */
@@ -901,7 +914,7 @@ input::placeholder,textarea::placeholder { color: var(--ink-faint); opacity: 1; 
 
 /* ≤375px — iPhone 13 mini, very small */
 @media (max-width: 375px) {
-  .album-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .album-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .pb-title { font-size: 11px; }
   .pb-artist { font-size: 9px; }
 }
