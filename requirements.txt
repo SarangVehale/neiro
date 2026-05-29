@@ -1,0 +1,5 @@
+# Build-time deps for scripts/build_catalogue.py
+# All optional — the script degrades gracefully without them.
+mutagen>=1.47
+Pillow>=10.0
+PyYAML>=6.0

@@ -18,24 +18,18 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout (with LFS)
         uses: actions/checkout@v4
         with:
-          # Pull LFS only when R2 is not configured (legacy mode).
-          # Once all audio is on R2 and tracks.yaml files are committed,
-          # set this to false to skip the multi-GB LFS download entirely.
-          lfs: ${{ secrets.R2_ACCOUNT_ID == '' }}
+          # Keep lfs: true until audio is migrated to Cloudflare R2 and
+          # tracks.yaml files are committed. See docs/DEPLOY.md for migration.
+          lfs: true
 
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-
-      - name: Cache pip
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: pip-build-mutagen-pillow-pyyaml
+          cache: pip
 
       - name: Install deps
         run: pip install mutagen Pillow PyYAML
@@ -55,17 +49,12 @@ jobs:
           fi
           echo "mode=$CDN_MODE" >> "$GITHUB_OUTPUT"
           echo "base=$CDN_BASE" >> "$GITHUB_OUTPUT"
-          echo "CDN mode: $CDN_MODE → $CDN_BASE"
+          echo "CDN mode: $CDN_MODE"
 
       # ── Sync audio to Cloudflare R2 (R2 mode only) ──────────────────────
-      # Requires repository secrets:
-      #   R2_ACCOUNT_ID         – Cloudflare account ID
-      #   R2_BUCKET             – R2 bucket name
-      #   R2_ACCESS_KEY_ID      – R2 API token access key
-      #   R2_SECRET_ACCESS_KEY  – R2 API token secret key
-      #   R2_PUBLIC_URL         – public hostname for the bucket
-      #
-      # aws-cli 2.x is pre-installed on ubuntu-latest.
+      # Requires repository secrets: R2_ACCOUNT_ID, R2_BUCKET,
+      # R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_PUBLIC_URL
+      # aws-cli 2.x is pre-installed on ubuntu-latest runners.
       - name: Sync audio to Cloudflare R2
         if: steps.media.outputs.mode == 'r2'
         env:
@@ -87,10 +76,13 @@ jobs:
             --exclude "*.png"
 
       # ── Build catalogue ──────────────────────────────────────────────────
-      - name: Generate catalogue + sharded ZIPs
+      # --zips is intentionally omitted: building ZIPs from a multi-GB
+      # collection requires 2× audio disk space (~11 GB on current library),
+      # which exceeds the GitHub Actions runner's available disk.
+      # To build ZIPs locally: python scripts/build_catalogue.py --zips
+      - name: Generate catalogue
         run: |
           python scripts/build_catalogue.py \
-            --zips \
             --cdn-base "${{ steps.media.outputs.base }}"
 
       # ── Assemble static site ─────────────────────────────────────────────
@@ -98,7 +90,6 @@ jobs:
         run: |
           mkdir -p public/_catalogue public/_zips
           cp _catalogue/catalogue.json public/_catalogue/catalogue.json
-          cp -f _zips/*.zip public/_zips/ 2>/dev/null || true
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5

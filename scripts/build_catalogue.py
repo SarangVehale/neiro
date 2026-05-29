@@ -454,22 +454,37 @@ def process_album(
     return len(tracks), entry
 
 
-def main() -> int:
-    ap = argparse.ArgumentParser(description="HIBIKI catalogue + ZIP builder")
-    ap.add_argument("--zips", action="store_true", help="Also build sharded ZIPs")
-    ap.add_argument(
-        "--thumb-size", type=int, default=96, metavar="N",
-        help="Cover thumbnail dimension in px (default: 96)",
-    )
-    ap.add_argument(
-        "--thumb-quality", type=int, default=65, metavar="Q",
-        help="JPEG thumbnail quality 1-95 (default: 65)",
-    )
-    ap.add_argument(
-        "--cdn-base", default="", metavar="URL",
-        help="Base URL for audio — written into catalogue meta.media_base_url",
-    )
-    args = ap.parse_args()
+def main(build_zips: bool | None = None) -> int:
+    """Entry point.
+
+    Accepts an optional ``build_zips`` keyword for backwards-compatible
+    programmatic calls (e.g. from tests).  When called from the CLI the
+    argument is parsed via argparse instead.
+    """
+    if build_zips is not None:
+        # Programmatic / test call — skip argparse, use caller's value.
+        args = argparse.Namespace(
+            zips=build_zips,
+            thumb_size=96,
+            thumb_quality=65,
+            cdn_base="",
+        )
+    else:
+        ap = argparse.ArgumentParser(description="HIBIKI catalogue + ZIP builder")
+        ap.add_argument("--zips", action="store_true", help="Also build sharded ZIPs")
+        ap.add_argument(
+            "--thumb-size", type=int, default=96, metavar="N",
+            help="Cover thumbnail dimension in px (default: 96)",
+        )
+        ap.add_argument(
+            "--thumb-quality", type=int, default=65, metavar="Q",
+            help="JPEG thumbnail quality 1-95 (default: 65)",
+        )
+        ap.add_argument(
+            "--cdn-base", default="", metavar="URL",
+            help="Base URL for audio — written into catalogue meta.media_base_url",
+        )
+        args = ap.parse_args()
 
     artists = []
     total_songs = 0
