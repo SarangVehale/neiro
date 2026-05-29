@@ -5,18 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#c9667a" />
     <meta name="description" content="HIBIKI 響 — a free, public music archive. Browse, preview, and download freely." />
-    <!-- CSP: no inline eval; scripts/styles self + known CDNs; media from any HTTPS (CDN URL varies by deployment) -->
-    <meta http-equiv="Content-Security-Policy" content="
-      default-src 'self';
-      script-src 'self' 'unsafe-inline';
-      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net;
-      font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net;
-      img-src 'self' data:;
-      media-src 'self' https: blob:;
-      connect-src 'self';
-      worker-src 'self';
-      frame-ancestors 'none';
-    " />
+    <!-- CSP: no inline eval; scripts/styles self + known CDNs; media from any HTTPS (CDN URL varies by deployment).
+         Note: frame-ancestors is intentionally omitted — it is only honoured in HTTP headers, not meta tags. -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data:; media-src 'self' https: blob:; connect-src 'self'; worker-src 'self';" />
     <title>HIBIKI | 響</title>
     <link rel="manifest" href="manifest.json" />
     <link rel="icon" href="icon.svg" type="image/svg+xml" />
