@@ -1,10 +1,9 @@
 // ────────────────────────────────────────────────────────────
-//  HIBIKI 響 — application logic
+//  NEIRO 音色 — application logic
 // ────────────────────────────────────────────────────────────
 (async function () {
   'use strict';
 
-  // Wait for catalogue.json to load before booting
   await window.HIBIKI_CATALOGUE_PROMISE;
 
   // ── State ─────────────────────────────────────────────────
@@ -12,43 +11,46 @@
     route: 'library', subRoute: null, subId: null,
     filters: { format: null, genre: null, decade: null },
     sort: 'recent', search: '',
-    player: { queue: [], idx: 0, playing: false, currentTime: 0, duration: 0, volume: 0.7 },
+    player: {
+      queue: [], idx: 0, playing: false,
+      currentTime: 0, duration: 0, volume: 0.7,
+      shuffle: false,
+      repeat: 'off', // 'off' | 'all' | 'one'
+    },
   };
 
   const audio = new Audio();
   audio.volume = state.player.volume;
 
   // ── DOM refs ──────────────────────────────────────────────
-  const app        = document.getElementById('app');
-  const pbTitle    = document.getElementById('pbTitle');
-  const pbArtist   = document.getElementById('pbArtist');
-  const pbArt      = document.getElementById('pbArt');
-  const pbPlay     = document.getElementById('pbPlay');
-  const pbPlayIcon = document.getElementById('pbPlayIcon');
-  const pbPrev     = document.getElementById('pbPrev');
-  const pbNext     = document.getElementById('pbNext');
-  const pbCurrent  = document.getElementById('pbCurrent');
-  const pbTotal    = document.getElementById('pbTotal');
-  const pbBarFill  = document.getElementById('pbBarFill');
-  const pbBar      = document.getElementById('pbBar');
-  const pbFmt      = document.getElementById('pbFmt');
-  const pbDl       = document.getElementById('pbDl');
-  const pbVolFill  = document.getElementById('pbVolFill');
-  const pbVolBar   = document.getElementById('pbVolBar');
-  const pbVolIcon  = document.getElementById('pbVolIcon');
-  const songBadge  = document.getElementById('songCountBadge');
+  const app         = document.getElementById('app');
+  const pbTitle     = document.getElementById('pbTitle');
+  const pbArtist    = document.getElementById('pbArtist');
+  const pbArt       = document.getElementById('pbArt');
+  const pbPlay      = document.getElementById('pbPlay');
+  const pbPlayIcon  = document.getElementById('pbPlayIcon');
+  const pbPrev      = document.getElementById('pbPrev');
+  const pbNext      = document.getElementById('pbNext');
+  const pbCurrent   = document.getElementById('pbCurrent');
+  const pbTotal     = document.getElementById('pbTotal');
+  const pbBarFill   = document.getElementById('pbBarFill');
+  const pbBar       = document.getElementById('pbBar');
+  const pbFmt       = document.getElementById('pbFmt');
+  const pbDl        = document.getElementById('pbDl');
+  const pbVolFill   = document.getElementById('pbVolFill');
+  const pbVolBar    = document.getElementById('pbVolBar');
+  const pbVolIcon   = document.getElementById('pbVolIcon');
+  const pbShuffle   = document.getElementById('pbShuffle');
+  const pbRepeat    = document.getElementById('pbRepeat');
+  const songBadge   = document.getElementById('songCountBadge');
   const searchInput = document.getElementById('searchInput');
   const toastRegion = document.getElementById('toastRegion');
 
   // ── Utilities ─────────────────────────────────────────────
-
-  // HTML-escape all catalogue string values before inserting into innerHTML.
-  // Prevents stored XSS if a bio.md / meta.yaml contains raw HTML tags.
   function esc(s) {
     return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;')
       .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   }
-
   function fmt(sec) {
     const m = Math.floor(sec / 60);
     const s = String(Math.floor(sec % 60)).padStart(2, '0');
@@ -71,7 +73,7 @@
   function fmtLbl(f)  { return (FORMATS[(f||'').toLowerCase()] || {}).label || (f||'').toUpperCase(); }
   function albumIdx(album) { return CATALOGUE.allAlbums.indexOf(album); }
 
-  function toast(msg, k = '響') {
+  function toast(msg, k = '音色') {
     const t = document.createElement('div');
     t.className = 'toast';
     t.innerHTML = `<span class="tk">${k}</span>${msg}`;
@@ -102,9 +104,13 @@
     else if (state.sort === 'year') list = [...list].sort((a,b) => b.year - a.year);
     return list;
   }
-  function countFmt(f)   { return CATALOGUE.allAlbums.filter(a=>a.fmt===f).reduce((s,a)=>s+a.tracks.length,0); }
-  function countGenre(g) { const gl=g.toLowerCase(); return CATALOGUE.allAlbums.filter(a=>a.genre.toLowerCase().includes(gl)).reduce((s,a)=>s+a.tracks.length,0); }
-  function countDecade(d){ const di=parseInt(d); return CATALOGUE.allAlbums.filter(a=>Math.floor(a.year/10)*10===di).reduce((s,a)=>s+a.tracks.length,0); }
+  function countFmt(f)    { return CATALOGUE.allAlbums.filter(a=>a.fmt===f).reduce((s,a)=>s+a.tracks.length,0); }
+  function countGenre(g)  { const gl=g.toLowerCase(); return CATALOGUE.allAlbums.filter(a=>a.genre.toLowerCase().includes(gl)).reduce((s,a)=>s+a.tracks.length,0); }
+  function countDecade(d) { const di=parseInt(d); return CATALOGUE.allAlbums.filter(a=>Math.floor(a.year/10)*10===di).reduce((s,a)=>s+a.tracks.length,0); }
+
+  function activeFilterCount() {
+    return [state.filters.format, state.filters.genre, state.filters.decade].filter(Boolean).length;
+  }
 
   // ── Card HTML ─────────────────────────────────────────────
   function cardHTML(album, i) {
@@ -129,46 +135,60 @@
 </article>`;
   }
 
+  // ── Sidebar filter HTML (shared between desktop sidebar and mobile sheet) ─
+  function filterHTML() {
+    const GENRES  = [...new Set(CATALOGUE.allAlbums.map(a=>a.genre))].sort();
+    const DECADES = [...new Set(CATALOGUE.allAlbums.map(a=>a.year&&Math.floor(a.year/10)*10).filter(Boolean))].sort((a,b)=>b-a);
+    return `
+<div class="filter-group">
+  <span class="filter-label">Format</span>
+  <div class="filter-item${!state.filters.format?' active':''}" tabindex="0" role="button" data-ff="">
+    <span>All formats</span><span class="filter-count">${CATALOGUE.totalSongs}</span>
+  </div>
+  ${['flac','mp3','m4a'].map(f=>`
+  <div class="filter-item${state.filters.format===f?' active':''}" tabindex="0" role="button" data-ff="${f}">
+    <span>${FORMATS[f].label}</span><span class="filter-count">${countFmt(f)}</span>
+  </div>`).join('')}
+</div>
+<div class="filter-group">
+  <span class="filter-label">Genre</span>
+  ${GENRES.map(g=>`
+  <div class="filter-item${state.filters.genre===g?' active':''}" tabindex="0" role="button" data-fg="${esc(g)}">
+    <span>${esc(g)}</span><span class="filter-count">${countGenre(g)}</span>
+  </div>`).join('')}
+</div>
+<div class="filter-group">
+  <span class="filter-label">Decade</span>
+  ${DECADES.map(d=>`
+  <div class="filter-item${state.filters.decade===String(d)?' active':''}" tabindex="0" role="button" data-fd="${d}">
+    <span>${d}s</span><span class="filter-count">${countDecade(d)}</span>
+  </div>`).join('')}
+</div>
+<div class="watermark" aria-hidden="true">音色</div>`;
+  }
+
   // ── View: Library ─────────────────────────────────────────
   function viewLibrary() {
     const albums = filteredAlbums();
     const sortLabels = { recent:'recently added ↓', alpha:'alphabetical ↑', year:'year ↓' };
-    const GENRES  = [...new Set(CATALOGUE.allAlbums.map(a=>a.genre))].sort();
-    const DECADES = [...new Set(CATALOGUE.allAlbums.map(a=>a.year&&Math.floor(a.year/10)*10).filter(Boolean))].sort((a,b)=>b-a);
+    const fc = activeFilterCount();
     return `
 <div class="layout">
   <aside class="sidebar-left" aria-label="Filters">
-    <div class="filter-group">
-      <span class="filter-label">Format</span>
-      <div class="filter-item${!state.filters.format?' active':''}" tabindex="0" role="button" data-ff="">
-        <span>All formats</span><span class="filter-count">${CATALOGUE.totalSongs}</span>
-      </div>
-      ${['flac','mp3','m4a'].map(f=>`
-      <div class="filter-item${state.filters.format===f?' active':''}" tabindex="0" role="button" data-ff="${f}">
-        <span>${FORMATS[f].label}</span><span class="filter-count">${countFmt(f)}</span>
-      </div>`).join('')}
-    </div>
-    <div class="filter-group">
-      <span class="filter-label">Genre</span>
-      ${GENRES.map(g=>`
-      <div class="filter-item${state.filters.genre===g?' active':''}" tabindex="0" role="button" data-fg="${esc(g)}">
-        <span>${esc(g)}</span><span class="filter-count">${countGenre(g)}</span>
-      </div>`).join('')}
-    </div>
-    <div class="filter-group">
-      <span class="filter-label">Decade</span>
-      ${DECADES.map(d=>`
-      <div class="filter-item${state.filters.decade===String(d)?' active':''}" tabindex="0" role="button" data-fd="${d}">
-        <span>${d}s</span><span class="filter-count">${countDecade(d)}</span>
-      </div>`).join('')}
-    </div>
-    <div class="watermark" aria-hidden="true">響</div>
+    ${filterHTML()}
   </aside>
 
   <main class="main" role="main">
     <div class="main-header">
       <h1 class="main-title">All albums <small>${albums.length} results</small></h1>
-      <span class="sort-control">sorted by — <span class="sort-pill">${sortLabels[state.sort]}</span></span>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <button class="mobile-filter-btn${fc?' has-filter':''}" id="mobileFilterBtn" aria-label="Open filters">
+          <i class="ti ti-adjustments-horizontal" aria-hidden="true"></i>
+          Filters
+          <span class="mfb-badge">${fc||''}</span>
+        </button>
+        <span class="sort-control">sorted by — <span class="sort-pill">${sortLabels[state.sort]}</span></span>
+      </div>
     </div>
     <div class="album-grid" role="list">
       ${albums.length
@@ -462,9 +482,9 @@ ${upNext.length ? `
 <div class="about-layout">
   <h1 class="page-heading" style="margin-bottom:24px">About <span class="kanji-after">について</span></h1>
   <div class="about-block">
-    <h2>What is HIBIKI?</h2>
-    <p>HIBIKI (響) is a free, public music archive — a zero-infrastructure static site over a GitHub repository. No backend, no database, no tracking.</p>
-    <p>Browse, preview, and download freely. Contribute your own music via a pull request.</p>
+    <h2>What is NEIRO?</h2>
+    <p>NEIRO (音色) is a free, public music archive — a zero-infrastructure static site over a GitHub repository. No backend, no database, no tracking.</p>
+    <p>音色 means "timbre" in Japanese — the colour of a sound. Browse, preview, and download freely. Contribute your own music via a pull request.</p>
   </div>
   <div class="about-block">
     <h2>Technical stack <small>How it works</small></h2>
@@ -486,6 +506,8 @@ ${upNext.length ? `
     <table class="tech-table">
       <tr><td>Space</td><td>Play / pause</td></tr>
       <tr><td>Alt + ← →</td><td>Previous / next track</td></tr>
+      <tr><td>S</td><td>Toggle shuffle</td></tr>
+      <tr><td>R</td><td>Cycle repeat mode</td></tr>
       <tr><td>M</td><td>Mute / unmute</td></tr>
       <tr><td>/</td><td>Focus search</td></tr>
     </table>
@@ -526,7 +548,6 @@ ${upNext.length ? `
 
   // ── Event binding ─────────────────────────────────────────
   function bind() {
-    // Album cards
     app.querySelectorAll('.album-card').forEach(card=>{
       card.addEventListener('click', e=>{
         if (e.target.closest('.dl-btn')) return;
@@ -535,7 +556,6 @@ ${upNext.length ? `
       });
       card.addEventListener('keydown', e=>{ if(e.key==='Enter') card.click(); });
     });
-    // data-nav buttons
     app.querySelectorAll('[data-nav]').forEach(el=>{
       el.addEventListener('click', ()=>{
         const nav=el.dataset.nav, aid=el.dataset.artistId;
@@ -544,29 +564,29 @@ ${upNext.length ? `
         else if(nav==='artists') navigate('artists');
       });
     });
-    // Artist rows
     app.querySelectorAll('.artist-row').forEach(row=>{
       row.addEventListener('click', ()=>navigate('artists','artist',row.dataset.artistId));
       row.addEventListener('keydown', e=>{ if(e.key==='Enter') row.click(); });
     });
-    // Download no-ops
     app.querySelectorAll('[data-dl],[data-dl-album]').forEach(btn=>{
       btn.addEventListener('click', e=>{ e.stopPropagation(); toast('Download started','↓'); });
     });
-    // Track row → play
     app.querySelectorAll('[data-play]').forEach(row=>{
       row.addEventListener('click', e=>{
         if(e.target.closest('[data-dl]')) return;
         playFrom(row.dataset.play, parseInt(row.dataset.ti));
       });
     });
-    // Filters
     app.querySelectorAll('[data-ff]').forEach(el=>{ el.addEventListener('click', ()=>{ state.filters.format=el.dataset.ff||null; render(); }); });
     app.querySelectorAll('[data-fg]').forEach(el=>{ el.addEventListener('click', ()=>{ state.filters.genre=state.filters.genre===el.dataset.fg?null:el.dataset.fg; render(); }); });
     app.querySelectorAll('[data-fd]').forEach(el=>{ el.addEventListener('click', ()=>{ state.filters.decade=state.filters.decade===el.dataset.fd?null:el.dataset.fd; render(); }); });
-    // Sort
     app.querySelectorAll('.sort-pill').forEach(pill=>{ pill.addEventListener('click', ()=>{ const s=['recent','alpha','year']; state.sort=s[(s.indexOf(state.sort)+1)%3]; render(); }); });
     bindNP();
+
+    // Mobile filter button
+    const mfb = app.querySelector('#mobileFilterBtn');
+    if (mfb) mfb.addEventListener('click', openFilterSheet);
+
     // Contribute form
     const audioZone=app.querySelector('#audioZone'), audioInput=app.querySelector('#audioInput');
     const artZone=app.querySelector('#artZone'),     artInput=app.querySelector('#artInput');
@@ -613,14 +633,112 @@ ${upNext.length ? `
   }
   function vrow(cls,icon,name,status) { return `<div class="val-row val-${cls}"><i class="ti ${icon}" aria-hidden="true"></i><span class="vr-name">${esc(name)}</span><span class="vr-status">${esc(status)}</span></div>`; }
 
+  // ── Mobile filter sheet ───────────────────────────────────
+  const filterSheet = document.getElementById('filterSheet');
+  const filterSheetBackdrop = document.getElementById('filterSheetBackdrop');
+  const filterSheetBody = document.getElementById('filterSheetBody');
+  const filterSheetClose = document.getElementById('filterSheetClose');
+
+  function openFilterSheet() {
+    filterSheetBody.innerHTML = filterHTML();
+    filterSheet.classList.add('open');
+    filterSheet.setAttribute('aria-hidden','false');
+    // Bind filter interactions inside the sheet
+    filterSheetBody.querySelectorAll('[data-ff]').forEach(el=>{ el.addEventListener('click', ()=>{ state.filters.format=el.dataset.ff||null; closeFilterSheet(); render(); }); });
+    filterSheetBody.querySelectorAll('[data-fg]').forEach(el=>{ el.addEventListener('click', ()=>{ state.filters.genre=state.filters.genre===el.dataset.fg?null:el.dataset.fg; closeFilterSheet(); render(); }); });
+    filterSheetBody.querySelectorAll('[data-fd]').forEach(el=>{ el.addEventListener('click', ()=>{ state.filters.decade=state.filters.decade===el.dataset.fd?null:el.dataset.fd; closeFilterSheet(); render(); }); });
+  }
+  function closeFilterSheet() {
+    filterSheet.classList.remove('open');
+    filterSheet.setAttribute('aria-hidden','true');
+  }
+  if (filterSheetClose) filterSheetClose.addEventListener('click', closeFilterSheet);
+  if (filterSheetBackdrop) filterSheetBackdrop.addEventListener('click', closeFilterSheet);
+
+  // ── Shuffle / Repeat ──────────────────────────────────────
+  function toggleShuffle() {
+    const p = state.player;
+    p.shuffle = !p.shuffle;
+    if (p.queue.length > 1) {
+      const current = p.queue[p.idx];
+      if (p.shuffle) {
+        // Fisher-Yates, current track stays at front
+        const rest = p.queue.filter((_,i) => i !== p.idx);
+        for (let i = rest.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [rest[i], rest[j]] = [rest[j], rest[i]];
+        }
+        p.queue = [current, ...rest];
+        p.idx = 0;
+      } else {
+        // Restore original track order
+        p.queue.sort((a, b) => a.trackIdx - b.trackIdx);
+        p.idx = p.queue.findIndex(it => it === current);
+        if (p.idx < 0) p.idx = 0;
+      }
+    }
+    updateShuffleRepeatUI();
+    refreshNP();
+  }
+
+  function cycleRepeat() {
+    const modes = ['off', 'all', 'one'];
+    const i = modes.indexOf(state.player.repeat);
+    state.player.repeat = modes[(i + 1) % 3];
+    updateShuffleRepeatUI();
+  }
+
+  function updateShuffleRepeatUI() {
+    const p = state.player;
+    // Player bar buttons
+    if (pbShuffle) {
+      pbShuffle.classList.toggle('active', p.shuffle);
+      pbShuffle.setAttribute('aria-label', p.shuffle ? 'Shuffle on' : 'Shuffle off');
+    }
+    if (pbRepeat) {
+      pbRepeat.classList.toggle('active', p.repeat !== 'off');
+      pbRepeat.classList.toggle('repeat-one', p.repeat === 'one');
+      pbRepeat.setAttribute('aria-label', `Repeat ${p.repeat}`);
+      const icon = pbRepeat.querySelector('i');
+      if (icon) icon.className = p.repeat === 'one' ? 'ti ti-repeat-once' : 'ti ti-repeat';
+    }
+    // Full player buttons
+    const fpS = document.getElementById('fpShuffle');
+    const fpR = document.getElementById('fpRepeat');
+    if (fpS) {
+      fpS.classList.toggle('active', p.shuffle);
+      fpS.setAttribute('aria-label', p.shuffle ? 'Shuffle on' : 'Shuffle off');
+    }
+    if (fpR) {
+      fpR.classList.toggle('active', p.repeat !== 'off');
+      fpR.classList.toggle('repeat-one', p.repeat === 'one');
+      fpR.setAttribute('aria-label', `Repeat ${p.repeat}`);
+      const icon = fpR.querySelector('i');
+      if (icon) icon.className = p.repeat === 'one' ? 'ti ti-repeat-once' : 'ti ti-repeat';
+    }
+  }
+
   // ── Audio / player ────────────────────────────────────────
   function playFrom(albumId, trackIdx) {
     const album=CATALOGUE.allAlbums.find(a=>a.id===albumId); if(!album) return;
     const artist=CATALOGUE.artists.find(a=>a.id===album.artistId);
-    state.player.queue=album.tracks.map((tr,i)=>({ track:tr, albumId, album, artist:artist.name, trackIdx:i }));
-    state.player.idx=trackIdx;
+    // Build queue; if shuffle is on, shuffle from chosen track
+    const allTracks = album.tracks.map((tr,i)=>({ track:tr, albumId, album, artist:artist.name, trackIdx:i }));
+    if (state.player.shuffle && allTracks.length > 1) {
+      const chosen = allTracks[trackIdx];
+      const rest = allTracks.filter((_,i) => i !== trackIdx);
+      for (let i = rest.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [rest[i], rest[j]] = [rest[j], rest[i]];
+      }
+      state.player.queue = [chosen, ...rest];
+      state.player.idx = 0;
+    } else {
+      state.player.queue = allTracks;
+      state.player.idx = trackIdx;
+    }
     loadTrack(); state.player.playing=true;
-    updateBar(); updatePlayState(); refreshNP();
+    updateBar(); updatePlayState(); refreshNP(); updateShuffleRepeatUI();
     if(state.subRoute==='album') render();
   }
 
@@ -650,15 +768,29 @@ ${upNext.length ? `
 
   function prevTrack() {
     const p=state.player;
+    // If more than 3s in, restart current track
+    if (audio.currentTime > 3) {
+      audio.currentTime = 0;
+      state.player.currentTime = 0;
+      updateProgress();
+      return;
+    }
     if(p.idx>0){ p.idx--; loadTrack(); if(p.playing) audio.play().catch(()=>{}); updateBar(); refreshNP(); }
+    else if(p.repeat==='all'){ p.idx=p.queue.length-1; loadTrack(); if(p.playing) audio.play().catch(()=>{}); updateBar(); refreshNP(); }
   }
+
   function nextTrack() {
     const p=state.player;
+    if(p.repeat==='one') {
+      audio.currentTime=0; state.player.currentTime=0;
+      if(p.playing) audio.play().catch(()=>{});
+      updateProgress(); return;
+    }
     if(p.idx<p.queue.length-1){ p.idx++; loadTrack(); if(p.playing) audio.play().catch(()=>{}); updateBar(); refreshNP(); }
+    else if(p.repeat==='all'){ p.idx=0; loadTrack(); if(p.playing) audio.play().catch(()=>{}); updateBar(); refreshNP(); }
     else { p.playing=false; audio.pause(); updatePlayState(); }
   }
 
-  // Real <audio> events drive progress and state
   audio.addEventListener('timeupdate', ()=>{
     state.player.currentTime=audio.currentTime||0;
     if(audio.duration&&isFinite(audio.duration)) state.player.duration=audio.duration;
@@ -680,13 +812,15 @@ ${upNext.length ? `
     const pct=p.duration>0?(p.currentTime/p.duration*100).toFixed(1):0;
     if(pbBarFill) pbBarFill.style.width=pct+'%';
     if(pbCurrent) pbCurrent.textContent=fmt(p.currentTime);
+    if(pbBar) pbBar.setAttribute('aria-valuenow', pct);
     const npFill=app.querySelector('#npFill'), npCur=app.querySelector('#npCur');
     if(npFill) npFill.style.width=pct+'%';
     if(npCur)  npCur.textContent=fmt(p.currentTime);
-    // Sync full player progress
     const fpFill=document.getElementById('fpScrubFill'), fpC=document.getElementById('fpCur');
+    const fpThumb=document.getElementById('fpScrubThumb');
     if(fpFill) fpFill.style.width=pct+'%';
     if(fpC)    fpC.textContent=fmt(p.currentTime);
+    if(fpThumb) fpThumb.style.left=pct+'%';
   }
 
   function updateBar() {
@@ -722,6 +856,10 @@ ${upNext.length ? `
   pbPlay.addEventListener('click', togglePlay);
   pbPrev.addEventListener('click', prevTrack);
   pbNext.addEventListener('click', nextTrack);
+  if(pbShuffle) pbShuffle.addEventListener('click', toggleShuffle);
+  if(pbRepeat)  pbRepeat.addEventListener('click', cycleRepeat);
+
+  // Scrub bar — mouse
   pbBar.addEventListener('click', e=>{
     const r=pbBar.getBoundingClientRect();
     const t=Math.floor((e.clientX-r.left)/r.width*state.player.duration);
@@ -729,6 +867,14 @@ ${upNext.length ? `
     if(audio.src&&isFinite(audio.duration)) { try{audio.currentTime=t;}catch(_){} }
     updateProgress();
   });
+
+  // Scrub bar — touch
+  wireScrubbable(pbBar, ()=>state.player.duration, t=>{
+    state.player.currentTime=t;
+    if(audio.src&&isFinite(audio.duration)) { try{audio.currentTime=t;}catch(_){} }
+    updateProgress();
+  });
+
   pbVolBar.addEventListener('click', e=>{
     const r=pbVolBar.getBoundingClientRect();
     const v=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));
@@ -739,6 +885,24 @@ ${upNext.length ? `
     else { const v=audio._prev||0.7; audio.volume=v; state.player.volume=v; pbVolFill.style.width=(v*100)+'%'; }
   });
   pbDl.addEventListener('click', ()=>{ if(state.player.queue.length) toast('Track download started','↓'); });
+
+  // ── Touch-scrub helper ─────────────────────────────────────
+  function wireScrubbable(el, getDuration, onSeek) {
+    function posToTime(clientX) {
+      const r = el.getBoundingClientRect();
+      return Math.max(0, Math.min(1, (clientX - r.left) / r.width)) * getDuration();
+    }
+    el.addEventListener('touchstart', e=>{
+      e.preventDefault();
+      el.classList.add('dragging');
+      onSeek(posToTime(e.touches[0].clientX));
+    }, { passive: false });
+    el.addEventListener('touchmove', e=>{
+      e.preventDefault();
+      onSeek(posToTime(e.touches[0].clientX));
+    }, { passive: false });
+    el.addEventListener('touchend', ()=>el.classList.remove('dragging'));
+  }
 
   // ── Nav ───────────────────────────────────────────────────
   document.querySelectorAll('.route-link').forEach(link=>{
@@ -756,6 +920,8 @@ ${upNext.length ? `
     if(e.key===' ')        { e.preventDefault(); togglePlay(); }
     if(e.key==='ArrowLeft'  && e.altKey) { e.preventDefault(); prevTrack(); }
     if(e.key==='ArrowRight' && e.altKey) { e.preventDefault(); nextTrack(); }
+    if(e.key==='s'||e.key==='S') toggleShuffle();
+    if(e.key==='r'||e.key==='R') cycleRepeat();
     if(e.key==='m'||e.key==='M') pbVolIcon.click();
     if(e.key==='/') { e.preventDefault(); searchInput.focus(); }
   });
@@ -778,6 +944,8 @@ ${upNext.length ? `
   const fpPlayBtn    = document.getElementById('fpPlay');
   const fpPrevBtn    = document.getElementById('fpPrev');
   const fpNextBtn    = document.getElementById('fpNext');
+  const fpShuffleBtn = document.getElementById('fpShuffle');
+  const fpRepeatBtn  = document.getElementById('fpRepeat');
 
   function syncFullPlayer() {
     const p=state.player, item=p.queue[p.idx];
@@ -794,9 +962,12 @@ ${upNext.length ? `
     if(fpTotEl)    fpTotEl.textContent=fmt(p.duration);
     const pct=p.duration>0?(p.currentTime/p.duration*100).toFixed(1):0;
     const fpFill=document.getElementById('fpScrubFill'), fpC=document.getElementById('fpCur');
+    const fpThumb=document.getElementById('fpScrubThumb');
     if(fpFill) fpFill.style.width=pct+'%';
     if(fpC)    fpC.textContent=fmt(p.currentTime);
+    if(fpThumb) fpThumb.style.left=pct+'%';
     updatePlayState();
+    updateShuffleRepeatUI();
   }
 
   function openFullPlayer() {
@@ -808,15 +979,20 @@ ${upNext.length ? `
     if(fullPlayer) fullPlayer.classList.remove('open');
   }
 
-  // Open on click of player bar art or track info
+  // Open on art / track info click
   if(pbArt)  pbArt.addEventListener('click', openFullPlayer);
+  if(pbArt)  pbArt.addEventListener('keydown', e=>{ if(e.key==='Enter') openFullPlayer(); });
   document.querySelector('.pb-track')?.addEventListener('click', openFullPlayer);
   if(fpDown) fpDown.addEventListener('click', closeFullPlayer);
 
   // Full player controls
-  if(fpPlayBtn) fpPlayBtn.addEventListener('click', ()=>{ togglePlay(); syncFullPlayer(); });
-  if(fpPrevBtn) fpPrevBtn.addEventListener('click', ()=>{ prevTrack(); syncFullPlayer(); });
-  if(fpNextBtn) fpNextBtn.addEventListener('click', ()=>{ nextTrack(); syncFullPlayer(); });
+  if(fpPlayBtn)   fpPlayBtn.addEventListener('click', ()=>{ togglePlay(); syncFullPlayer(); });
+  if(fpPrevBtn)   fpPrevBtn.addEventListener('click', ()=>{ prevTrack(); syncFullPlayer(); });
+  if(fpNextBtn)   fpNextBtn.addEventListener('click', ()=>{ nextTrack(); syncFullPlayer(); });
+  if(fpShuffleBtn) fpShuffleBtn.addEventListener('click', ()=>{ toggleShuffle(); });
+  if(fpRepeatBtn)  fpRepeatBtn.addEventListener('click', ()=>{ cycleRepeat(); });
+
+  // Full player scrub — mouse
   if(fpScrubBarEl) fpScrubBarEl.addEventListener('click', e=>{
     const r=fpScrubBarEl.getBoundingClientRect();
     const t=Math.floor((e.clientX-r.left)/r.width*state.player.duration);
@@ -825,9 +1001,45 @@ ${upNext.length ? `
     updateProgress();
   });
 
-  // Sync full player when track changes
-  const _origUpdateBar=updateBar;
-  // (updateBar already called from loadTrack / playFrom — also sync full player)
+  // Full player scrub — touch
+  if(fpScrubBarEl) wireScrubbable(fpScrubBarEl, ()=>state.player.duration, t=>{
+    state.player.currentTime=t;
+    if(audio.src&&isFinite(audio.duration)){try{audio.currentTime=t;}catch(_){}}
+    updateProgress();
+  });
+
+  // ── Full player swipe gestures ─────────────────────────────
+  // Swipe down to close; swipe left/right on art to skip
+  if(fullPlayer) {
+    let fpTouchY0 = 0, fpTouchX0 = 0;
+    fullPlayer.addEventListener('touchstart', e=>{
+      fpTouchY0 = e.touches[0].clientY;
+      fpTouchX0 = e.touches[0].clientX;
+    }, { passive: true });
+    fullPlayer.addEventListener('touchend', e=>{
+      const dy = e.changedTouches[0].clientY - fpTouchY0;
+      const dx = e.changedTouches[0].clientX - fpTouchX0;
+      if(Math.abs(dy) > Math.abs(dx) && dy > 80) { closeFullPlayer(); return; }
+      // Swipe on art only
+      if(e.target.closest('.fp-art-wrap') && Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 60) {
+        if(dx < 0) nextTrack(); else prevTrack();
+        syncFullPlayer();
+      }
+    }, { passive: true });
+  }
+
+  // ── Swipe up on player bar to open full player (mobile) ───
+  if(pbArt) {
+    let pbTouchY0 = 0;
+    document.getElementById('playerBar')?.addEventListener('touchstart', e=>{
+      pbTouchY0 = e.touches[0].clientY;
+    }, { passive: true });
+    document.getElementById('playerBar')?.addEventListener('touchend', e=>{
+      const dy = e.changedTouches[0].clientY - pbTouchY0;
+      if(dy < -40) openFullPlayer();
+    }, { passive: true });
+  }
+
   audio.addEventListener('loadedmetadata',()=>{ if(fpTotEl) fpTotEl.textContent=fmt(audio.duration||0); });
 
   // ── Mobile nav ────────────────────────────────────────────
@@ -853,6 +1065,7 @@ ${upNext.length ? `
   // ── Init ──────────────────────────────────────────────────
   songBadge.textContent=`${CATALOGUE.totalSongs} songs`;
   pbVolFill.style.width=(state.player.volume*100)+'%';
+  updateShuffleRepeatUI();
   navigate('library');
 
 })();

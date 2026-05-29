@@ -1,5 +1,5 @@
 // ────────────────────────────────────────────────────────────
-//  HIBIKI 響 — catalogue loader / adapter
+//  NEIRO 音色 — catalogue loader / adapter
 //  Fetches _catalogue/catalogue.json (built by scripts/build_catalogue.py)
 //  and shapes it into the CATALOGUE object the app consumes.
 // ────────────────────────────────────────────────────────────
@@ -10,7 +10,7 @@ const FORMATS = {
   aac:  { label: "AAC",     bitrate: "256kbps",  cls: "fmt-aac",  pillColor: "#9090c0" },
 };
 
-const KANJI = ["響", "森", "花", "夜", "波", "静"];
+const KANJI = ["音", "色", "花", "夜", "波", "静"];
 
 function dominantFormat(tracks) {
   const counts = {};

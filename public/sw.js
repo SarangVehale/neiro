@@ -1,7 +1,7 @@
-// HIBIKI 響 — service worker.
+// NEIRO 音色 — service worker.
 // Caches the app shell for offline browsing.
 // Audio files are never cached — they stream on demand (spec §F4).
-const VERSION = "hibiki-v2";
+const VERSION = "neiro-v1";
 const SHELL = [
   "./",
   "index.html",

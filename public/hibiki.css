@@ -1,5 +1,5 @@
 /* ────────────────────────────────────────────────────────────
-   HIBIKI 響 — design tokens & global styles
+   NEIRO 音色 — design tokens & global styles
    1987 Japanese music magazine × retro Apple hardware
 ─────────────────────────────────────────────────────────── */
 
@@ -153,6 +153,21 @@ input::placeholder,textarea::placeholder { color: var(--ink-faint); opacity: 1; 
   text-align: center; padding: 28px 0 22px; line-height: 1;
   user-select: none; border-top: var(--rule); margin-top: 8px;
 }
+/* Mobile filter button — shown only on ≤768px */
+.mobile-filter-btn {
+  display: none; align-items: center; gap: 6px;
+  font-family: var(--font-data); font-size: 10px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--ink-light);
+  border: var(--rule-strong); padding: 7px 12px;
+  background: var(--cream-dark); cursor: pointer; transition: color 0.1s, border-color 0.1s;
+}
+.mobile-filter-btn:hover { color: var(--sakura-deep); border-color: var(--sakura); }
+.mobile-filter-btn .mfb-badge {
+  background: var(--sakura); color: white; border-radius: 50%;
+  width: 16px; height: 16px; font-size: 9px; display: none;
+  align-items: center; justify-content: center; flex-shrink: 0;
+}
+.mobile-filter-btn.has-filter .mfb-badge { display: flex; }
 
 /* ── MAIN ────────────────────────────────────────────────── */
 .main { padding: 22px 22px 28px; min-width: 0; }
@@ -346,6 +361,49 @@ input::placeholder,textarea::placeholder { color: var(--ink-faint); opacity: 1; 
 .vol-bar { width: 60px; height: 2px; background: #2a2818; cursor: pointer; }
 .vol-fill { height: 100%; background: #8a8270; }
 
+/* ── Shuffle / Repeat controls ──────────────────────────── */
+.pb-secondary-controls {
+  display: flex; align-items: center; gap: 4px; flex-shrink: 0;
+}
+.pb-shuffle, .pb-repeat {
+  font-size: 14px; opacity: 0.45; transition: opacity 0.15s, color 0.15s;
+  position: relative;
+}
+.pb-shuffle:hover, .pb-repeat:hover { opacity: 0.8; }
+.pb-shuffle.active, .pb-repeat.active { opacity: 1; color: var(--sakura); }
+/* Repeat-one dot indicator */
+.pb-repeat.repeat-one::after {
+  content: "1"; position: absolute; top: -4px; right: -5px;
+  font-family: var(--font-data); font-size: 8px; color: var(--sakura);
+  font-weight: 700; line-height: 1;
+}
+
+/* Full player shuffle/repeat buttons */
+.fp-ctrl-sm {
+  font-size: 18px; color: var(--ink-faint); cursor: pointer;
+  width: 40px; height: 40px; display: flex; align-items: center;
+  justify-content: center; transition: color 0.1s; opacity: 0.5;
+}
+.fp-ctrl-sm:hover { opacity: 0.8; color: var(--ink); }
+.fp-ctrl-sm.active { opacity: 1; color: var(--sakura); }
+.fp-ctrl-sm.repeat-one { position: relative; }
+.fp-ctrl-sm.repeat-one::after {
+  content: "1"; position: absolute; top: 2px; right: 2px;
+  font-family: var(--font-data); font-size: 9px; color: var(--sakura);
+  font-weight: 700; line-height: 1;
+}
+
+/* ── Full-player scrub thumb ──────────────────────────────── */
+.fp-scrub-thumb {
+  position: absolute; top: 50%; transform: translate(-50%, -50%) scale(0);
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--sakura); pointer-events: none;
+  transition: transform 0.1s; left: 0;
+}
+.fp-scrub-bar:hover .fp-scrub-thumb,
+.fp-scrub-bar.dragging .fp-scrub-thumb { transform: translate(-50%, -50%) scale(1); }
+.fp-scrub-bar { position: relative; }
+
 /* ── ALBUM PAGE ──────────────────────────────────────────── */
 .album-page { padding: 0 0 24px; }
 .album-back {
@@ -502,6 +560,48 @@ input::placeholder,textarea::placeholder { color: var(--ink-faint); opacity: 1; 
 .tech-table td { padding: 8px 12px; border-bottom: var(--rule); font-size: 12px; font-family: var(--font-data); color: var(--ink-mid); }
 .tech-table td:first-child { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); width: 30%; }
 
+/* ── Filter bottom sheet (mobile) ───────────────────────── */
+.filter-sheet {
+  position: fixed; inset: 0; z-index: 500;
+  pointer-events: none; visibility: hidden;
+}
+.filter-sheet.open {
+  pointer-events: all; visibility: visible;
+}
+.filter-sheet-backdrop {
+  position: absolute; inset: 0; background: rgba(0,0,0,0.5);
+  opacity: 0; transition: opacity 0.25s;
+}
+.filter-sheet.open .filter-sheet-backdrop { opacity: 1; }
+.filter-sheet-panel {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: var(--cream); max-height: 80vh;
+  display: flex; flex-direction: column;
+  border-top: 2px solid var(--sakura);
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.filter-sheet.open .filter-sheet-panel { transform: translateY(0); }
+.filter-sheet-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; border-bottom: var(--rule-strong); flex-shrink: 0;
+}
+.filter-sheet-title {
+  font-family: var(--font-data); font-size: 10px; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--sakura);
+}
+.filter-sheet-close {
+  width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+  font-size: 18px; color: var(--ink-light); border: var(--rule);
+}
+.filter-sheet-body {
+  overflow-y: auto; padding: 8px 0; flex: 1;
+  -webkit-overflow-scrolling: touch;
+}
+.filter-sheet-body .filter-group { padding: 0 0 8px; margin-bottom: 8px; }
+.filter-sheet-body .filter-label { padding: 6px 20px; }
+.filter-sheet-body .filter-item { padding: 12px 20px; border-bottom: var(--rule); }
+
 /* ── Toast ───────────────────────────────────────────────── */
 .toast-region { position: fixed; top: 70px; right: 24px; z-index: 300; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
 .toast { background: var(--ink); color: var(--cream); padding: 11px 16px; font-family: var(--font-data); font-size: 11px; letter-spacing: 0.06em; border-left: 2px solid var(--sakura); max-width: 320px; animation: toastIn 0.2s ease-out, toastOut 0.25s ease-in 2.6s forwards; pointer-events: auto; }
@@ -624,7 +724,7 @@ input::placeholder,textarea::placeholder { color: var(--ink-faint); opacity: 1; 
 
 /* ── Responsive ──────────────────────────────────────────── */
 
-/* Large screens / projectors — scale up gracefully */
+/* Large screens / projectors */
 @media (min-width: 1920px) {
   html { font-size: 18px; }
   .layout { grid-template-columns: 240px 1fr 260px; }
@@ -644,7 +744,7 @@ input::placeholder,textarea::placeholder { color: var(--ink-faint); opacity: 1; 
   .artist-name { font-size: 36px; }
 }
 
-/* ≤768px: hamburger nav, no sidebars */
+/* ≤768px: hamburger nav, no sidebars, show filter button */
 @media (max-width: 768px) {
   .nav-links { display: none; }
   .nav-mobile-toggle { display: flex; }
@@ -653,15 +753,29 @@ input::placeholder,textarea::placeholder { color: var(--ink-faint); opacity: 1; 
   .count-badge { display: none; }
   .layout { grid-template-columns: 1fr; }
   .sidebar-left { display: none; }
-  .album-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+  .mobile-filter-btn { display: flex; }
+
+  .album-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+  .album-card { touch-action: manipulation; }
   .album-hero { flex-direction: column; padding: 16px 16px 20px; }
   .album-hero-art { width: 100%; max-width: 240px; height: auto; aspect-ratio: 1; margin: 0 auto; }
   .hero-album-title { font-size: 24px; }
   .hero-stats { flex-wrap: wrap; gap: 12px; }
   .form-grid-2 { grid-template-columns: 1fr; }
   .how-steps { grid-template-columns: 1fr 1fr; }
+
+  /* Player bar: taller, touch-friendly */
+  .player-bar { height: 72px; padding: 0 14px; gap: 12px; cursor: pointer; }
   .pb-track { min-width: 0; flex: 1; }
-  .pb-fmt-badge, .pb-dl, .vol-wrap { display: none; }
+  .pb-fmt-badge, .pb-dl, .vol-wrap, .pb-secondary-controls { display: none; }
+  .pb-play { width: 40px; height: 40px; font-size: 17px; }
+  .pb-btn { font-size: 20px; padding: 6px; }
+  .pb-timeline { display: none; }
+
+  /* Touch targets for tracklist */
+  .tracklist tbody tr { touch-action: manipulation; }
+  .tracklist td { padding: 14px 10px; }
+
   .contrib-stats { flex-wrap: wrap; }
   .contrib-stat { flex: 1 1 50%; border-bottom: var(--rule); }
   .artist-row { grid-template-columns: 40px 1fr 40px; }
@@ -669,20 +783,19 @@ input::placeholder,textarea::placeholder { color: var(--ink-faint); opacity: 1; 
   .tracklist-wrap { padding: 0 16px; }
   .download-bar { padding: 10px 16px; }
   .album-back { padding: 10px 16px 0; }
+  .app-shell { min-height: calc(100vh - 56px - 35px - 72px); padding-bottom: 72px; }
 }
 
 /* ≤640px: phones */
 @media (max-width: 640px) {
   .album-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
   .main { padding: 12px 12px 18px; }
-  .player-bar { padding: 0 10px; gap: 8px; height: 58px; }
-  .pb-art { display: none; }
-  .pb-play { width: 30px; height: 30px; font-size: 13px; }
-  .pb-controls { gap: 8px; }
-  .pb-btn { font-size: 16px; }
-  .pb-timeline { min-width: 60px; gap: 5px; }
-  .pb-time { font-size: 9px; }
-  .app-shell { min-height: calc(100vh - 56px - 35px - 58px); padding-bottom: 58px; }
+  .player-bar { padding: 0 12px; gap: 10px; height: 68px; }
+  .pb-art { width: 44px; height: 44px; font-size: 18px; flex-shrink: 0; }
+  .pb-play { width: 40px; height: 40px; font-size: 16px; }
+  .pb-controls { gap: 10px; }
+  .pb-btn { font-size: 20px; padding: 6px; min-width: 36px; min-height: 36px; display: flex; align-items: center; justify-content: center; }
+  .app-shell { min-height: calc(100vh - 56px - 35px - 68px); padding-bottom: 68px; }
   .tracklist thead th:nth-child(n+4) { display: none; }
   .tracklist tbody tr td:nth-child(n+4) { display: none; }
   .artist-page { padding: 12px; }
@@ -713,9 +826,27 @@ input::placeholder,textarea::placeholder { color: var(--ink-faint); opacity: 1; 
 /* ≤375px: iPhone 13 mini */
 @media (max-width: 375px) {
   .nav-right .search-field { width: 80px; font-size: 11px; }
-  .pb-track { max-width: 140px; }
+  .pb-track { max-width: 160px; }
   .pb-title { font-size: 11px; }
   .album-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ── Touch device enhancements ───────────────────────────── */
+@media (hover: none) and (pointer: coarse) {
+  /* Larger tap targets */
+  .filter-item { min-height: 44px; }
+  .nav-links a { min-height: 44px; }
+  .queue-item { padding: 10px 0; }
+  .ctrl-btn { width: 44px; height: 44px; }
+  .fp-scrub-bar { height: 6px; padding: 10px 0; background-clip: content-box; cursor: default; }
+  .fp-scrub-bar:hover { height: 6px; }
+  .pb-bar { height: 4px; padding: 10px 0; background-clip: content-box; }
+  .pb-bar:hover { height: 4px; margin: 0; }
+  .vol-bar { height: 4px; padding: 10px 0; background-clip: content-box; }
+  /* Prevent long-press context menus on interactive elements */
+  .album-card, .tracklist tbody tr, .queue-item { -webkit-touch-callout: none; }
+  /* Smooth scrolling for sidebars and sheet */
+  .sidebar-left, .sidebar-right, .filter-sheet-body { -webkit-overflow-scrolling: touch; }
 }
 
 /* ── Dark mode ───────────────────────────────────────────── */
