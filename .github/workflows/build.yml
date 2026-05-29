@@ -18,78 +18,36 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout (with LFS)
+      # No lfs: true — audio files are too large for the LFS bandwidth quota.
+      # The catalogue is built locally (python scripts/build_catalogue.py)
+      # and committed; CI injects the CDN URL and deploys.
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          # Keep lfs: true until audio is migrated to Cloudflare R2 and
-          # tracks.yaml files are committed. See docs/DEPLOY.md for migration.
-          lfs: true
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
-          cache: pip
-
-      - name: Install deps
-        run: pip install mutagen Pillow PyYAML
-
-      # ── Resolve CDN base URL ─────────────────────────────────────────────
-      # R2 mode:  audio lives in Cloudflare R2 → serve from public R2 URL.
-      # LFS mode: audio stays in the repo → serve via GitHub raw CDN.
-      - name: Resolve media base URL
-        id: media
-        run: |
-          if [[ -n "${{ secrets.R2_ACCOUNT_ID }}" && -n "${{ secrets.R2_PUBLIC_URL }}" ]]; then
-            CDN_MODE=r2
-            CDN_BASE="https://${{ secrets.R2_PUBLIC_URL }}"
-          else
-            CDN_MODE=lfs
-            CDN_BASE="https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}"
-          fi
-          echo "mode=$CDN_MODE" >> "$GITHUB_OUTPUT"
-          echo "base=$CDN_BASE" >> "$GITHUB_OUTPUT"
-          echo "CDN mode: $CDN_MODE"
-
-      # ── Sync audio to Cloudflare R2 (R2 mode only) ──────────────────────
-      # Requires repository secrets: R2_ACCOUNT_ID, R2_BUCKET,
-      # R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_PUBLIC_URL
-      # aws-cli 2.x is pre-installed on ubuntu-latest runners.
-      - name: Sync audio to Cloudflare R2
-        if: steps.media.outputs.mode == 'r2'
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: auto
-          R2_ENDPOINT: https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
-        run: |
-          aws s3 sync music/ "s3://${{ secrets.R2_BUCKET }}/music/" \
-            --endpoint-url "$R2_ENDPOINT" \
-            --no-progress \
-            --size-only \
-            --exclude "*.yaml" \
-            --exclude "*.md" \
-            --exclude "*.txt" \
-            --exclude "cover.*" \
-            --exclude "*.jpg" \
-            --exclude "*.jpeg" \
-            --exclude "*.png"
-
-      # ── Build catalogue ──────────────────────────────────────────────────
-      # --zips is intentionally omitted: building ZIPs from a multi-GB
-      # collection requires 2× audio disk space (~11 GB on current library),
-      # which exceeds the GitHub Actions runner's available disk.
-      # To build ZIPs locally: python scripts/build_catalogue.py --zips
-      - name: Generate catalogue
-        run: |
-          python scripts/build_catalogue.py \
-            --cdn-base "${{ steps.media.outputs.base }}"
-
-      # ── Assemble static site ─────────────────────────────────────────────
+      # ── Inject CDN base URL into the committed catalogue ─────────────────
+      # R2 mode: set secrets R2_ACCOUNT_ID + R2_PUBLIC_URL to serve audio
+      #          from Cloudflare R2 (zero egress cost).
+      # LFS mode: falls back to raw.githubusercontent.com CDN.
       - name: Assemble static site
         run: |
           mkdir -p public/_catalogue public/_zips
-          cp _catalogue/catalogue.json public/_catalogue/catalogue.json
+
+          if [[ -n "${{ secrets.R2_ACCOUNT_ID }}" && -n "${{ secrets.R2_PUBLIC_URL }}" ]]; then
+            MEDIA_BASE="https://${{ secrets.R2_PUBLIC_URL }}"
+          else
+            MEDIA_BASE="https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}"
+          fi
+
+          python3 - "$MEDIA_BASE" <<'PY'
+import json, pathlib, sys
+cat = json.loads(pathlib.Path("_catalogue/catalogue.json").read_text())
+cat["meta"]["media_base_url"] = sys.argv[1]
+pathlib.Path("public/_catalogue/catalogue.json").write_text(
+    json.dumps(cat, ensure_ascii=False, indent=2))
+print("media_base_url →", sys.argv[1])
+PY
+
+          cp -f _zips/*.zip public/_zips/ 2>/dev/null || true
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5
