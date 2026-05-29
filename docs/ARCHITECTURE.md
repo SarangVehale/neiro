@@ -2,81 +2,105 @@
 
 ## One-line version
 
-`music/` is the source of truth → a Python script generates `catalogue.json`
-and album ZIPs → a static front-end fetches the JSON and renders it →
-GitHub Pages serves everything.
+`music/` is the source of truth → Python generates `catalogue.json` →
+static SPA fetches it and renders → GitHub Pages serves the shell;
+Cloudflare R2 serves audio with zero egress cost.
 
-## Two pipelines, one repo
+## Three pipelines, one repo
 
 ### Build pipeline (CI, on push to `main`)
 
-1. `actions/checkout@v4` with `lfs: true`.
-2. `pip install mutagen Pillow PyYAML` (all optional — builder degrades gracefully).
-3. `python scripts/build_catalogue.py --zips`:
-   - walks every `music/<Artist>/<Album>/`
-   - reads tags via `mutagen`, falls back to filename pattern `NN - Title.ext`
-   - shards albums > 150 MB into ≤ 130 MB ZIPs on track boundaries
-   - embeds a 320×320 JPEG base64 cover thumbnail per album
-   - writes `_catalogue/catalogue.json`
-4. Assembles `public/` with `_catalogue/`, `_zips/`, and `music/` (so `track.path` resolves).
-5. Deploys via `actions/upload-pages-artifact` + `actions/deploy-pages`.
+1. **Checkout** (`actions/checkout@v4`)
+   - **R2 mode** (`R2_ACCOUNT_ID` secret present): `lfs: false` — skips the
+     multi-GB LFS download entirely; audio lives on R2 and metadata comes
+     from committed `tracks.yaml` files.
+   - **LFS mode** (no R2 secret): `lfs: true` — downloads all audio from LFS.
+2. `pip install mutagen Pillow PyYAML` (cached; all optional — builder degrades gracefully).
+3. Determine CDN base URL:
+   - R2 mode → `https://<R2_PUBLIC_URL>`
+   - LFS mode → `https://raw.githubusercontent.com/<repo>/<branch>`
+4. **R2 mode only**: `aws s3 sync music/ s3://<bucket>/music/ --size-only`
+   (audio files only; skips YAML, covers, markdown).
+5. `python scripts/build_catalogue.py --zips --cdn-base "<URL>"`:
+   - Recursively finds every directory under `music/<Artist>/` that directly
+     contains audio files (any nesting depth — `Artist/Sub-artist/Album/` works)
+   - Reads `tracks.yaml` first if present (metadata-only, no audio needed)
+   - Falls back to `mutagen` tag reading, then `NN - Title.ext` filename pattern
+   - Resolves genre: album `meta.yaml` → nearest `artist.yaml` ancestor →
+     dominant audio tag genre → `"Unknown"`
+   - Embeds **96×96 JPEG @65%** base64 thumbnails (~2.4 KB each)
+   - Shards albums > 150 MB into ≤ 130 MB ZIPs on track boundaries
+   - Writes `_catalogue/catalogue.json` (≈200–250 KB for a 500-song library)
+6. Copies `catalogue.json` and `_zips/*.zip` into `public/`.
+7. Deploys `public/` via `actions/upload-pages-artifact` + `actions/deploy-pages`.
 
 ### Validation pipeline (on every music PR)
 
 `.github/workflows/validate-pr.yml` checks size limits, format sanity, and
-cover presence, posting a sticky comment with the results. Merge only happens
-after the maintainer reviews.
+cover presence, posting a sticky comment. Merge only after maintainer review.
 
-### Test pipeline (on every PR touching code)
+### Test pipeline (on every PR touching Python code)
 
 `.github/workflows/test.yml` runs `pytest tests/ -v`.
 
 ## Front-end boot order
 
 ```
-hibiki-data.js   →   fetch _catalogue/catalogue.json → adapt → window.CATALOGUE
-hibiki.js        →   await window.HIBIKI_CATALOGUE_PROMISE → render
-sw.js            →   registered by inline <script> in index.html
+index.html (shell)
+  ├── hibiki-data.js  → fetch _catalogue/catalogue.json
+  │                   → adapt() adds artist refs, CDN URL prefixes, computed fields
+  │                   → window.HIBIKI_CATALOGUE_PROMISE resolves
+  ├── hibiki.js       → await HIBIKI_CATALOGUE_PROMISE → render library view
+  └── sw.js           → registered via inline <script>; caches app shell assets
 ```
 
-Catalogue is fetched at runtime so adding an album only requires regenerating
-the JSON — no JavaScript rebuild needed.
+Catalogue is fetched at runtime — adding an album requires only regenerating
+`catalogue.json`, no JavaScript rebuild step.
 
-## Catalogue JSON shape
+## Catalogue JSON schema
 
 ```jsonc
 {
   "meta": {
-    "total_songs": 3,
-    "total_artists": 1,
-    "built_at": "2026-05-28T10:00:00+00:00",
-    "contributors": [{ "handle": "@…", "albums": 1, "songs": 3, "first": "…", "latest": "…" }]
+    "total_songs": 496,
+    "total_artists": 28,
+    "built_at": "2026-05-29T10:52:00+00:00",
+    "media_base_url": "https://<r2-public-url>",   // absent in LFS mode
+    "contributors": [
+      { "handle": "@user", "albums": 2, "songs": 14,
+        "first": "2026-05-28", "latest": "2026-05-29" }
+    ]
   },
   "artists": [
     {
-      "id": "kaoru-tanaka",
-      "name": "Kaoru Tanaka",
-      "kana": "TANAKA · KAORU",
-      "origin": "Kyoto, JP",
-      "genre": "Ambient",
+      "id": "lofi",                        // slug(name)
+      "name": "Lofi",
+      "kana": "",
+      "origin": "",
+      "genre": "Lo-Fi",
       "bio": "…",
       "links": [{ "label": "Bandcamp", "url": "…" }],
       "albums": [
         {
-          "id": "kaoru-tanaka-river-without-banks",
-          "title": "River Without Banks",
-          "year": 2019,
-          "genre": "Ambient",
-          "notes": "…",
-          "cover": "data:image/jpeg;base64,…",
-          "total_size_mb": 314.0,
+          "id": "lofi-tokyo-chill-lab-first-instar-melody-side-a",
+          // slug uses full relative path — prevents collisions in nested structures
+          "title": "First Instar Melody (Side-A)",
+          "year": 2024,
+          "genre": "Lo-Fi",
+          "notes": "",
+          "license": "",
+          "cover": "data:image/jpeg;base64,…",   // 96×96 JPEG, ~2-4 KB
+          "total_size_mb": 38.2,
           "shards": [
-            { "label": "Part 1 of 3", "path": "_zips/…", "size_mb": 128.0 }
+            { "label": "Full album ZIP",
+              "path": "_zips/Lofi - First Instar … [Full album ZIP].zip",
+              "size_mb": 38.2 }
           ],
           "tracks": [
-            { "number": 1, "title": "Mist Inventory", "duration_sec": 412,
-              "format": "FLAC", "size_mb": 38.7,
-              "path": "music/Kaoru Tanaka/River Without Banks/01 - Mist Inventory.flac" }
+            { "number": 1, "title": "Deep Breath",
+              "duration_sec": 180, "format": "MP3",
+              "size_mb": 3.8,
+              "path": "music/Lofi/Tokyo chill lab/…/Deep Breath.mp3" }
           ]
         }
       ]
@@ -85,19 +109,65 @@ the JSON — no JavaScript rebuild needed.
 }
 ```
 
-The adapter (`hibiki-data.js`) adds: `album.artist`, `album.artistId`,
-`album.kanjiIdx`, `album.totalSize`, `album.totalDuration`, `album.fmt`
-(lowercase), `CATALOGUE.allAlbums`, `CATALOGUE.totalSongs`.
+The adapter (`hibiki-data.js`) adds at runtime (not stored):
+`album.artist`, `album.artistId`, `album.kanjiIdx`, `album.totalSize`,
+`album.totalDuration`, `album.fmt`, `CATALOGUE.allAlbums`, `CATALOGUE.totalSongs`.
+It also prefixes `track.path` and `shard.path` with `media_base_url`.
+
+## tracks.yaml schema (metadata-only mode)
+
+When present in an album directory, CI can rebuild without LFS:
+
+```yaml
+- number: 1
+  title: "Deep Breath"
+  duration_sec: 180
+  format: MP3
+  size_mb: 3.8
+  path: "music/Lofi/Tokyo chill lab/First Instar Melody (Side-A)/Deep Breath.mp3"
+```
+
+Generated by `scripts/extract_metadata.py`. Commit these, then set `lfs: false`.
+
+## Storage topology
+
+```
+GitHub repo (code + metadata)
+  music/<Artist>/<Album>/
+    tracks.yaml    ← pre-computed metadata (replaces audio scanning in CI)
+    meta.yaml      ← year, genre, notes, license
+    cover.jpg      ← album art (stays in git; small enough)
+  public/          ← SPA shell
+  scripts/, tests/, docs/
+
+Cloudflare R2 (audio only, immutable objects)
+  music/<Artist>/<Album>/<NN> - Title.ext
+
+GitHub Pages (deployed public/)
+  index.html, hibiki.{js,css}, hibiki-data.js, manifest, sw.js
+  _catalogue/catalogue.json   (~200 KB, rebuilt on every push)
+  _zips/*.zip                 (sharded album downloads)
+```
+
+## Directory nesting
+
+| Path | Artist | Album title slug portion |
+|------|--------|--------------------------|
+| `music/Lofi/Otros/t.mp3` | Lofi | `lofi-otros` |
+| `music/Lofi/Tokyo chill lab/I'm Fine/t.mp3` | Lofi | `lofi-tokyo-chill-lab-im-fine` |
+| Loose audio directly in `music/Lofi/` | Lofi | `lofi-singles` |
 
 ## Why static, why vanilla?
 
-- **Static** — no per-user state. A backend would just be an attack surface.
-- **Vanilla** — the front-end is ~3 kLOC. A framework adds more than it saves.
-- **PWA** — works offline once visited; installable on phones. Audio not cached.
+- **Static** — no per-user state. A backend is an attack surface, an ops
+  burden, and an unnecessary cost for what is effectively a file catalogue.
+- **Vanilla JS** — ~750 LOC. A framework adds more complexity than it saves
+  at this scale and would require a build step that complicates CI.
+- **PWA** — installable, works offline once visited. Audio is never cached
+  (files are too large; only the app shell is cached by the service worker).
+- **Cloudflare R2** — zero egress cost regardless of traffic. The site can
+  serve any number of concurrent users without per-request charges.
 
-## Scaling past GitHub Pages
+## See also
 
-When `music/` + `_zips/` exceed ~800 MB, move heavy files to object storage
-(Cloudflare R2 recommended — free egress). Keep `catalogue.json` and the site
-on Pages; add a `media_base_url` to `meta` and prefix `track.path` in the
-adapter. See [DEPLOY.md](DEPLOY.md).
+[DEPLOY.md](DEPLOY.md) — first-time setup, R2 migration, quotas, rollback.

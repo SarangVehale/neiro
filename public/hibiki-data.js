@@ -19,6 +19,11 @@ function dominantFormat(tracks) {
 }
 
 function adapt(raw) {
+  // media_base_url is injected by CI when audio lives on the GitHub raw CDN
+  // rather than under the Pages artifact root. Falls back to "" (relative
+  // paths work when serving locally with music/ alongside public/).
+  const mediaBase = (raw.meta?.media_base_url || "").replace(/\/$/, "");
+
   const cat = {
     artists: (raw.artists || []).map((a) => ({
       id:     a.id,
@@ -37,7 +42,13 @@ function adapt(raw) {
   cat.artists.forEach((artist) => {
     artist.albums.forEach((album, ai) => {
       // Normalise format to lowercase so filter keys match
-      album.tracks.forEach((t) => { if (t.format) t.format = t.format.toLowerCase(); });
+      album.tracks.forEach((t) => {
+        if (t.format) t.format = t.format.toLowerCase();
+        // Prefix path with CDN base so <audio> can stream cross-origin
+        if (mediaBase && t.path && !t.path.startsWith("http")) {
+          t.path = mediaBase + "/" + t.path;
+        }
+      });
       album.artist      = artist.name;
       album.artistId    = artist.id;
       album.kanjiIdx    = ai % KANJI.length;
@@ -46,6 +57,14 @@ function adapt(raw) {
       album.fmt         = dominantFormat(album.tracks);
       if (!album.shards || !album.shards.length) {
         album.shards = [{ label: "Full album ZIP", size_mb: album.totalSize }];
+      }
+      // Prefix shard download paths too
+      if (mediaBase) {
+        album.shards.forEach((s) => {
+          if (s.path && !s.path.startsWith("http")) {
+            s.path = mediaBase + "/" + s.path;
+          }
+        });
       }
       cat.allAlbums.push(album);
     });

@@ -18,34 +18,87 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout (with LFS)
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          lfs: true
+          # Pull LFS only when R2 is not configured (legacy mode).
+          # Once all audio is on R2 and tracks.yaml files are committed,
+          # set this to false to skip the multi-GB LFS download entirely.
+          lfs: ${{ secrets.R2_ACCOUNT_ID == '' }}
 
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
-      - name: Install metadata deps
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-build-mutagen-pillow-pyyaml
+
+      - name: Install deps
         run: pip install mutagen Pillow PyYAML
 
-      - name: Generate catalogue + sharded ZIPs
-        run: python scripts/build_catalogue.py --zips
+      # ── Resolve CDN base URL ─────────────────────────────────────────────
+      # R2 mode:  audio lives in Cloudflare R2 → serve from public R2 URL.
+      # LFS mode: audio stays in the repo → serve via GitHub raw CDN.
+      - name: Resolve media base URL
+        id: media
+        run: |
+          if [[ -n "${{ secrets.R2_ACCOUNT_ID }}" && -n "${{ secrets.R2_PUBLIC_URL }}" ]]; then
+            CDN_MODE=r2
+            CDN_BASE="https://${{ secrets.R2_PUBLIC_URL }}"
+          else
+            CDN_MODE=lfs
+            CDN_BASE="https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}"
+          fi
+          echo "mode=$CDN_MODE" >> "$GITHUB_OUTPUT"
+          echo "base=$CDN_BASE" >> "$GITHUB_OUTPUT"
+          echo "CDN mode: $CDN_MODE → $CDN_BASE"
 
+      # ── Sync audio to Cloudflare R2 (R2 mode only) ──────────────────────
+      # Requires repository secrets:
+      #   R2_ACCOUNT_ID         – Cloudflare account ID
+      #   R2_BUCKET             – R2 bucket name
+      #   R2_ACCESS_KEY_ID      – R2 API token access key
+      #   R2_SECRET_ACCESS_KEY  – R2 API token secret key
+      #   R2_PUBLIC_URL         – public hostname for the bucket
+      #
+      # aws-cli 2.x is pre-installed on ubuntu-latest.
+      - name: Sync audio to Cloudflare R2
+        if: steps.media.outputs.mode == 'r2'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          R2_ENDPOINT: https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
+        run: |
+          aws s3 sync music/ "s3://${{ secrets.R2_BUCKET }}/music/" \
+            --endpoint-url "$R2_ENDPOINT" \
+            --no-progress \
+            --size-only \
+            --exclude "*.yaml" \
+            --exclude "*.md" \
+            --exclude "*.txt" \
+            --exclude "cover.*" \
+            --exclude "*.jpg" \
+            --exclude "*.jpeg" \
+            --exclude "*.png"
+
+      # ── Build catalogue ──────────────────────────────────────────────────
+      - name: Generate catalogue + sharded ZIPs
+        run: |
+          python scripts/build_catalogue.py \
+            --zips \
+            --cdn-base "${{ steps.media.outputs.base }}"
+
+      # ── Assemble static site ─────────────────────────────────────────────
       - name: Assemble static site
         run: |
-          # public/ is the vanilla web root; fold in generated data, ZIPs, and
-          # the music/ tree (audio paths in catalogue.json are repo-relative,
-          # so the tracks must be reachable under the served root).
           mkdir -p public/_catalogue public/_zips
-          cp -f _catalogue/catalogue.json public/_catalogue/ 2>/dev/null || true
+          cp _catalogue/catalogue.json public/_catalogue/catalogue.json
           cp -f _zips/*.zip public/_zips/ 2>/dev/null || true
-          if [ -d music ]; then
-            rm -rf public/music
-            cp -r music public/music
-          fi
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5

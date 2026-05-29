@@ -461,7 +461,7 @@ ${upNext.length ? `
     <table class="tech-table">
       <tr><td>Hosting</td><td>GitHub Pages — free static hosting</td></tr>
       <tr><td>Build &amp; CI</td><td>GitHub Actions — free for public repos</td></tr>
-      <tr><td>Large files</td><td>Git LFS — audio tracked via LFS</td></tr>
+      <tr><td>Large files</td><td>Cloudflare R2 — audio served via CDN, zero egress cost</td></tr>
       <tr><td>Catalogue</td><td>Python builder generates JSON at build time</td></tr>
       <tr><td>PWA</td><td>Web App Manifest + service worker</td></tr>
     </table>

@@ -2,24 +2,30 @@
 """
 HIBIKI 響 — catalogue + ZIP builder (spec §2, §3).
 
-Walks /music/<Artist>/<Album>/, reads ID3/MP4 tags (mutagen, optional),
-honours meta.yaml / bio.md / artist.yaml overrides, extracts embedded cover
-art as a base64 thumbnail, writes _catalogue/catalogue.json, and pre-builds
-sharded iPod-structure ZIPs into _zips/.
+Walks /music/<Artist>/…/<Album>/, reads ID3/MP4 tags (mutagen, optional),
+honours meta.yaml / bio.md / artist.yaml / tracks.yaml overrides, extracts
+cover art as a tiny base64 thumbnail, writes _catalogue/catalogue.json, and
+pre-builds sharded iPod-structure ZIPs into _zips/.
+
+Album discovery is fully recursive: any directory that directly contains
+audio files is treated as an album, regardless of nesting depth under the
+artist directory. This handles structures like:
+    music/Lofi/Tokyo chill lab/First Instar Melody (Side-A)/01 - track.mp3
 
 Runs with zero third-party deps (graceful fallback to filename parsing);
 mutagen + Pillow + PyYAML are used when present for richer output.
 
-Usage:
-    python scripts/build_catalogue.py           # catalogue only
-    python scripts/build_catalogue.py --zips    # catalogue + sharded ZIPs
+Metadata-only mode: if tracks.yaml exists beside an album, audio files need
+not be present on disk. This lets CI build the catalogue without pulling LFS.
 
-Environment:
-    SHARD_THRESHOLD_MB  Albums above this size get split (default 150)
-    SHARD_TARGET_MB     Target shard size (default 130)
+Usage:
+    python scripts/build_catalogue.py                     # catalogue only
+    python scripts/build_catalogue.py --zips              # + sharded ZIPs
+    python scripts/build_catalogue.py --cdn-base https:// # embed CDN URL
 """
 from __future__ import annotations
 
+import argparse
 import base64
 import io
 import json
@@ -30,7 +36,7 @@ import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 
-# ── optional deps ────────────────────────────────────────────
+# ── optional deps ─────────────────────────────────────────────────────────────
 try:
     import mutagen  # type: ignore
 except Exception:
@@ -64,8 +70,8 @@ def fmt_of(path: Path) -> str:
 
 
 def read_tags(path: Path) -> dict:
-    """Return {title, number, duration_sec} using mutagen when available."""
-    out: dict = {"title": None, "number": None, "duration_sec": 0}
+    """Return {title, number, duration_sec, genre} using mutagen when available."""
+    out: dict = {"title": None, "number": None, "duration_sec": 0, "genre": None}
     if mutagen is not None:
         try:
             mf = mutagen.File(path, easy=True)
@@ -76,11 +82,12 @@ def read_tags(path: Path) -> dict:
                     tn = mf.tags.get("tracknumber")
                     if tn:
                         out["number"] = int(str(tn[0]).split("/")[0])
+                    if mf.tags.get("genre"):
+                        out["genre"] = mf.tags["genre"][0].strip()
                 if getattr(mf, "info", None) and getattr(mf.info, "length", None):
                     out["duration_sec"] = int(mf.info.length)
         except Exception:
             pass
-    # fallback: parse "01 - Title.ext"
     if out["title"] is None or out["number"] is None:
         m = re.match(r"\s*(\d+)\s*[-–.]\s*(.+)", path.stem)
         if m:
@@ -100,9 +107,106 @@ def load_yaml(path: Path) -> dict:
     return {}
 
 
-def cover_thumb(album_dir: Path, artist_dir: Path) -> str | None:
-    """Return a base64-encoded thumbnail from cover art, or None."""
-    for d in (album_dir, artist_dir):
+def load_tracks_yaml(path: Path) -> list[dict] | None:
+    """Read pre-computed track list from tracks.yaml; returns None if absent."""
+    if not path.exists() or yaml is None:
+        return None
+    try:
+        data = yaml.safe_load(path.read_text(encoding="utf-8")) or []
+        return [
+            {
+                "number": int(t.get("number", i + 1)),
+                "title": str(t.get("title", "")),
+                "duration_sec": int(t.get("duration_sec", 0)),
+                "format": str(t.get("format", "")).upper(),
+                "size_mb": float(t.get("size_mb", 0.0)),
+                "path": str(t.get("path", "")),
+                "genre": t.get("genre"),
+                "_path": "",
+            }
+            for i, t in enumerate(data)
+        ]
+    except Exception:
+        return None
+
+
+def find_album_dirs(artist_dir: Path) -> list[Path]:
+    """Return all directories (any depth under artist_dir) that directly contain audio.
+
+    This handles nested structures like:
+        artist/sub-artist/album/track.mp3  (depth 4 from music/)
+    as well as the standard:
+        artist/album/track.mp3             (depth 3 from music/)
+    """
+    result = []
+    for d in sorted(artist_dir.rglob("*")):
+        if d.is_dir() and any(
+            f.is_file() and f.suffix.lower() in AUDIO_EXT for f in d.iterdir()
+        ):
+            result.append(d)
+    return result
+
+
+def album_display_name(album_dir: Path, artist_dir: Path) -> str:
+    """Human-readable album name, including parent dirs when nested."""
+    rel = album_dir.relative_to(artist_dir)
+    parts = rel.parts
+    # Single-level: "Album Name" — keep as-is
+    # Multi-level:  "Sub-artist / Album Name" — show hierarchy
+    return " / ".join(parts) if len(parts) > 1 else parts[0]
+
+
+def dominant_genre(genres: list[str | None]) -> str | None:
+    clean = [g for g in genres if g]
+    if not clean:
+        return None
+    return max(set(clean), key=clean.count)
+
+
+def load_inherited_meta(album_dir: Path, artist_dir: Path) -> dict:
+    """Merge artist.yaml from every directory between artist_dir and album_dir.
+
+    Applied from least to most specific so that a sub-artist directory
+    (e.g. music/Lofi/Tokyo chill lab/artist.yaml) overrides the top-level
+    artist.yaml when building albums nested under it.
+    """
+    dirs: list[Path] = []
+    d = album_dir.parent if album_dir != artist_dir else artist_dir
+    while True:
+        dirs.append(d)
+        if d == artist_dir:
+            break
+        d = d.parent
+        if not d.is_relative_to(artist_dir):
+            break
+    combined: dict = {}
+    for d in reversed(dirs):  # artist_dir first → most-specific last
+        combined.update(load_yaml(d / "artist.yaml"))
+    return combined
+
+
+def cover_thumb(
+    album_dir: Path,
+    artist_dir: Path,
+    size: int = 96,
+    quality: int = 65,
+) -> str | None:
+    """Return a tiny base64-encoded JPEG thumbnail, or None.
+
+    Searches album_dir and all parent dirs up to artist_dir (inclusive),
+    so sub-artist directories with a shared cover are found automatically.
+    """
+    search_dirs: list[Path] = []
+    d = album_dir
+    while True:
+        search_dirs.append(d)
+        if d == artist_dir:
+            break
+        d = d.parent
+        if not d.is_relative_to(artist_dir):
+            break
+
+    for d in search_dirs:
         for name in ("cover.jpg", "cover.jpeg", "cover.png"):
             p = d / name
             if p.exists():
@@ -110,9 +214,9 @@ def cover_thumb(album_dir: Path, artist_dir: Path) -> str | None:
                 if Image is not None:
                     try:
                         im = Image.open(io.BytesIO(raw)).convert("RGB")
-                        im.thumbnail((320, 320))
+                        im.thumbnail((size, size))
                         buf = io.BytesIO()
-                        im.save(buf, "JPEG", quality=78)
+                        im.save(buf, "JPEG", quality=quality, optimize=True)
                         raw = buf.getvalue()
                     except Exception:
                         pass
@@ -123,11 +227,7 @@ def cover_thumb(album_dir: Path, artist_dir: Path) -> str | None:
 
 
 def shard_tracks(tracks: list[dict]) -> list[list[dict]]:
-    """Group tracks into shards on track boundaries (spec §3).
-
-    A track is never split across shards. Each shard is at most
-    SHARD_TARGET_MB, subject to that constraint.
-    """
+    """Group tracks into shards on track boundaries (spec §3)."""
     total = sum(t["size_mb"] for t in tracks)
     if total <= SHARD_THRESHOLD_MB:
         return [tracks]
@@ -145,34 +245,232 @@ def shard_tracks(tracks: list[dict]) -> list[list[dict]]:
     return shards
 
 
-def build_zip(artist: str, album: str, shard_tracks_: list[dict], label: str,
-              album_dir: Path, artist_dir: Path) -> float:
+def build_zip(
+    artist: str,
+    album: str,
+    shard_tracks_: list[dict],
+    label: str,
+    album_dir: Path,
+    artist_dir: Path,
+) -> float:
     """Pre-build one iPod-structure ZIP into _zips/. Returns size in MB."""
     ZIPS.mkdir(parents=True, exist_ok=True)
-    zname = f"{artist} - {album} [{label}].zip"
-    zpath = ZIPS / zname
+    # Sanitise album name for filesystem use
+    safe_album = re.sub(r'[<>:"/\\|?*]', "-", album)
+    zpath = ZIPS / f"{artist} - {safe_album} [{label}].zip"
     readme = (
         f"{label}. Drag all parts into Music.app — they merge automatically.\n"
         f"{artist} — {album}\n"
     )
     with zipfile.ZipFile(zpath, "w", zipfile.ZIP_STORED) as z:
-        folder = f"{artist}/{album}"
+        folder = f"{artist}/{safe_album}"
         for t in shard_tracks_:
             src = Path(t["_path"])
             arc = f"{folder}/{t['number']:02d} - {t['title']}.{t['format'].lower()}"
             if src.exists():
                 z.write(src, arc)
-        for d in (album_dir, artist_dir):
+        # Cover: search album_dir and parents up to artist_dir
+        d = album_dir
+        found_cover = False
+        while not found_cover:
             for name in ("cover.jpg", "cover.jpeg", "cover.png"):
                 cp = d / name
                 if cp.exists():
                     z.write(cp, f"{folder}/cover.jpg")
+                    found_cover = True
                     break
+            if d == artist_dir or found_cover:
+                break
+            d = d.parent
         z.writestr(f"{folder}/README.txt", readme)
     return round(zpath.stat().st_size / (1024 * 1024), 1)
 
 
-def main(build_zips: bool = False) -> int:
+def process_artist(
+    artist_dir: Path,
+    args: argparse.Namespace,
+) -> tuple[dict | None, int]:
+    """Build the artist entry. Returns (artist_dict, track_count) or (None, 0)."""
+    bio_path = artist_dir / "bio.md"
+    bio = bio_path.read_text(encoding="utf-8").strip() if bio_path.exists() else ""
+    ameta = load_yaml(artist_dir / "artist.yaml")
+    albums = []
+    total_songs = 0
+
+    # ── Loose tracks sitting directly in the artist folder ───────────────────
+    loose = sorted(
+        p for p in artist_dir.iterdir()
+        if p.is_file() and p.suffix.lower() in AUDIO_EXT
+    )
+    if loose:
+        n, entry = process_album(
+            album_dir=artist_dir,
+            artist_dir=artist_dir,
+            audio_files=loose,
+            forced_name="Singles",
+            ameta=ameta,
+            args=args,
+        )
+        if entry:
+            albums.append(entry)
+            total_songs += n
+
+    # ── Album directories at any depth ───────────────────────────────────────
+    for album_dir in find_album_dirs(artist_dir):
+        audio_files = sorted(
+            p for p in album_dir.iterdir()
+            if p.is_file() and p.suffix.lower() in AUDIO_EXT
+        )
+        n, entry = process_album(
+            album_dir=album_dir,
+            artist_dir=artist_dir,
+            audio_files=audio_files,
+            forced_name=None,
+            ameta=ameta,
+            args=args,
+        )
+        if entry:
+            albums.append(entry)
+            total_songs += n
+
+    if not albums:
+        return None, 0
+
+    artist_entry = {
+        "id": slug(artist_dir.name),
+        "name": artist_dir.name,
+        "kana": ameta.get("kana", ""),
+        "origin": ameta.get("origin", ""),
+        "genre": ameta.get("genre", ""),
+        "links": ameta.get("links", []),
+        "bio": bio,
+        "albums": albums,
+    }
+    return artist_entry, total_songs
+
+
+def process_album(
+    album_dir: Path,
+    artist_dir: Path,
+    audio_files: list[Path],
+    forced_name: str | None,
+    ameta: dict,
+    args: argparse.Namespace,
+) -> tuple[int, dict | None]:
+    """Build one album entry. Returns (track_count, album_dict) or (0, None)."""
+    # Metadata-only mode: tracks.yaml replaces audio file scanning
+    tracks_yaml_path = album_dir / "tracks.yaml"
+    prebuilt = load_tracks_yaml(tracks_yaml_path)
+
+    if prebuilt is None and not audio_files:
+        return 0, None
+
+    if forced_name:
+        album_name = forced_name
+    else:
+        album_name = album_display_name(album_dir, artist_dir)
+
+    meta_path = album_dir / "meta.yaml"
+    meta = load_yaml(meta_path)
+
+    # Inherited artist meta: merges artist.yaml from every parent dir up to artist_dir
+    inherited = load_inherited_meta(album_dir, artist_dir)
+
+    if prebuilt is not None:
+        tracks = prebuilt
+    else:
+        tracks = []
+        for f in audio_files:
+            tags = read_tags(f)
+            size_mb = round(f.stat().st_size / (1024 * 1024), 1)
+            tracks.append({
+                "number": tags["number"] or (len(tracks) + 1),
+                "title": tags["title"],
+                "duration_sec": tags["duration_sec"],
+                "format": fmt_of(f),
+                "size_mb": size_mb,
+                "path": str(f.relative_to(ROOT)),
+                "genre": tags["genre"],
+                "_path": str(f),
+            })
+
+    if not tracks:
+        return 0, None
+
+    tracks.sort(key=lambda t: t["number"])
+
+    # Genre: album meta.yaml > inherited sub-artist yaml > top-level artist yaml > audio tags
+    tag_genres = [t.get("genre") for t in tracks]
+    genre = (
+        meta.get("genre")
+        or inherited.get("genre")
+        or ameta.get("genre")
+        or dominant_genre(tag_genres)
+        or "Unknown"
+    )
+
+    total_mb = round(sum(t["size_mb"] for t in tracks), 1)
+    groups = shard_tracks(tracks)
+    shards = []
+    for i, grp in enumerate(groups):
+        label = (
+            "Full album ZIP" if len(groups) == 1 else f"Part {i + 1} of {len(groups)}"
+        )
+        size_mb = (
+            build_zip(
+                artist_dir.name, album_name, grp, label, album_dir, artist_dir,
+            )
+            if args.zips
+            else round(sum(t["size_mb"] for t in grp), 1)
+        )
+        shards.append({
+            "label": label,
+            "path": f"_zips/{artist_dir.name} - {re.sub(r'[<>:\"/\\|?*]', '-', album_name)} [{label}].zip",
+            "size_mb": size_mb,
+        })
+
+    # Slug uses full relative path to prevent collisions in nested structures
+    rel_parts = album_dir.relative_to(artist_dir).parts if album_dir != artist_dir else ()
+    slug_parts = [artist_dir.name] + list(rel_parts) if rel_parts else [artist_dir.name, album_name]
+    album_id = slug("-".join(slug_parts))
+
+    pub_tracks = [
+        {k: v for k, v in t.items() if not k.startswith("_") and k != "genre"}
+        for t in tracks
+    ]
+
+    entry = {
+        "id": album_id,
+        "title": meta.get("title", album_name.split(" / ")[-1]),
+        "year": meta.get("year"),
+        "genre": genre,
+        "notes": meta.get("notes", ""),
+        "license": meta.get("license", ""),
+        "cover": cover_thumb(album_dir, artist_dir, size=args.thumb_size, quality=args.thumb_quality),
+        "total_size_mb": total_mb,
+        "shards": shards,
+        "tracks": pub_tracks,
+    }
+    return len(tracks), entry
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description="HIBIKI catalogue + ZIP builder")
+    ap.add_argument("--zips", action="store_true", help="Also build sharded ZIPs")
+    ap.add_argument(
+        "--thumb-size", type=int, default=96, metavar="N",
+        help="Cover thumbnail dimension in px (default: 96)",
+    )
+    ap.add_argument(
+        "--thumb-quality", type=int, default=65, metavar="Q",
+        help="JPEG thumbnail quality 1-95 (default: 65)",
+    )
+    ap.add_argument(
+        "--cdn-base", default="", metavar="URL",
+        help="Base URL for audio — written into catalogue meta.media_base_url",
+    )
+    args = ap.parse_args()
+
     artists = []
     total_songs = 0
 
@@ -180,82 +478,11 @@ def main(build_zips: bool = False) -> int:
         for artist_dir in sorted(
             p for p in MUSIC.iterdir() if p.is_dir() and not p.name.startswith("_")
         ):
-            bio_path = artist_dir / "bio.md"
-            bio = bio_path.read_text(encoding="utf-8").strip() if bio_path.exists() else ""
-            ameta = load_yaml(artist_dir / "artist.yaml")
-            albums = []
+            entry, n = process_artist(artist_dir, args)
+            if entry:
+                artists.append(entry)
+                total_songs += n
 
-            for album_dir in sorted(p for p in artist_dir.iterdir() if p.is_dir()):
-                audio = sorted(
-                    p for p in album_dir.iterdir() if p.suffix.lower() in AUDIO_EXT
-                )
-                if not audio:
-                    continue
-                meta = load_yaml(album_dir / "meta.yaml")
-                tracks = []
-                for f in audio:
-                    tags = read_tags(f)
-                    size_mb = round(f.stat().st_size / (1024 * 1024), 1)
-                    tracks.append({
-                        "number": tags["number"] or (len(tracks) + 1),
-                        "title": tags["title"],
-                        "duration_sec": tags["duration_sec"],
-                        "format": fmt_of(f),
-                        "size_mb": size_mb,
-                        "path": str(f.relative_to(ROOT)),
-                        "_path": str(f),
-                    })
-                tracks.sort(key=lambda t: t["number"])
-                total_mb = round(sum(t["size_mb"] for t in tracks), 1)
-                groups = shard_tracks(tracks)
-                shards = []
-                for i, grp in enumerate(groups):
-                    label = (
-                        "Full album ZIP"
-                        if len(groups) == 1
-                        else f"Part {i+1} of {len(groups)}"
-                    )
-                    size_mb = (
-                        build_zip(artist_dir.name, album_dir.name, grp, label,
-                                  album_dir, artist_dir)
-                        if build_zips
-                        else round(sum(t["size_mb"] for t in grp), 1)
-                    )
-                    shards.append({
-                        "label": label,
-                        "path": f"_zips/{artist_dir.name} - {album_dir.name} [{label}].zip",
-                        "size_mb": size_mb,
-                    })
-                albums.append({
-                    "id": slug(f"{artist_dir.name}-{album_dir.name}"),
-                    "title": meta.get("title", album_dir.name),
-                    "year": meta.get("year"),
-                    "genre": meta.get("genre", ameta.get("genre", "Unknown")),
-                    "notes": meta.get("notes", ""),
-                    "license": meta.get("license", ""),
-                    "cover": cover_thumb(album_dir, artist_dir),
-                    "total_size_mb": total_mb,
-                    "shards": shards,
-                    "tracks": [
-                        {k: v for k, v in t.items() if not k.startswith("_")}
-                        for t in tracks
-                    ],
-                })
-                total_songs += len(tracks)
-
-            if albums:
-                artists.append({
-                    "id": slug(artist_dir.name),
-                    "name": artist_dir.name,
-                    "kana": ameta.get("kana", ""),
-                    "origin": ameta.get("origin", ""),
-                    "genre": ameta.get("genre", ""),
-                    "links": ameta.get("links", []),
-                    "bio": bio,
-                    "albums": albums,
-                })
-
-    # Load contributors from repo-root contributors.yaml
     contributors = []
     contrib_path = ROOT / "contributors.yaml"
     if contrib_path.exists() and yaml is not None:
@@ -264,20 +491,25 @@ def main(build_zips: bool = False) -> int:
         except Exception:
             contributors = []
 
-    catalogue = {
-        "meta": {
-            "total_songs": total_songs,
-            "total_artists": len(artists),
-            "built_at": datetime.now(timezone.utc).isoformat(),
-            "contributors": contributors,
-        },
-        "artists": artists,
+    meta_block: dict = {
+        "total_songs": total_songs,
+        "total_artists": len(artists),
+        "built_at": datetime.now(timezone.utc).isoformat(),
+        "contributors": contributors,
     }
+    if args.cdn_base:
+        meta_block["media_base_url"] = args.cdn_base.rstrip("/")
+
+    catalogue = {"meta": meta_block, "artists": artists}
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(catalogue, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"catalogue.json written: {len(artists)} artists, {total_songs} songs -> {OUT}")
+    size_kb = round(OUT.stat().st_size / 1024)
+    print(
+        f"catalogue.json written: {len(artists)} artists, {total_songs} songs, "
+        f"{size_kb} KB -> {OUT}"
+    )
     return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main(build_zips="--zips" in sys.argv))
+    sys.exit(main())
