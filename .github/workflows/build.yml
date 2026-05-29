@@ -30,7 +30,7 @@ jobs:
           if [[ -n "${{ secrets.R2_ACCOUNT_ID }}" && -n "${{ secrets.R2_PUBLIC_URL }}" ]]; then
             MEDIA_BASE="https://${{ secrets.R2_PUBLIC_URL }}"
           else
-            MEDIA_BASE="https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}"
+            MEDIA_BASE="https://media.githubusercontent.com/media/${{ github.repository }}/${{ github.ref_name }}"
           fi
 
           python3 scripts/inject_cdn.py "$MEDIA_BASE"

@@ -115,7 +115,7 @@
   data-album-id="${album.id}"
   aria-label="${esc(album.title)} by ${esc(album.artist)}">
   <div class="art-wrap ${kClass(ki)}" aria-hidden="true">
-    ${kChar(ki)}
+    ${album.cover ? `<img src="${album.cover}" alt="" loading="lazy">` : kChar(ki)}
     <span class="fmt-badge ${fmtCls(album.fmt)}">${fmtLbl(album.fmt)}</span>
   </div>
   <div class="card-body">
@@ -198,7 +198,7 @@
   <div class="panel-label">
     ${item && p.playing ? '<span class="blink"></span>' : ''}Now playing
   </div>
-  <div class="np-art ${kClass(ki)}" aria-hidden="true">${kChar(ki)}</div>
+  <div class="np-art ${kClass(ki)}" aria-hidden="true">${item?.album?.cover ? `<img src="${item.album.cover}" alt="">` : kChar(ki)}</div>
   <div class="np-title">${item ? esc(item.track.title) : '—'}</div>
   <div class="np-artist">${item ? esc(item.artist) : 'No track selected'}</div>
   <div class="np-controls" role="group" aria-label="Playback controls">
@@ -237,7 +237,9 @@ ${upNext.length ? `
 <div class="album-page">
   <button class="album-back" data-nav="library"><i class="ti ti-arrow-left"></i> Back to library</button>
   <div class="album-hero">
-    <div class="album-hero-art ${kClass(ki)} art-wrap" aria-hidden="true">${kChar(ki)}</div>
+    <div class="album-hero-art ${kClass(ki)} art-wrap" aria-hidden="true">
+      ${album.coverUrl || album.cover ? `<img src="${album.coverUrl || album.cover}" alt="">` : kChar(ki)}
+    </div>
     <div class="album-hero-info">
       <div class="hero-genre-tag">${esc(album.genre)}<span class="sep"> · </span>${album.year}</div>
       <h1 class="hero-album-title">${esc(album.title)}</h1>
@@ -686,7 +688,7 @@ ${upNext.length ? `
   function updateBar() {
     const p=state.player; const item=p.queue[p.idx]; if(!item) return;
     const ki=albumIdx(item.album)%6;
-    if(pbArt)    { pbArt.className=`pb-art ${kClass(ki)}`; pbArt.textContent=kChar(ki); }
+    if(pbArt)    { pbArt.className=`pb-art ${kClass(ki)}`; pbArt.innerHTML=item.album.cover?`<img src="${item.album.cover}" alt="" style="width:100%;height:100%;object-fit:cover">`:kChar(ki); }
     if(pbTitle)  pbTitle.textContent=item.track.title;
     if(pbArtist) pbArtist.textContent=`${item.artist} — ${item.album.title}`;
     if(pbTotal)  pbTotal.textContent=fmt(p.duration);
@@ -752,6 +754,26 @@ ${upNext.length ? `
   function applyDark(dark) { document.documentElement.classList.toggle('dark', dark); }
   applyDark(darkMQ.matches);
   darkMQ.addEventListener('change', e=>applyDark(e.matches));
+
+  // ── Mobile nav ────────────────────────────────────────────
+  const navToggle = document.getElementById('navToggle');
+  const mobileNav = document.getElementById('mobileNav');
+  if (navToggle && mobileNav) {
+    navToggle.addEventListener('click', () => {
+      const open = mobileNav.classList.toggle('open');
+      navToggle.setAttribute('aria-expanded', String(open));
+      mobileNav.setAttribute('aria-hidden', String(!open));
+    });
+    mobileNav.querySelectorAll('.route-link').forEach(link => {
+      link.addEventListener('click', e => {
+        e.preventDefault();
+        mobileNav.classList.remove('open');
+        navToggle.setAttribute('aria-expanded', 'false');
+        mobileNav.setAttribute('aria-hidden', 'true');
+        navigate(link.dataset.route);
+      });
+    });
+  }
 
   // ── Init ──────────────────────────────────────────────────
   songBadge.textContent=`${CATALOGUE.totalSongs} songs`;

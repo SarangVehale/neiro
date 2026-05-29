@@ -7,7 +7,7 @@
     <meta name="description" content="HIBIKI 響 — a free, public music archive. Browse, preview, and download freely." />
     <!-- CSP: no inline eval; scripts/styles self + known CDNs; media from any HTTPS (CDN URL varies by deployment).
          Note: frame-ancestors is intentionally omitted — it is only honoured in HTTP headers, not meta tags. -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data:; media-src 'self' https: blob:; connect-src 'self'; worker-src 'self';" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: https://media.githubusercontent.com; media-src 'self' https: blob:; connect-src 'self'; worker-src 'self';" />
     <title>HIBIKI | 響</title>
     <link rel="manifest" href="manifest.json" />
     <link rel="icon" href="icon.svg" type="image/svg+xml" />
@@ -51,7 +51,18 @@
           <kbd class="kbd">/</kbd>
         </div>
         <span class="count-badge" id="songCountBadge">— songs</span>
+        <button class="nav-mobile-toggle" id="navToggle" aria-label="Menu" aria-expanded="false">
+          <i class="ti ti-menu-2" aria-hidden="true"></i>
+        </button>
       </div>
+    </nav>
+
+    <nav class="mobile-nav" id="mobileNav" aria-label="Mobile navigation" aria-hidden="true">
+      <a href="#" class="route-link active" data-route="library">Library</a>
+      <a href="#" class="route-link" data-route="artists">Artists</a>
+      <a href="#" class="route-link" data-route="contribute">Contribute</a>
+      <a href="#" class="route-link" data-route="contributors">Contributors</a>
+      <a href="#" class="route-link" data-route="about">About</a>
     </nav>
 
     <div class="hero-strip" aria-hidden="true">

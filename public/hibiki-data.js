@@ -49,6 +49,7 @@ function adapt(raw) {
           t.path = mediaBase + "/" + t.path;
         }
       });
+      album.coverUrl    = (mediaBase && album.cover_path) ? mediaBase + "/" + album.cover_path : null;
       album.artist      = artist.name;
       album.artistId    = artist.id;
       album.kanjiIdx    = ai % KANJI.length;

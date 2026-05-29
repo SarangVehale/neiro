@@ -185,6 +185,25 @@ def load_inherited_meta(album_dir: Path, artist_dir: Path) -> dict:
     return combined
 
 
+def find_cover_file(album_dir: Path, artist_dir: Path) -> Path | None:
+    """Return path to cover image or None, searching up to artist_dir."""
+    search_dirs: list[Path] = []
+    d = album_dir
+    while True:
+        search_dirs.append(d)
+        if d == artist_dir:
+            break
+        d = d.parent
+        if not d.is_relative_to(artist_dir):
+            break
+    for d in search_dirs:
+        for name in ("cover.jpg", "cover.jpeg", "cover.png", "cover.svg"):
+            p = d / name
+            if p.exists():
+                return p
+    return None
+
+
 def cover_thumb(
     album_dir: Path,
     artist_dir: Path,
@@ -196,34 +215,24 @@ def cover_thumb(
     Searches album_dir and all parent dirs up to artist_dir (inclusive),
     so sub-artist directories with a shared cover are found automatically.
     """
-    search_dirs: list[Path] = []
-    d = album_dir
-    while True:
-        search_dirs.append(d)
-        if d == artist_dir:
-            break
-        d = d.parent
-        if not d.is_relative_to(artist_dir):
-            break
-
-    for d in search_dirs:
-        for name in ("cover.jpg", "cover.jpeg", "cover.png"):
-            p = d / name
-            if p.exists():
-                raw = p.read_bytes()
-                if Image is not None:
-                    try:
-                        im = Image.open(io.BytesIO(raw)).convert("RGB")
-                        im.thumbnail((size, size))
-                        buf = io.BytesIO()
-                        im.save(buf, "JPEG", quality=quality, optimize=True)
-                        raw = buf.getvalue()
-                    except Exception:
-                        pass
-                b64 = base64.b64encode(raw).decode("ascii")
-                mime = "image/png" if p.suffix == ".png" else "image/jpeg"
-                return f"data:{mime};base64,{b64}"
-    return None
+    cover_file = find_cover_file(album_dir, artist_dir)
+    if cover_file is None:
+        return None
+    if cover_file.suffix == ".svg":
+        return None  # SVGs are served as-is via cover_path; no thumbnail needed
+    raw = cover_file.read_bytes()
+    if Image is not None:
+        try:
+            im = Image.open(io.BytesIO(raw)).convert("RGB")
+            im.thumbnail((size, size))
+            buf = io.BytesIO()
+            im.save(buf, "JPEG", quality=quality, optimize=True)
+            raw = buf.getvalue()
+        except Exception:
+            pass
+    b64 = base64.b64encode(raw).decode("ascii")
+    mime = "image/png" if cover_file.suffix == ".png" else "image/jpeg"
+    return f"data:{mime};base64,{b64}"
 
 
 def shard_tracks(tracks: list[dict]) -> list[list[dict]]:
@@ -439,6 +448,7 @@ def process_album(
         for t in tracks
     ]
 
+    cover_file = find_cover_file(album_dir, artist_dir)
     entry = {
         "id": album_id,
         "title": meta.get("title", album_name.split(" / ")[-1]),
@@ -447,6 +457,7 @@ def process_album(
         "notes": meta.get("notes", ""),
         "license": meta.get("license", ""),
         "cover": cover_thumb(album_dir, artist_dir, size=args.thumb_size, quality=args.thumb_quality),
+        "cover_path": str(cover_file.relative_to(ROOT)) if cover_file else None,
         "total_size_mb": total_mb,
         "shards": shards,
         "tracks": pub_tracks,
