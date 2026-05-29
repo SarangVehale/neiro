@@ -1,7 +1,7 @@
 // HIBIKI 響 — service worker.
 // Caches the app shell for offline browsing.
 // Audio files are never cached — they stream on demand (spec §F4).
-const VERSION = "hibiki-v1";
+const VERSION = "hibiki-v2";
 const SHELL = [
   "./",
   "index.html",
@@ -29,14 +29,15 @@ self.addEventListener("activate", (event) => {
 });
 
 const AUDIO = /\.(flac|mp3|m4a|aac|wav|ogg)$/i;
+const NEVER_CACHE = /\/_catalogue\//;
 
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET") return;
   const url = new URL(req.url);
 
-  // Never cache audio — always stream from network.
-  if (AUDIO.test(url.pathname)) return;
+  // Never cache audio or catalogue — always fetch from network.
+  if (AUDIO.test(url.pathname) || NEVER_CACHE.test(url.pathname)) return;
 
   // Navigations: network-first, fall back to shell when offline.
   if (req.mode === "navigate") {

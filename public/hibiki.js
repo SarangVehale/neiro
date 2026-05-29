@@ -94,7 +94,7 @@
         if (!a.genre.toLowerCase().includes(state.filters.genre.toLowerCase())) return false;
       }
       if (state.filters.decade) {
-        if (Math.floor(a.year / 10) * 10 !== parseInt(state.filters.decade)) return false;
+        if (!a.year || Math.floor(a.year / 10) * 10 !== parseInt(state.filters.decade)) return false;
       }
       return true;
     });
@@ -134,7 +134,7 @@
     const albums = filteredAlbums();
     const sortLabels = { recent:'recently added ↓', alpha:'alphabetical ↑', year:'year ↓' };
     const GENRES  = [...new Set(CATALOGUE.allAlbums.map(a=>a.genre))].sort();
-    const DECADES = [...new Set(CATALOGUE.allAlbums.map(a=>Math.floor(a.year/10)*10))].sort((a,b)=>b-a);
+    const DECADES = [...new Set(CATALOGUE.allAlbums.map(a=>a.year&&Math.floor(a.year/10)*10).filter(Boolean))].sort((a,b)=>b-a);
     return `
 <div class="layout">
   <aside class="sidebar-left" aria-label="Filters">
