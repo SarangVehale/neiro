@@ -116,7 +116,7 @@ input::placeholder,textarea::placeholder { color: var(--ink-faint); opacity: 1; 
 /* ── App shell ───────────────────────────────────────────── */
 .app-shell {
   min-height: calc(100vh - 56px - 35px - 64px);
-  padding-bottom: 64px;
+  padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
 }
 .layout {
   display: grid;
@@ -328,6 +328,9 @@ input::placeholder,textarea::placeholder { color: var(--ink-faint); opacity: 1; 
   background: var(--ink); border-top: 2px solid var(--sakura);
   height: 64px; display: flex; align-items: center;
   gap: 16px; padding: 0 24px; z-index: 200;
+  /* iOS safe area — keeps bar above home indicator / notch */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  height: calc(64px + env(safe-area-inset-bottom, 0px));
 }
 .pb-art {
   width: 40px; height: 40px; background: #2a2318; color: var(--sakura);
@@ -335,6 +338,7 @@ input::placeholder,textarea::placeholder { color: var(--ink-faint); opacity: 1; 
   font-family: var(--font-editorial); font-size: 22px;
   border: 0.5px solid #3a2a22; flex-shrink: 0; font-weight: 700;
 }
+.pb-art img { pointer-events: none; }
 .pb-track { flex-shrink: 0; min-width: 180px; max-width: 220px; }
 .pb-title { font-family: var(--font-editorial); font-size: 13px; font-weight: 600; color: #f0ead8; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pb-artist { font-family: var(--font-data); font-size: 10px; color: #6a6858; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -645,7 +649,8 @@ input::placeholder,textarea::placeholder { color: var(--ink-faint); opacity: 1; 
   position: fixed; inset: 0; z-index: 400;
   background: var(--cream);
   display: flex; flex-direction: column; align-items: center;
-  padding: 0 clamp(16px, 5vw, 56px) clamp(20px, 4vh, 40px);
+  padding: env(safe-area-inset-top, 0px) clamp(16px, 5vw, 56px) clamp(20px, 4vh, 40px);
+  padding-bottom: calc(clamp(20px, 4vh, 40px) + env(safe-area-inset-bottom, 0px));
   transform: translateY(100%);
   transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   overflow-y: auto;
@@ -783,7 +788,8 @@ input::placeholder,textarea::placeholder { color: var(--ink-faint); opacity: 1; 
   .tracklist-wrap { padding: 0 16px; }
   .download-bar { padding: 10px 16px; }
   .album-back { padding: 10px 16px 0; }
-  .app-shell { min-height: calc(100vh - 56px - 35px - 72px); padding-bottom: 72px; }
+  .app-shell { min-height: calc(100vh - 56px - 35px - 72px); padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)); }
+  .player-bar { height: calc(72px + env(safe-area-inset-bottom, 0px)); }
 }
 
 /* ≤640px: phones */
@@ -795,7 +801,8 @@ input::placeholder,textarea::placeholder { color: var(--ink-faint); opacity: 1; 
   .pb-play { width: 40px; height: 40px; font-size: 16px; }
   .pb-controls { gap: 10px; }
   .pb-btn { font-size: 20px; padding: 6px; min-width: 36px; min-height: 36px; display: flex; align-items: center; justify-content: center; }
-  .app-shell { min-height: calc(100vh - 56px - 35px - 68px); padding-bottom: 68px; }
+  .app-shell { min-height: calc(100vh - 56px - 35px - 68px); padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px)); }
+  .player-bar { height: calc(68px + env(safe-area-inset-bottom, 0px)); }
   .tracklist thead th:nth-child(n+4) { display: none; }
   .tracklist tbody tr td:nth-child(n+4) { display: none; }
   .artist-page { padding: 12px; }
