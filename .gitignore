@@ -7,3 +7,6 @@ public/music/
 __pycache__/
 *.pyc
 .pytest_cache/
+tests/playwright/node_modules/
+tests/playwright/test-results/
+tests/playwright/playwright-report/

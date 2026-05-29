@@ -41,6 +41,14 @@
   const toastRegion = document.getElementById('toastRegion');
 
   // ── Utilities ─────────────────────────────────────────────
+
+  // HTML-escape all catalogue string values before inserting into innerHTML.
+  // Prevents stored XSS if a bio.md / meta.yaml contains raw HTML tags.
+  function esc(s) {
+    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
   function fmt(sec) {
     const m = Math.floor(sec / 60);
     const s = String(Math.floor(sec % 60)).padStart(2, '0');
@@ -105,17 +113,17 @@
     return `
 <article class="album-card" role="listitem" tabindex="0"
   data-album-id="${album.id}"
-  aria-label="${album.title} by ${album.artist}">
+  aria-label="${esc(album.title)} by ${esc(album.artist)}">
   <div class="art-wrap ${kClass(ki)}" aria-hidden="true">
     ${kChar(ki)}
     <span class="fmt-badge ${fmtCls(album.fmt)}">${fmtLbl(album.fmt)}</span>
   </div>
   <div class="card-body">
-    <div class="card-title">${album.title}</div>
-    <div class="card-artist">${album.artist}</div>
+    <div class="card-title">${esc(album.title)}</div>
+    <div class="card-artist">${esc(album.artist)}</div>
     <div class="card-footer">
       <div class="card-meta">${album.tracks.length} tracks<br>${fmtMB(album.totalSize)}</div>
-      <button class="dl-btn" data-dl-album="${album.id}" aria-label="Download ${album.title}">${dlLabel}</button>
+      <button class="dl-btn" data-dl-album="${album.id}" aria-label="Download ${esc(album.title)}">${dlLabel}</button>
     </div>
   </div>
 </article>`;
@@ -143,8 +151,8 @@
     <div class="filter-group">
       <span class="filter-label">Genre</span>
       ${GENRES.map(g=>`
-      <div class="filter-item${state.filters.genre===g?' active':''}" tabindex="0" role="button" data-fg="${g}">
-        <span>${g}</span><span class="filter-count">${countGenre(g)}</span>
+      <div class="filter-item${state.filters.genre===g?' active':''}" tabindex="0" role="button" data-fg="${esc(g)}">
+        <span>${esc(g)}</span><span class="filter-count">${countGenre(g)}</span>
       </div>`).join('')}
     </div>
     <div class="filter-group">
@@ -191,8 +199,8 @@
     ${item && p.playing ? '<span class="blink"></span>' : ''}Now playing
   </div>
   <div class="np-art ${kClass(ki)}" aria-hidden="true">${kChar(ki)}</div>
-  <div class="np-title">${item ? item.track.title : '—'}</div>
-  <div class="np-artist">${item ? item.artist : 'No track selected'}</div>
+  <div class="np-title">${item ? esc(item.track.title) : '—'}</div>
+  <div class="np-artist">${item ? esc(item.artist) : 'No track selected'}</div>
   <div class="np-controls" role="group" aria-label="Playback controls">
     <button class="ctrl-btn" id="npPrev" aria-label="Previous track"><i class="ti ti-player-skip-back" aria-hidden="true"></i></button>
     <button class="ctrl-btn play-btn" id="npPlay" aria-label="${p.playing?'Pause':'Play'}">
@@ -212,8 +220,8 @@ ${upNext.length ? `
   <div class="queue-item" tabindex="0" role="button" data-qi="${p.idx+1+i}">
     <span class="queue-num">${p.idx+2+i}</span>
     <div class="queue-info">
-      <div class="queue-title">${it.track.title}</div>
-      <div class="queue-artist">${it.artist}</div>
+      <div class="queue-title">${esc(it.track.title)}</div>
+      <div class="queue-artist">${esc(it.artist)}</div>
     </div>
     <span class="queue-dur">${fmt(it.track.duration_sec)}</span>
   </div>`).join('')}
@@ -231,16 +239,16 @@ ${upNext.length ? `
   <div class="album-hero">
     <div class="album-hero-art ${kClass(ki)} art-wrap" aria-hidden="true">${kChar(ki)}</div>
     <div class="album-hero-info">
-      <div class="hero-genre-tag">${album.genre}<span class="sep"> · </span>${album.year}</div>
-      <h1 class="hero-album-title">${album.title}</h1>
-      <div class="hero-artist-name" data-nav="artist" data-artist-id="${album.artistId}">${album.artist}</div>
+      <div class="hero-genre-tag">${esc(album.genre)}<span class="sep"> · </span>${album.year}</div>
+      <h1 class="hero-album-title">${esc(album.title)}</h1>
+      <div class="hero-artist-name" data-nav="artist" data-artist-id="${album.artistId}">${esc(album.artist)}</div>
       <div class="hero-stats">
         <div class="hero-stat"><strong>${album.tracks.length}</strong>Tracks</div>
         <div class="hero-stat"><strong>${fmtMB(album.totalSize)}</strong>Total size</div>
         <div class="hero-stat"><strong>${fmtLbl(album.fmt)}</strong>Format</div>
         <div class="hero-stat"><strong>${fmtFull(album.totalDuration)}</strong>Duration</div>
       </div>
-      ${album.notes ? `<p class="hero-notes">${album.notes}</p>` : ''}
+      ${album.notes ? `<p class="hero-notes">${esc(album.notes)}</p>` : ''}
     </div>
   </div>
   <div class="download-bar">
@@ -249,7 +257,7 @@ ${upNext.length ? `
     <span class="dl-total">${fmtMB(album.totalSize)} total · iPod-ready ZIPs</span>
   </div>
   <div class="tracklist-wrap">
-    <table class="tracklist" aria-label="Track listing for ${album.title}">
+    <table class="tracklist" aria-label="Track listing for ${esc(album.title)}">
       <thead><tr>
         <th scope="col">#</th><th scope="col">Title</th><th scope="col">Duration</th>
         <th scope="col">Format</th><th scope="col">Size</th>
@@ -266,7 +274,7 @@ ${upNext.length ? `
     <span class="num-text">${String(tr.number).padStart(2,'0')}</span>
     <span class="play-on-hover" aria-hidden="true"><i class="ti ti-player-play-filled"></i></span>
   </td>
-  <td class="td-title">${tr.title}</td>
+  <td class="td-title">${esc(tr.title)}</td>
   <td class="td-dur">${fmt(tr.duration_sec)}</td>
   <td class="td-fmt"><span class="fmt-pill ${fmtCls(tr.format)}">${fmtLbl(tr.format)}</span></td>
   <td class="td-size">${tr.size_mb.toFixed(1)} MB</td>
@@ -280,7 +288,7 @@ ${upNext.length ? `
     const others = artist?.albums.filter(a=>a.id!==id).slice(0,4);
     return others?.length ? `
 <div class="related-block">
-  <h2 class="main-title" style="margin-bottom:16px">More by ${artist.name}</h2>
+  <h2 class="main-title" style="margin-bottom:16px">More by ${esc(artist.name)}</h2>
   <div class="album-grid" style="grid-template-columns:repeat(4,1fr)">
     ${others.map((a,i)=>cardHTML(a,i)).join('')}
   </div>
@@ -302,9 +310,9 @@ ${upNext.length ? `
     return `
 <div class="artist-row" tabindex="0" role="button" data-nav="artist" data-artist-id="${ar.id}">
   <span class="ar-index">${String(i+1).padStart(2,'0')}</span>
-  <div class="ar-name">${ar.name} <small>${ar.kana}</small></div>
+  <div class="ar-name">${esc(ar.name)} <small>${esc(ar.kana)}</small></div>
   <div class="ar-stats">${ar.albums.length} albums · ${tracks} tracks · ${fmtMB(size)}</div>
-  <div class="ar-genre">${ar.genre}</div>
+  <div class="ar-genre">${esc(ar.genre)}</div>
   <div class="ar-arrow">→</div>
 </div>`;
   }).join('')}
@@ -322,16 +330,16 @@ ${upNext.length ? `
   <button class="album-back" data-nav="artists"><i class="ti ti-arrow-left"></i> All artists</button>
   <div class="artist-header">
     <div>
-      <div class="artist-kana">${artist.kana}</div>
-      <h1 class="artist-name">${artist.name}</h1>
-      ${artist.bio ? `<p class="artist-bio">${artist.bio}</p>` : ''}
+      <div class="artist-kana">${esc(artist.kana)}</div>
+      <h1 class="artist-name">${esc(artist.name)}</h1>
+      ${artist.bio ? `<p class="artist-bio">${esc(artist.bio)}</p>` : ''}
     </div>
     <div class="artist-meta-block">
       <div class="artist-meta-row"><span class="k">Albums</span><span class="v">${artist.albums.length}</span></div>
       <div class="artist-meta-row"><span class="k">Tracks</span><span class="v">${tracks}</span></div>
       <div class="artist-meta-row"><span class="k">Total size</span><span class="v">${fmtMB(size)}</span></div>
-      <div class="artist-meta-row"><span class="k">Origin</span><span class="v">${artist.origin}</span></div>
-      <div class="artist-meta-row"><span class="k">Genre</span><span class="v">${artist.genre}</span></div>
+      <div class="artist-meta-row"><span class="k">Origin</span><span class="v">${esc(artist.origin)}</span></div>
+      <div class="artist-meta-row"><span class="k">Genre</span><span class="v">${esc(artist.genre)}</span></div>
     </div>
   </div>
   <div class="artist-discog-title">
@@ -435,11 +443,11 @@ ${upNext.length ? `
     </tr></thead>
     <tbody>
       ${c.map(x=>`<tr>
-        <td><span class="contrib-handle">${x.handle}</span></td>
+        <td><span class="contrib-handle">${esc(x.handle)}</span></td>
         <td class="contrib-num">${x.albums}</td>
         <td class="contrib-num">${x.songs}</td>
-        <td class="contrib-date">${x.first}</td>
-        <td class="contrib-date">${x.latest}</td>
+        <td class="contrib-date">${esc(x.first)}</td>
+        <td class="contrib-date">${esc(x.latest)}</td>
       </tr>`).join('')}
     </tbody>
   </table>
@@ -601,7 +609,7 @@ ${upNext.length ? `
     if(total>500) rows.push(vrow('err','ti-alert-triangle',`Total: ${total.toFixed(0)} MB`,'exceeds 500 MB limit'));
     panel.innerHTML=rows.join('');
   }
-  function vrow(cls,icon,name,status) { return `<div class="val-row val-${cls}"><i class="ti ${icon}" aria-hidden="true"></i><span class="vr-name">${name}</span><span class="vr-status">${status}</span></div>`; }
+  function vrow(cls,icon,name,status) { return `<div class="val-row val-${cls}"><i class="ti ${icon}" aria-hidden="true"></i><span class="vr-name">${esc(name)}</span><span class="vr-status">${esc(status)}</span></div>`; }
 
   // ── Audio / player ────────────────────────────────────────
   function playFrom(albumId, trackIdx) {
