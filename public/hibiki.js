@@ -742,13 +742,19 @@ ${upNext.length ? `
     if(state.subRoute==='album') render();
   }
 
+  // Prevents the 'pause' event emitted by src reassignment from flipping playing=false
+  let _loadingTrack = false;
+
   function loadTrack() {
     const item=state.player.queue[state.player.idx]; if(!item) return;
     state.player.currentTime=0;
     state.player.duration=item.track.duration_sec||0;
     if(item.track.path) {
+      const shouldPlay=state.player.playing;
+      _loadingTrack=true;
       try { audio.src=item.track.path; } catch(_){}
-      if(state.player.playing) audio.play().catch(()=>{});
+      _loadingTrack=false;
+      if(shouldPlay) audio.play().catch(()=>{});
     }
     updateBar();
   }
@@ -791,11 +797,19 @@ ${upNext.length ? `
     else { p.playing=false; audio.pause(); updatePlayState(); }
   }
 
+  // Only read audio position; the rAF loop below handles DOM writes
   audio.addEventListener('timeupdate', ()=>{
     state.player.currentTime=audio.currentTime||0;
     if(audio.duration&&isFinite(audio.duration)) state.player.duration=audio.duration;
-    updateProgress();
   });
+
+  // rAF-driven progress paint — batches all DOM writes to one frame
+  let _rafId=null;
+  function scheduleProgressPaint() {
+    if(_rafId) return;
+    _rafId=requestAnimationFrame(()=>{ _rafId=null; updateProgress(); });
+  }
+  audio.addEventListener('timeupdate', scheduleProgressPaint);
   audio.addEventListener('loadedmetadata', ()=>{
     if(audio.duration&&isFinite(audio.duration)){
       state.player.duration=audio.duration;
@@ -805,7 +819,7 @@ ${upNext.length ? `
   });
   audio.addEventListener('ended', ()=>nextTrack());
   audio.addEventListener('play',  ()=>{ state.player.playing=true;  updatePlayState(); refreshNP(); });
-  audio.addEventListener('pause', ()=>{ state.player.playing=false; updatePlayState(); refreshNP(); });
+  audio.addEventListener('pause', ()=>{ if(_loadingTrack) return; state.player.playing=false; updatePlayState(); refreshNP(); });
 
   function updateProgress() {
     const p=state.player;
@@ -926,11 +940,22 @@ ${upNext.length ? `
     if(e.key==='/') { e.preventDefault(); searchInput.focus(); }
   });
 
-  // ── Dark mode ─────────────────────────────────────────────
-  const darkMQ=window.matchMedia('(prefers-color-scheme: dark)');
-  function applyDark(dark) { document.documentElement.classList.toggle('dark', dark); }
-  applyDark(darkMQ.matches);
-  darkMQ.addEventListener('change', e=>applyDark(e.matches));
+  // ── Dark mode — light is default; user toggle persisted to localStorage ──
+  const themeToggleBtn  = document.getElementById('themeToggle');
+  const themeIconEl     = document.getElementById('themeIcon');
+  function applyTheme(dark) {
+    document.documentElement.classList.toggle('dark', dark);
+    if(themeIconEl) themeIconEl.className = dark ? 'ti ti-sun' : 'ti ti-moon';
+    if(themeToggleBtn) themeToggleBtn.setAttribute('aria-label', dark ? 'Switch to light mode' : 'Switch to dark mode');
+  }
+  // Start light; only go dark if user explicitly chose it
+  const _storedTheme = localStorage.getItem('neiro-theme');
+  applyTheme(_storedTheme === 'dark');
+  if(themeToggleBtn) themeToggleBtn.addEventListener('click', ()=>{
+    const nowDark = !document.documentElement.classList.contains('dark');
+    localStorage.setItem('neiro-theme', nowDark ? 'dark' : 'light');
+    applyTheme(nowDark);
+  });
 
   // ── Full-screen player ─────────────────────────────────────
   const fullPlayer   = document.getElementById('fullPlayer');

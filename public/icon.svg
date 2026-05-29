@@ -1,6 +1,25 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <rect width="512" height="512" fill="#2a2318"/>
-  <text x="50%" y="48%" dy="0.05em" text-anchor="middle" dominant-baseline="central"
-        font-family="'Shippori Mincho', serif" font-weight="700" font-size="220"
-        fill="#c9667a">音色</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <rect width="100" height="100" rx="22" fill="#2a2318"/>
+  <g transform="translate(50,50)">
+    <!-- 5 sakura petals, each rotated 72° -->
+    <ellipse cx="0" cy="-20" rx="9" ry="14" fill="#c9667a" transform="rotate(0)"/>
+    <ellipse cx="0" cy="-20" rx="9" ry="14" fill="#c9667a" transform="rotate(72)"/>
+    <ellipse cx="0" cy="-20" rx="9" ry="14" fill="#c9667a" transform="rotate(144)"/>
+    <ellipse cx="0" cy="-20" rx="9" ry="14" fill="#c9667a" transform="rotate(216)"/>
+    <ellipse cx="0" cy="-20" rx="9" ry="14" fill="#c9667a" transform="rotate(288)"/>
+    <!-- notch cut from each petal tip -->
+    <ellipse cx="0" cy="-32" rx="4" ry="4" fill="#2a2318" transform="rotate(0)"/>
+    <ellipse cx="0" cy="-32" rx="4" ry="4" fill="#2a2318" transform="rotate(72)"/>
+    <ellipse cx="0" cy="-32" rx="4" ry="4" fill="#2a2318" transform="rotate(144)"/>
+    <ellipse cx="0" cy="-32" rx="4" ry="4" fill="#2a2318" transform="rotate(216)"/>
+    <ellipse cx="0" cy="-32" rx="4" ry="4" fill="#2a2318" transform="rotate(288)"/>
+    <!-- centre -->
+    <circle cx="0" cy="0" r="7" fill="#f5f0e8"/>
+    <!-- stamens -->
+    <circle cx="0"    cy="-5"  r="1.5" fill="#c9667a"/>
+    <circle cx="4.8"  cy="-1.5" r="1.5" fill="#c9667a"/>
+    <circle cx="3"    cy="4"   r="1.5" fill="#c9667a"/>
+    <circle cx="-3"   cy="4"   r="1.5" fill="#c9667a"/>
+    <circle cx="-4.8" cy="-1.5" r="1.5" fill="#c9667a"/>
+  </g>
 </svg>
