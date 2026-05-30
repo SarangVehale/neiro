@@ -11,8 +11,10 @@
     <link rel="icon" href="icon.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- P2: subset font weights to those the CSS actually references.
+         Drops Shippori 500+800 and DM Mono 300 (cuts ~230 KB of woff2). -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&family=Zen+Kaku+Gothic+New:wght@300;400;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600;700&family=DM+Mono:wght@400;500&family=Zen+Kaku+Gothic+New:wght@300;400;700&display=swap"
       rel="stylesheet"
     />
     <link
@@ -77,7 +79,18 @@
       </div>
     </div>
 
-    <main id="app" class="app-shell"></main>
+    <main id="app" class="app-shell">
+      <!-- U1: skeleton shown until JS renders the real grid. JS replaces
+           #app.innerHTML via render(), so this gets cleared automatically. -->
+      <div class="skeleton-layout" aria-hidden="true">
+        <div class="skeleton-grid">
+          <div class="skeleton-card"></div><div class="skeleton-card"></div>
+          <div class="skeleton-card"></div><div class="skeleton-card"></div>
+          <div class="skeleton-card"></div><div class="skeleton-card"></div>
+          <div class="skeleton-card"></div><div class="skeleton-card"></div>
+        </div>
+      </div>
+    </main>
 
     <!-- Filter sheet (mobile) -->
     <div class="filter-sheet" id="filterSheet" aria-label="Filters" role="dialog" aria-modal="true" aria-hidden="true">

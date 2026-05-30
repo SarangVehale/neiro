@@ -1,7 +1,9 @@
 // NEIRO 音色 — service worker.
-// Caches the app shell for offline browsing.
-// Audio files are never cached — they stream on demand (spec §F4).
-const VERSION = "neiro-v1";
+// P4: tuned for first paint. Pre-cache the shell so a returning visitor
+// sees the skeleton + chrome instantly; stale-while-revalidate the
+// catalogue so it loads from cache and refreshes in the background.
+// Audio files are never cached — they stream on demand.
+const VERSION = "neiro-v3";
 const SHELL = [
   "./",
   "index.html",
@@ -29,17 +31,33 @@ self.addEventListener("activate", (event) => {
 });
 
 const AUDIO = /\.(flac|mp3|m4a|aac|wav|ogg)$/i;
-const NEVER_CACHE = /\/_catalogue\//;
+const CATALOGUE = /\/_catalogue\//;
 
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET") return;
   const url = new URL(req.url);
 
-  // Never cache audio or catalogue — always fetch from network.
-  if (AUDIO.test(url.pathname) || NEVER_CACHE.test(url.pathname)) return;
+  // Audio never gets cached — straight to network so range requests work.
+  if (AUDIO.test(url.pathname)) return;
 
-  // Navigations: network-first, fall back to shell when offline.
+  // Catalogue.json: stale-while-revalidate. Cached copy returns instantly,
+  // network refreshes the cache in the background for the next load.
+  if (CATALOGUE.test(url.pathname)) {
+    event.respondWith(
+      caches.open(VERSION).then(async (cache) => {
+        const cached = await cache.match(req);
+        const fetchPromise = fetch(req).then((res) => {
+          if (res.ok) cache.put(req, res.clone());
+          return res;
+        }).catch(() => cached);
+        return cached || fetchPromise;
+      })
+    );
+    return;
+  }
+
+  // Navigations: network-first so deploys go live; fall back to shell offline.
   if (req.mode === "navigate") {
     event.respondWith(
       fetch(req).catch(() => caches.match(new URL("index.html", self.location).toString()))
@@ -47,7 +65,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Static assets: cache-first, then network (cache same-origin).
+  // Static assets: cache-first, then network (and update cache).
   event.respondWith(
     caches.match(req).then((hit) =>
       hit ||

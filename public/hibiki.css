@@ -120,6 +120,39 @@ input::placeholder,textarea::placeholder { color: var(--ink-faint); opacity: 1; 
   min-height: calc(100vh - 56px - 35px - 64px);
   padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
 }
+
+/* U1: skeleton screen — covers the gap between first paint and the
+   moment the catalogue finishes loading + JS renders the real grid. */
+.skeleton-layout { padding: 22px; }
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+}
+.skeleton-card {
+  aspect-ratio: 1;
+  background: linear-gradient(90deg,
+    var(--cream-dark) 0%,
+    var(--cream-darker) 50%,
+    var(--cream-dark) 100%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+  border: var(--rule-strong);
+}
+@keyframes skeleton-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+@media (max-width: 768px) {
+  .skeleton-layout { padding: 16px 14px; }
+  .skeleton-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+}
+@media (max-width: 640px) {
+  .skeleton-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-card { animation: none; }
+}
 .layout {
   display: grid;
   grid-template-columns: 220px minmax(0, 1fr) 232px;
