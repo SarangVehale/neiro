@@ -524,12 +524,39 @@ ${upNext.length ? `
   }
 
   // ── Routing ───────────────────────────────────────────────
+  // Hash-based deep links: #/library, #/library/album/:id, #/artists/:id, etc.
+  // pushState on user nav so the browser back/forward buttons work,
+  // popstate on Back/Forward replays the same navigate path.
+  function hashFor(route, sub, id) {
+    let h = '#/' + (route || 'library');
+    if (sub && id) h += '/' + sub + '/' + encodeURIComponent(id);
+    return h;
+  }
+  function parseHash() {
+    const raw = (window.location.hash || '').replace(/^#\/?/, '');
+    if (!raw) return { route: 'library', sub: null, id: null };
+    const parts = raw.split('/');
+    return {
+      route: parts[0] || 'library',
+      sub:   parts[1] || null,
+      id:    parts[2] ? decodeURIComponent(parts[2]) : null,
+    };
+  }
+  let _suppressPush = false;
   function navigate(route, sub, id) {
     state.route = route; state.subRoute = sub||null; state.subId = id||null;
     document.querySelectorAll('.route-link').forEach(l=>l.classList.toggle('active', l.dataset.route===route));
+    const url = hashFor(route, sub, id);
+    if (!_suppressPush && window.location.hash !== url) {
+      try { history.pushState({ route, sub, id }, '', url); } catch(_) {}
+    }
     render();
     window.scrollTo({ top:0, behavior:'instant' });
   }
+  window.addEventListener('popstate', () => {
+    const { route, sub, id } = parseHash();
+    _suppressPush = true; navigate(route, sub, id); _suppressPush = false;
+  });
 
   function render() {
     let html = '';
@@ -1150,6 +1177,8 @@ ${upNext.length ? `
   songBadge.textContent=`${CATALOGUE.totalSongs} songs`;
   pbVolFill.style.width=(state.player.volume*100)+'%';
   updateShuffleRepeatUI();
-  navigate('library');
+  // Boot from URL hash so a direct link / browser back works on first paint
+  const _boot = parseHash();
+  _suppressPush = true; navigate(_boot.route, _boot.sub, _boot.id); _suppressPush = false;
 
 })();
