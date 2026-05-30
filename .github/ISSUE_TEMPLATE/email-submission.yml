@@ -1,0 +1,93 @@
+name: Email submission (maintainer-only)
+description: Track an album received via email so it surfaces in the same queue as PRs.
+title: "email-submission: <Artist> — <Album>"
+labels: ["submission", "email-queue"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **For maintainer use.** When someone sends an album via the
+        "Quiet — email" path on the Contribute page, open one of these
+        issues to track it. The queue is then visible at
+        [issues?label=email-queue](https://github.com/SarangVehale/hibiki/issues?q=is%3Aissue+label%3Aemail-queue).
+
+        Contributors should not open these themselves — they'd use
+        `Album submission` instead.
+  - type: input
+    id: from
+    attributes:
+      label: Submitter (email or handle, public if they consented)
+      placeholder: name@example.com OR @handle
+    validations:
+      required: true
+  - type: input
+    id: artist
+    attributes:
+      label: Artist
+    validations:
+      required: true
+  - type: input
+    id: album
+    attributes:
+      label: Album
+    validations:
+      required: true
+  - type: input
+    id: year
+    attributes:
+      label: Year
+      placeholder: "2024"
+  - type: dropdown
+    id: genre
+    attributes:
+      label: Genre
+      options:
+        - Ambient
+        - Electronic
+        - Jazz
+        - Classical
+        - Rock
+        - Folk
+        - Field Recording
+        - Pop
+        - Hip-Hop
+        - Soundtrack
+        - Devotional
+        - Lofi
+        - Other
+  - type: input
+    id: source
+    attributes:
+      label: File link (Drive / Dropbox / WeTransfer)
+      placeholder: https://...
+    validations:
+      required: true
+  - type: textarea
+    id: licence
+    attributes:
+      label: Licence statement (copy verbatim from the email)
+      description: |
+        Should include: who owns the rights, what licence applies,
+        and confirmation that the submitter has the right to share.
+    validations:
+      required: true
+  - type: dropdown
+    id: status
+    attributes:
+      label: Queue status
+      options:
+        - "received — awaiting download"
+        - "downloaded — staging in music/"
+        - "encoded — meta.yaml written"
+        - "PR open"
+        - "merged"
+        - "rejected (out of scope / rights unclear)"
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Maintainer notes
+      description: |
+        Free-form. Useful for tracking re-encodes, missing cover art,
+        outstanding questions to the submitter, etc.

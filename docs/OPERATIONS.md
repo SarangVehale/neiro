@@ -146,6 +146,40 @@ makes no authenticated calls.
 
 ---
 
+## Handling email submissions
+
+The Contribute page exposes a "Quiet — email" path
+(`mailto:sarang.kernel@gmail.com`) for contributors who don't want to use
+GitHub. Submissions arrive as emails with a Drive / Dropbox / WeTransfer
+link plus a licence statement. This queue lives in your inbox; surface
+it in GitHub so it's visible alongside PRs:
+
+1. **Triage in Gmail.** Filter `subject:"NEIRO — album submission"` →
+   apply a label (e.g. `neiro/submission`). Star anything that looks
+   in-scope; archive anything that's clearly out of scope.
+2. **Open a tracking issue.** From the repo's
+   [New Issue](https://github.com/SarangVehale/hibiki/issues/new/choose)
+   page, pick **"Email submission (maintainer-only)"**. Fill in the
+   submitter handle, artist/album, file link, and paste their licence
+   statement verbatim. Status starts as `received — awaiting download`.
+3. **Download + stage.** Pull the files from the link into
+   `music/<Artist>/<Album>/`, add `meta.yaml`, run
+   `python scripts/lint_meta.py music/<Artist>/<Album>/meta.yaml` to
+   catch authoring errors before the PR step.
+4. **Update the issue.** Move the status dropdown forward as you go
+   (`downloaded → encoded → PR open → merged`). The queue is visible at
+   [issues?label=email-queue](https://github.com/SarangVehale/hibiki/issues?q=is%3Aissue+label%3Aemail-queue).
+5. **Open the PR** the normal way (push to a feature branch). Link the
+   tracking issue with `Closes #<n>` in the PR body so the issue auto-
+   resolves on merge.
+
+If the email queue grows past ~3 per week and becomes a bottleneck, the
+upgrade path is a forwarder (e.g. `contribute@neiro.music` once a domain
+is set up) with a simple filter that auto-opens these issues. Until
+then, the manual loop above is the operational pattern.
+
+---
+
 ## Adding new music
 
 See `DEPLOY.md` §"Adding music after initial setup". Operational notes:

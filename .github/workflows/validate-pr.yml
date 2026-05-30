@@ -23,6 +23,15 @@ jobs:
 
       - run: pip install mutagen PyYAML
 
+      - name: Lint meta.yaml files
+        id: lint_meta
+        if: always()
+        run: |
+          set +e
+          python scripts/lint_meta.py --format markdown > meta_lint.md
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+          cat meta_lint.md
+
       - name: Validate submitted files
         id: check
         run: |
@@ -102,6 +111,13 @@ jobs:
           if hints:
               summary += ["", "### Heads-up (build will still work, but)", *[f"- {h}" for h in hints]]
 
+          # Inline the meta.yaml lint output if it produced anything.
+          lint_md = pathlib.Path("meta_lint.md")
+          if lint_md.exists():
+              lint_content = lint_md.read_text(encoding="utf-8").strip()
+              if lint_content and not lint_content.startswith("✅"):
+                  summary += ["", lint_content]
+
           summary += [
               "",
               "### Need help?",
@@ -119,7 +135,9 @@ jobs:
 
           pathlib.Path("pr_summary.md").write_text("\n".join(summary))
           print("\n".join(summary))
-          sys.exit(1 if errors else 0)
+          # Combine: PR fails if either step found errors.
+          meta_lint_failed = "${{ steps.lint_meta.outputs.exit_code }}" == "1"
+          sys.exit(1 if errors or meta_lint_failed else 0)
           PY
 
       - name: Post summary comment
