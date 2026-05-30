@@ -37,6 +37,28 @@ jobs:
           python3 scripts/build_sitemap.py
           cp -f _zips/*.zip public/_zips/ 2>/dev/null || true
 
+      - name: Guard against LFS pointers in artifact
+        # GitHub Pages does NOT resolve LFS pointers; it serves the 129-byte
+        # stub as image/jpeg and browsers fail decode. We deploy without
+        # `lfs: true` (bandwidth quota), so any binary in public/ that's
+        # still a pointer would silently ship broken — that bit us with the
+        # cover thumbs from 5b5b48a until f6a400c. Fail the build instead.
+        run: |
+          offenders=$(find public -type f \( -name '*.jpg' -o -name '*.jpeg' \
+                                            -o -name '*.png' -o -name '*.gif' \
+                                            -o -name '*.webp' -o -name '*.ico' \) \
+                      -size -200c -print0 \
+                    | xargs -0 -r -I{} sh -c \
+                        'head -c 32 "{}" | grep -qE "^version https://git-lfs" && echo "{}"' \
+                    || true)
+          if [ -n "$offenders" ]; then
+            echo "::error::LFS pointer stubs found under public/ — GitHub Pages would serve them as 129-byte text:"
+            printf '  %s\n' $offenders
+            echo "Fix: add the path glob to .gitattributes with '-filter -diff -merge' and re-stage."
+            exit 1
+          fi
+          echo "no LFS pointers under public/ — OK"
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5
         with:
