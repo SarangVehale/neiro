@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <rect width="1200" height="630" fill="#f7f2e9"/>
+  <!-- Sakura blossom (same shape as icon.svg), centred-left -->
+  <g transform="translate(360, 315)">
+    <g fill="#f4a8b8" stroke="#e07a90" stroke-width="3" stroke-linejoin="round">
+      <path d="M 0,0 C -50,-25 -70,-90 -35,-150 C -20,-170 -10,-160 0,-140 C 10,-160 20,-170 35,-150 C 70,-90 50,-25 0,0 Z"/>
+      <path d="M 0,0 C -50,-25 -70,-90 -35,-150 C -20,-170 -10,-160 0,-140 C 10,-160 20,-170 35,-150 C 70,-90 50,-25 0,0 Z" transform="rotate(72)"/>
+      <path d="M 0,0 C -50,-25 -70,-90 -35,-150 C -20,-170 -10,-160 0,-140 C 10,-160 20,-170 35,-150 C 70,-90 50,-25 0,0 Z" transform="rotate(144)"/>
+      <path d="M 0,0 C -50,-25 -70,-90 -35,-150 C -20,-170 -10,-160 0,-140 C 10,-160 20,-170 35,-150 C 70,-90 50,-25 0,0 Z" transform="rotate(216)"/>
+      <path d="M 0,0 C -50,-25 -70,-90 -35,-150 C -20,-170 -10,-160 0,-140 C 10,-160 20,-170 35,-150 C 70,-90 50,-25 0,0 Z" transform="rotate(288)"/>
+    </g>
+    <circle r="28" fill="#fff5b8"/>
+    <g fill="#d49050">
+      <circle r="6" cx="0"   cy="-44"/>
+      <circle r="6" cx="42"  cy="-14"/>
+      <circle r="6" cx="26"  cy="36"/>
+      <circle r="6" cx="-26" cy="36"/>
+      <circle r="6" cx="-42" cy="-14"/>
+    </g>
+  </g>
+  <!-- Brand text on the right -->
+  <g transform="translate(620, 280)">
+    <text x="0" y="0" font-family="'Shippori Mincho', 'Hiragino Mincho Pro', serif" font-weight="700" font-size="120" fill="#2a241a">NEIRO</text>
+    <text x="0" y="80" font-family="'Shippori Mincho', serif" font-weight="700" font-size="100" fill="#a14d62">音色</text>
+    <text x="0" y="180" font-family="'DM Mono', monospace" font-weight="400" font-size="28" fill="#8a8270" letter-spacing="4">A FREE, PUBLIC MUSIC ARCHIVE</text>
+  </g>
+</svg>

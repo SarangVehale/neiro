@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- NEIRO 音色 sitemap.
+     The app is single-page with hash routing (#/library/album/:id, etc.),
+     so search-engine crawlers won't follow fragment URLs. Only the
+     canonical entry point is listed here; per-album metadata is in
+     catalogue.json for now. A future build step can render per-album HTML
+     pages and emit them here for proper SEO. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://sarangvehale.github.io/hibiki/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>
