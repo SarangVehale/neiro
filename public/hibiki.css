@@ -517,7 +517,7 @@ input::placeholder,textarea::placeholder { color: var(--ink-faint); opacity: 1; 
 .fp-scrub-bar { position: relative; }
 
 /* ── ALBUM PAGE ──────────────────────────────────────────── */
-.album-page { padding: 0 0 24px; position: relative; isolation: isolate; }
+.album-page { padding: 0 0 24px; position: relative; isolation: isolate; overflow-x: clip; }
 /* Spotify-style soft backdrop behind the hero, drawn from the cover. */
 .album-backdrop {
   position: absolute; inset: 0 0 auto 0; height: 400px; z-index: -1;
