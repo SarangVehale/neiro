@@ -135,6 +135,49 @@ def test_duplicate_track_numbers_get_renumbered(tmp_path, monkeypatch):
     assert nums == [1, 2, 3], f"expected sequential, got {nums}"
 
 
+def test_normalise_genre_variants():
+    assert bc.normalise_genre("Lo-Fi") == "Lofi"
+    assert bc.normalise_genre("lo-fi") == "Lofi"
+    assert bc.normalise_genre("lofi hiphop") == "Lofi"
+    assert bc.normalise_genre("Hip Hop") == "Hip-Hop"
+    assert bc.normalise_genre("Rock") == "Rock"   # unchanged
+    assert bc.normalise_genre("") == ""
+    assert bc.normalise_genre(None) is None
+
+
+def test_genres_yaml_override_unknown(tmp_path, monkeypatch):
+    """genres.yaml should fill in genre when otherwise Unknown."""
+    music = tmp_path / "music"
+    album = music / "Artist X" / "Album X"; album.mkdir(parents=True)
+    (album / "01 - Track.flac").write_bytes(b"\0" * 1024)
+    (tmp_path / "genres.yaml").write_text("artist-x-album-x: Jazz\n", encoding="utf-8")
+    monkeypatch.setattr(bc, "ROOT", tmp_path)
+    monkeypatch.setattr(bc, "MUSIC", music)
+    monkeypatch.setattr(bc, "OUT", tmp_path / "_catalogue" / "catalogue.json")
+    monkeypatch.setattr(bc, "ZIPS", tmp_path / "_zips")
+    monkeypatch.setattr(bc, "GENRES_YAML", tmp_path / "genres.yaml")
+    bc.main(build_zips=False)
+    data = json.loads((tmp_path / "_catalogue" / "catalogue.json").read_text())
+    assert data["artists"][0]["albums"][0]["genre"] == "Jazz"
+
+
+def test_genres_yaml_does_not_override_meta_yaml(tmp_path, monkeypatch):
+    """meta.yaml genre takes precedence over genres.yaml fallback."""
+    music = tmp_path / "music"
+    album = music / "Artist Y" / "Album Y"; album.mkdir(parents=True)
+    (album / "01 - Track.flac").write_bytes(b"\0" * 1024)
+    (album / "meta.yaml").write_text("genre: Ambient\n", encoding="utf-8")
+    (tmp_path / "genres.yaml").write_text("artist-y-album-y: Jazz\n", encoding="utf-8")
+    monkeypatch.setattr(bc, "ROOT", tmp_path)
+    monkeypatch.setattr(bc, "MUSIC", music)
+    monkeypatch.setattr(bc, "OUT", tmp_path / "_catalogue" / "catalogue.json")
+    monkeypatch.setattr(bc, "ZIPS", tmp_path / "_zips")
+    monkeypatch.setattr(bc, "GENRES_YAML", tmp_path / "genres.yaml")
+    bc.main(build_zips=False)
+    data = json.loads((tmp_path / "_catalogue" / "catalogue.json").read_text())
+    assert data["artists"][0]["albums"][0]["genre"] == "Ambient"
+
+
 def test_unique_track_numbers_preserved(tmp_path, monkeypatch):
     """Albums with already-unique numbers shouldn't be touched."""
     music = tmp_path / "music"

@@ -1,0 +1,53 @@
+# Genre overrides for albums whose meta.yaml / audio tags don't supply a
+# genre. build_catalogue.py reads this file as a low-priority fallback —
+# anything explicitly set in meta.yaml or audio tags still wins. To force
+# a different genre than the tags suggest, edit meta.yaml directly.
+#
+# Format: album_id (from catalogue.json) → genre string.
+# Run `python scripts/classify_genres.py` to walk Unknown-genre albums
+# interactively.
+
+# Hand-classified — keep alphabetically sorted by album id.
+agam-aggarwal-singles: Devotional
+alec-benjamin-12-notes-deluxe-16-notes-2024: Pop
+alec-benjamin-narrated-for-you-2018: Pop
+alec-benjamin-singles: Pop
+alec-benjamin-un-commentary-2022: Pop
+alex-warren-singles: Pop
+arctic-monkeys-am-2013: Rock
+arctic-monkeys-favourite-worst-nightmare-2007: Rock
+arctic-monkeys-suck-it-and-see-2021: Rock
+billie-eilish-singles: Pop
+bruno-mars-singles: Pop
+charlie-puth-singles: Pop
+dashavtar-singles: Devotional
+david-kushner-daylight-2023: Pop
+david-kushner-skin-and-bones: Pop
+david-kushner-the-dichotomy-2024: Pop
+dhurandhar-2025-singles: Soundtrack
+f1-the-album-singles: Soundtrack
+gibran-alcocer-singles: Classical
+hans-zimmer---interstellar-original-motion-picture-soundtrack-expanded-edition-2014-singles: Soundtrack
+jamie-duffy-singles: Classical
+jvke-singles: Pop
+kailash-kher-singles: Devotional
+lana-del-rey-born-to-die---paradise-edition-2012: Pop
+lana-del-rey-born-to-die-2012: Pop
+lana-del-rey-chemtrails-over-the-country-club: Pop
+lana-del-rey-ultraviolence-2014: Pop
+lofi-otros: Lofi
+lofi-tokyo-chill-lab-after-mood: Lofi
+lofi-tokyo-chill-lab-angst: Lofi
+lofi-tokyo-chill-lab-first-instar-melody-side-a: Lofi
+lofi-tokyo-chill-lab-im-fine: Lofi
+lofi-tokyo-chill-lab-lofi-pop: Lofi
+lofi-tokyo-chill-lab-summer-chrysails-side-a: Lofi
+maroon-5-singles: Pop
+narci-singles: Pop
+one-direction-made-in-the-am-deluxe-edition-2015: Pop
+pex-singles: Electronic
+reble-singles: Pop
+saiyaara-singles: Soundtrack
+shiva-singles: Devotional
+the-1975-singles: Rock
+the-weekend-singles: Pop

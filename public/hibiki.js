@@ -282,9 +282,18 @@ ${upNext.length ? `
       ${(() => {
         const g = album.genre && album.genre !== 'Unknown' ? esc(album.genre) : '';
         const y = album.year ? String(album.year) : '';
-        if (!g && !y) return '';
+        // Suggest-a-genre link: prefilled GitHub issue using the classify-genre template.
+        const ghParams = new URLSearchParams({
+          template: 'classify-genre.yml',
+          title: `classify: ${album.artist} — ${album.title}`,
+          'album-id': album.id,
+          'current-genre': album.genre || 'Unknown',
+        });
+        const suggestUrl = `https://github.com/SarangVehale/hibiki/issues/new?${ghParams.toString()}`;
+        const suggestLink = `<a class="hero-genre-suggest" href="${suggestUrl}" target="_blank" rel="noopener noreferrer" title="Suggest a different genre">${g || y ? '· edit' : 'Suggest genre'}</a>`;
+        if (!g && !y) return `<div class="hero-genre-tag">${suggestLink}</div>`;
         const sep = g && y ? '<span class="sep"> · </span>' : '';
-        return `<div class="hero-genre-tag">${g}${sep}${y}</div>`;
+        return `<div class="hero-genre-tag">${g}${sep}${y} ${suggestLink}</div>`;
       })()}
       <h1 class="hero-album-title">${esc(album.title)}</h1>
       <div class="hero-artist-name" data-nav="artist" data-artist-id="${album.artistId}">${esc(album.artist)}</div>

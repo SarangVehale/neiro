@@ -55,6 +55,54 @@ ROOT = Path(__file__).resolve().parent.parent
 MUSIC = ROOT / "music"
 OUT = ROOT / "_catalogue" / "catalogue.json"
 ZIPS = ROOT / "_zips"
+GENRES_YAML = ROOT / "genres.yaml"
+
+
+_GENRE_NORMALISE = {
+    # variant spellings → canonical (case-insensitive lookup)
+    "lo-fi": "Lofi",
+    "lo-fi/ambient/soundscape": "Lofi",
+    "lofi hiphop": "Lofi",
+    "lofi hip hop": "Lofi",
+    "lofi hip-hop": "Lofi",
+    "lo-fi hip hop": "Lofi",
+    "hip hop": "Hip-Hop",
+    "hip-hop": "Hip-Hop",
+    "hip/hop": "Hip-Hop",
+    "rap": "Hip-Hop",
+    "r&b": "Pop",
+    "pop rock": "Pop",
+    "indie pop": "Pop",
+    "indie rock": "Rock",
+}
+
+
+def normalise_genre(g: str | None) -> str | None:
+    """Map common variant spellings to canonical genres so the filter
+    list doesn't end up with `Lo-Fi`/`Lofi`/`lofi hiphop` as three
+    separate entries.
+    """
+    if not g:
+        return g
+    key = g.strip().lower()
+    return _GENRE_NORMALISE.get(key, g.strip())
+
+
+def load_genre_overrides() -> dict[str, str]:
+    """Read genres.yaml — manual classifications for albums without genre.
+
+    Lowest-priority fallback: only applied when no other source supplied
+    a genre. Editing meta.yaml is still the canonical place — this file
+    is a release-valve for compilation/Singles dirs where per-album
+    meta.yaml doesn't apply.
+    """
+    if not GENRES_YAML.exists() or yaml is None:
+        return {}
+    try:
+        data = yaml.safe_load(GENRES_YAML.read_text(encoding="utf-8")) or {}
+    except Exception:
+        return {}
+    return {str(k): str(v) for k, v in data.items() if v}
 
 AUDIO_EXT = {".flac", ".mp3", ".m4a", ".aac"}
 SHARD_THRESHOLD_MB = float(os.environ.get("SHARD_THRESHOLD_MB", "150"))
@@ -509,6 +557,9 @@ def process_album(
         or dominant_genre(tag_genres)
         or "Unknown"
     )
+    # Normalise common variants ("Lo-Fi" → "Lofi", etc.) so the filter UI
+    # doesn't fragment into near-duplicates.
+    genre = normalise_genre(genre) or "Unknown"
 
     total_mb = round(sum(t["size_mb"] for t in tracks), 1)
     groups = shard_tracks(tracks)
@@ -611,6 +662,19 @@ def main(build_zips: bool | None = None) -> int:
             if entry:
                 artists.append(entry)
                 total_songs += n
+
+    # Apply genres.yaml overrides — only when the resolved genre is still
+    # "Unknown". meta.yaml / artist.yaml / audio tags take precedence.
+    overrides = load_genre_overrides()
+    if overrides:
+        applied = 0
+        for a in artists:
+            for alb in a.get("albums", []):
+                if alb.get("genre") in (None, "", "Unknown") and alb["id"] in overrides:
+                    alb["genre"] = overrides[alb["id"]]
+                    applied += 1
+        if applied:
+            print(f"applied {applied} genre override(s) from genres.yaml")
 
     contributors = []
     contrib_path = ROOT / "contributors.yaml"

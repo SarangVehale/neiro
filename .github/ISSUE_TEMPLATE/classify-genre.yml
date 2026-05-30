@@ -1,0 +1,49 @@
+name: Suggest a genre
+description: Tell the maintainer what genre an album should be classified as.
+title: "classify: <artist> — <album>"
+labels: ["classify-genre"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Found an album whose genre is wrong or missing? Suggest one here.
+        Maintainer applies it to `genres.yaml` (or `meta.yaml` for new
+        submissions) and the next deploy picks it up.
+  - type: input
+    id: album-id
+    attributes:
+      label: Album id (from the URL hash)
+      description: 'e.g. `charlie-puth-singles` — the last segment of `/#/library/album/<id>`'
+      placeholder: charlie-puth-singles
+    validations:
+      required: true
+  - type: input
+    id: current-genre
+    attributes:
+      label: Currently shown as
+      placeholder: Unknown
+  - type: dropdown
+    id: suggested-genre
+    attributes:
+      label: Suggested genre
+      options:
+        - Ambient
+        - Electronic
+        - Jazz
+        - Classical
+        - Rock
+        - Folk
+        - Field Recording
+        - Pop
+        - Hip-Hop
+        - Soundtrack
+        - Devotional
+        - Lofi
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else?
+      description: Reasoning, alternative genres, sub-genre detail — all helpful.
