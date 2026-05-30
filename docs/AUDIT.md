@@ -1,6 +1,6 @@
 # NEIRO 音色 — Audit
 
-_Last reviewed: 2026-05-30 against commit `df4bdbb`+._
+_Last reviewed: 2026-05-30 against commit `167ab32`+._
 
 A snapshot of the current state across security, compliance, dependencies,
 system, disaster-recovery and continuity dimensions. Items are scored as:
@@ -44,11 +44,11 @@ Verified end-to-end via Playwright against the live deployment.
 
 ### 2.1 Content Security Policy
 
-The meta CSP (live as of `df4bdbb`+) is:
+The meta CSP is:
 
 ```
 default-src 'self';
-script-src  'self' 'unsafe-inline';
+script-src  'self';
 style-src   'self' 'unsafe-inline' https://fonts.googleapis.com;
 font-src    'self' https://fonts.gstatic.com data:;
 img-src     'self' data: https:;
@@ -59,8 +59,9 @@ worker-src  'self';
 ```
 
 - ✅ `default-src 'self'` denies anything not explicitly allowed.
-- 🟡 `script-src 'unsafe-inline'` is required because boot logic in
-  `index.html` registers the SW inline. Could be tightened to a nonce.
+- ✅ `script-src 'self'` — no `'unsafe-inline'`. SW registration lives in
+  `boot.js`; the only previously inline `onerror=` handlers on `<img>`
+  were moved to `addEventListener('error', …)`.
 - ✅ `connect-src` is tight — only GH media (audio + zip downloads) is
   allowed. jsdelivr was removed when icons moved on-host (P1).
 - ✅ `img-src https:` is permissive enough for any future CDN-hosted
@@ -120,10 +121,10 @@ worker-src  'self';
 | Criterion | Status | Notes |
 |---|---|---|
 | Semantic landmarks (`<nav>`, `<main>`, `<aside>`) | ✅ | Used. |
-| Keyboard navigation through cards / rows | 🟡 | Tab works; arrow-key navigation through the grid not implemented. |
-| Visible focus styles | 🟡 | `:focus-visible { outline: 2px solid sakura }` on cards; default elsewhere. Should be tightened. |
+| Keyboard navigation through cards / rows | ✅ | Arrow keys traverse `.album-grid` (`ArrowLeft/Right` step, `ArrowUp/Down` jump by column count, `Home/End`). |
+| Visible focus styles | ✅ | Global `:where(a, button, [tabindex="0"], [role="button"]):focus-visible` ring on `--sakura`. |
 | Form labels associated with inputs | ✅ | `for=`/`id=` pairs throughout the Contribute form. |
-| Colour contrast | 🟡 | Ink-on-cream meets AA; `--ink-faint` on `--cream` likely fails for body text — only used for tiny metadata. Worth a Contrast Checker pass. |
+| Colour contrast | ✅ | All text tokens on `--cream` pass body AA (≥4.5:1): ink 13.8, ink-mid 8.9, ink-light 6.2, ink-faint 4.7. Decorative `--ink-rule` / `--ink-ghost` are never used for text. Same passes hold in dark mode. |
 | Reduced motion respected | ✅ | `prefers-reduced-motion: reduce` disables skeleton shimmer and route fade. |
 | Screen-reader-only labels | ✅ | `.sr-only` used for icon-only buttons; ARIA labels on player controls and search field. |
 | Live regions for toasts | ✅ | `#toastRegion[aria-live="polite"]`. |
@@ -167,8 +168,9 @@ worker-src  'self';
 - ✅ Audio `play()` failures are swallowed silently to avoid noisy
   promise rejections on browsers that block autoplay. Pause/play state
   still updates from `audio.addEventListener('play'|'pause')`.
-- 🟡 `catalogue.json` parse failure doesn't show a user-facing error;
-  the empty fallback renders an empty grid. Worth a friendly banner.
+- ✅ `catalogue.json` fetch/parse failure surfaces `#catalogueBanner`
+  with a Reload action; the empty-grid fallback still renders so the
+  rest of the shell stays usable.
 
 ### 4.3 Code health
 
@@ -256,18 +258,29 @@ That's a fork-bus-factor of 1.
 
 ## 7. Action items
 
-Sorted by impact / effort.
+Closed in this pass:
+
+- ✅ Album cover discovery extended to embedded artwork; 41/45 albums
+  now have thumbs vs 29/45 before. Build emits a warning naming each
+  album that needs a manual `cover.jpg`.
+- ✅ Arrow-key navigation through `.album-grid`.
+- ✅ `--ink-faint` and `--ink-light` darkened to body-AA on `--cream`
+  (both modes); decorative uses split into new `--ink-rule` token.
+  Global `:focus-visible` ring.
+- ✅ `OPERATIONS.md` covering rollback / SW cache busts / R2 rotation /
+  LFS quota response / site-down runbook.
+- ✅ Monthly archive.org snapshot — `.github/workflows/archive.yml`,
+  cron `17 3 1 * *`.
+- ✅ Catalogue-load failure banner with reload affordance.
+- ✅ `script-src 'self'` — `'unsafe-inline'` removed. Inline SW
+  registration moved to `boot.js`; `onerror=""` handlers on `<img>`
+  re-bound via `addEventListener('error', …)`.
+
+Open (need infra/human, not code):
 
 1. Add `frame-ancestors` via HTTP headers (when GH Pages exposes them).
-2. Replace `'unsafe-inline'` in `script-src` with a per-deploy nonce.
-3. Add arrow-key navigation through `.album-grid`.
-4. Audit colour contrast on `--ink-faint` text.
-5. Add `OPERATIONS.md` covering rollback / SW cache busts / secrets.
-6. Wire up a monthly archive.org snapshot.
-7. List a co-maintainer; document the hand-off.
-8. Consider Cloudflare Pages mirror for outage redundancy.
-9. Add a friendly "catalogue failed to load" banner.
-10. Add a sponsors / funding link (`FUNDING.yml`).
+2. List a co-maintainer; document the hand-off.
+3. Consider Cloudflare Pages mirror for outage redundancy.
+4. Add a sponsors / funding link (`FUNDING.yml`).
 
-None of these is a blocker for the current public launch. They are the
-hardening backlog.
+None of these is a blocker for the current public launch.

@@ -86,6 +86,34 @@ def test_shard_never_splits_a_track(monkeypatch):
     assert len(parts) == 1 and len(parts[0]) == 1
 
 
+# ── find_cover_file ──────────────────────────────────────────
+
+def test_find_cover_file_named_cover(tmp_path):
+    album = tmp_path / "Artist" / "Album"; album.mkdir(parents=True)
+    cover = album / "cover.jpg"; cover.write_bytes(b"\xff\xd8\xff" + b"\0" * 200)
+    assert bc.find_cover_file(album, tmp_path / "Artist") == cover
+
+
+def test_find_cover_file_loose_single_image_fallback(tmp_path):
+    """Singles-style dirs with a lone CHARLIE.jpg should still find a cover."""
+    album = tmp_path / "Artist"; album.mkdir(parents=True)
+    art = album / "ARTIST.jpg"; art.write_bytes(b"\xff\xd8\xff" + b"\0" * 200)
+    (album / "track.m4a").write_bytes(b"\0" * 100)  # not an image
+    assert bc.find_cover_file(album, album) == art
+
+
+def test_find_cover_file_ignores_multiple_loose_images(tmp_path):
+    """Multiple loose images are ambiguous — fall back to embedded extraction."""
+    album = tmp_path / "Artist"; album.mkdir(parents=True)
+    (album / "a.jpg").write_bytes(b"\xff\xd8\xff" + b"\0" * 200)
+    (album / "b.jpg").write_bytes(b"\xff\xd8\xff" + b"\0" * 200)
+    assert bc.find_cover_file(album, album) is None
+
+
+def test_extract_embedded_cover_handles_missing_file(tmp_path):
+    assert bc.extract_embedded_cover(tmp_path / "nope.m4a") is None
+
+
 # ── end-to-end: synthetic music tree ─────────────────────────
 
 def test_main_end_to_end(tmp_path, monkeypatch):

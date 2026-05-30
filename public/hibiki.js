@@ -635,7 +635,26 @@ ${upNext.length ? `
         const id = card.dataset.albumId;
         if (id) navigate(state.route==='artists'?'artists':'library','album',id);
       });
-      card.addEventListener('keydown', e=>{ if(e.key==='Enter') card.click(); });
+      card.addEventListener('keydown', e=>{
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.click(); return; }
+        if (!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(e.key)) return;
+        const grid = card.closest('.album-grid');
+        if (!grid) return;
+        const cards = [...grid.querySelectorAll('.album-card')];
+        const idx = cards.indexOf(card);
+        if (idx < 0) return;
+        // Derive column count from the rendered grid template — matches the
+        // browser's resolved layout regardless of auto-fill breakpoint.
+        const cols = getComputedStyle(grid).gridTemplateColumns.split(' ').length || 1;
+        let next = idx;
+        if (e.key === 'ArrowRight') next = Math.min(idx + 1, cards.length - 1);
+        else if (e.key === 'ArrowLeft') next = Math.max(idx - 1, 0);
+        else if (e.key === 'ArrowDown') next = Math.min(idx + cols, cards.length - 1);
+        else if (e.key === 'ArrowUp') next = Math.max(idx - cols, 0);
+        else if (e.key === 'Home') next = 0;
+        else if (e.key === 'End') next = cards.length - 1;
+        if (next !== idx) { e.preventDefault(); cards[next].focus(); }
+      });
     });
     app.querySelectorAll('[data-nav]').forEach(el=>{
       el.addEventListener('click', ()=>{
@@ -1113,7 +1132,13 @@ ${upNext.length ? `
     if(pbArt) {
       pbArt.className=`pb-art ${kClass(ki)}`;
       const c=item.album.cover;
-      pbArt.innerHTML=c?`<img src="${c}" alt="" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">`:kChar(ki);
+      if(c) {
+        pbArt.innerHTML = `<img src="${esc(c)}" alt="" style="width:100%;height:100%;object-fit:cover">`;
+        const img = pbArt.querySelector('img');
+        if(img) img.addEventListener('error', () => { img.style.display = 'none'; });
+      } else {
+        pbArt.innerHTML = kChar(ki);
+      }
     }
     if(pbTitle)  pbTitle.textContent=item.track.title;
     if(pbArtist) pbArtist.textContent=`${item.artist} — ${item.album.title}`;
@@ -1307,7 +1332,13 @@ ${upNext.length ? `
     if(fpArtEl) {
       fpArtEl.className=`fp-art-wrap ${kClass(ki)}`;
       const cover=item.album.coverUrl||item.album.cover;
-      fpArtEl.innerHTML=cover?`<img src="${cover}" alt="" onerror="this.style.display='none'">`:kChar(ki);
+      if(cover) {
+        fpArtEl.innerHTML = `<img src="${esc(cover)}" alt="">`;
+        const img = fpArtEl.querySelector('img');
+        if(img) img.addEventListener('error', () => { img.style.display = 'none'; });
+      } else {
+        fpArtEl.innerHTML = kChar(ki);
+      }
     }
     if(fpTitleEl)  fpTitleEl.textContent=item.track.title;
     if(fpAlbumEl)  fpAlbumEl.textContent=item.album.title;

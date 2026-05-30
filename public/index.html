@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#c9667a" />
     <meta name="description" content="NEIRO 音色 — a free, public music archive. Browse, preview, and download freely." />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; media-src 'self' https: blob:; connect-src 'self' https://media.githubusercontent.com https://raw.githubusercontent.com; worker-src 'self';" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; media-src 'self' https: blob:; connect-src 'self' https://media.githubusercontent.com https://raw.githubusercontent.com; worker-src 'self';" />
     <title>NEIRO | 音色</title>
 
     <!-- E1: Open Graph + Twitter cards so shared links preview cleanly -->
@@ -213,12 +213,6 @@
 
     <script src="hibiki-data.js"></script>
     <script src="hibiki.js"></script>
-    <script>
-      if ("serviceWorker" in navigator) {
-        window.addEventListener("load", function () {
-          navigator.serviceWorker.register("sw.js").catch(function () {});
-        });
-      }
-    </script>
+    <script src="boot.js"></script>
   </body>
 </html>

@@ -1,0 +1,160 @@
+# NEIRO 音色 — Operations runbook
+
+Day-2 procedures for keeping the site running. For first-time setup, see
+`DEPLOY.md`. For the architectural map, see `ARCHITECTURE.md`. For the
+state-of-the-system snapshot, see `AUDIT.md`.
+
+---
+
+## Quick reference
+
+| Incident | First action | Time to recover |
+|---|---|---|
+| Bad deploy live on Pages | `git revert HEAD && git push` | ~2 min (one workflow run) |
+| Cached service worker serving stale shell | Bump `VERSION` in `public/sw.js` | ~2 min + per-client revisit |
+| LFS bandwidth 429s on audio | Confirm R2 secrets are set; otherwise unset `R2_*` and accept fallback | Immediate (re-trigger workflow) |
+| R2 outage / 5xx | Remove `R2_ACCOUNT_ID` secret → falls back to `media.githubusercontent.com` | ~2 min |
+| Catalogue parse fails / shows banner | Roll forward with corrected `_catalogue/catalogue.json` | Single push |
+| Pages outage | None available — Pages has no SLA. Mirror to Cloudflare Pages if needed. | Hours |
+
+---
+
+## Rolling back a bad deploy
+
+The site is the `main` branch. There is no staging.
+
+```bash
+git revert <bad-sha>       # creates a new commit that undoes the bad one
+git push origin main       # triggers Build & Deploy
+```
+
+Watch the workflow at `https://github.com/SarangVehale/hibiki/actions`.
+Once it completes, the rolled-back shell is live.
+
+If the bad commit corrupted `_catalogue/catalogue.json`, the client falls
+back to an empty grid + a "Catalogue failed to load" banner (see
+`hibiki-data.js`). The user can still navigate — playback is just empty.
+
+> Do **not** force-push to `main`. The audit calls this out: there is no
+> branch protection, but force-pushes will skip the Pages workflow and
+> may leave Pages serving a stale artifact.
+
+---
+
+## Bumping the service worker
+
+`public/sw.js` exports a `VERSION` constant. The SW deletes any cache whose
+name doesn't match `VERSION` on activate (`sw.js:29`). To force every
+client to refetch the shell:
+
+```js
+// public/sw.js
+const VERSION = "neiro-v5";  // bump v4 → v5
+```
+
+Commit, push, and within the next user visit (or after the SW's own update
+check, ~24 h max) the old cache is purged. There is no way to force a SW
+refresh remotely — the user has to revisit the page.
+
+Bump conditions:
+- Any change to `index.html`, `hibiki.js`, `hibiki.css`, `hibiki-data.js`,
+  or `tabler.css` that's behavior-affecting.
+- A CSP tightening (see Audit #2) — the old SW may have cached the looser
+  CSP'd shell.
+
+Do **not** bump for catalogue-only changes: `catalogue.json` is excluded
+from the SW pre-cache and served stale-while-revalidate, so it updates on
+the user's next visit without a SW bump.
+
+---
+
+## Rotating R2 secrets
+
+R2 secrets live in **GitHub Settings → Secrets and variables → Actions**:
+
+- `R2_ACCOUNT_ID`
+- `R2_BUCKET`
+- `R2_ACCESS_KEY_ID`
+- `R2_SECRET_ACCESS_KEY`
+- `R2_PUBLIC_URL`
+
+To rotate:
+
+1. In Cloudflare: **R2 → Manage R2 API Tokens → Create API Token** with
+   Object Read & Write on the bucket. Copy the new Access Key + Secret.
+2. In GitHub: paste both values into the matching secrets. **Do not delete
+   the old token yet.**
+3. Trigger a workflow run (`gh workflow run build.yml` or push an empty
+   commit) and confirm the new secrets work end-to-end.
+4. In Cloudflare: revoke the old API token.
+
+`R2_PUBLIC_URL` only changes if you swap the public hostname (e.g., move
+from `pub-*.r2.dev` to a custom domain). If you change it, also update the
+CORS `AllowedOrigins` on the R2 bucket to match the Pages domain.
+
+---
+
+## LFS quota response
+
+The repo is configured with `lfs: ${{ secrets.R2_ACCOUNT_ID == '' }}` in
+`build.yml`. When R2 is configured, CI skips LFS entirely. When R2 is
+*not* configured, CI pulls LFS and hits the 10 GB/month bandwidth quota
+within a few CI runs.
+
+**Symptoms:** workflow fails at the LFS checkout step, or audio 429s on
+the live site.
+
+**Response:**
+
+1. **Preferred:** finish the R2 migration (see `DEPLOY.md` §"Migrate
+   existing audio to R2"). Once `R2_ACCOUNT_ID` is set, CI auto-stops
+   pulling LFS.
+2. **Stopgap:** the workflow already falls back to
+   `media.githubusercontent.com` for the catalogue's `media_base_url`,
+   but that hits the same quota. There's no quick fix without R2.
+3. **Last resort:** open a GitHub support ticket to request a quota
+   increase — typically denied for free public repos.
+
+---
+
+## "The site is down" runbook
+
+1. **Is Pages up?** Check `https://www.githubstatus.com/`. If GitHub is
+   degraded, there is nothing to do but wait.
+2. **Is the build green?** `gh run list --limit 5` — look for failed
+   workflows on `main`. If the last build failed, the live site is still
+   the previous successful artifact. Roll forward with a fix.
+3. **Is the catalogue loading?** `curl -I https://<site>/_catalogue/catalogue.json`
+   should return 200. If 404 or 5xx, the artifact is broken — trigger a
+   re-deploy via `gh workflow run build.yml`.
+4. **Is audio loading?** `curl -I` a track URL from `catalogue.json`. If
+   404 — R2 sync may have skipped a file; re-run `scripts/sync_r2.py`. If
+   429/403 — see LFS quota response above.
+
+---
+
+## Secrets inventory
+
+| Where | What | Used by |
+|---|---|---|
+| GitHub repo secrets | `R2_*` (5 values) | `build.yml` audio CDN switch |
+| Cloudflare | R2 API tokens | `sync_r2.py` upload + `build.yml` |
+| Local `.venv` | none (build deps only) | `build_catalogue.py` runtime |
+
+There are no runtime secrets — the deployed site is fully static and
+makes no authenticated calls.
+
+---
+
+## Adding new music
+
+See `DEPLOY.md` §"Adding music after initial setup". Operational notes:
+
+- Rebuild the catalogue locally (`python scripts/build_catalogue.py`) and
+  commit the regenerated `_catalogue/catalogue.json` plus any new
+  `public/_thumbs/*.jpg` files. CI does **not** rebuild the catalogue.
+- The build script warns on stdout when an album has no resolvable cover
+  art (no `cover.jpg`, no embedded art in the first track). Add a
+  `cover.jpg` to the album dir to fix.
+- The `_thumbs` sweep step removes any thumb file not referenced by the
+  current catalogue — safe to run repeatedly.

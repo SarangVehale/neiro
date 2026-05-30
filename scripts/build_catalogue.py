@@ -186,8 +186,16 @@ def load_inherited_meta(album_dir: Path, artist_dir: Path) -> dict:
     return combined
 
 
+_IMG_EXT = {".jpg", ".jpeg", ".png", ".svg", ".webp"}
+
+
 def find_cover_file(album_dir: Path, artist_dir: Path) -> Path | None:
-    """Return path to cover image or None, searching up to artist_dir."""
+    """Return path to cover image or None, searching up to artist_dir.
+
+    Preference order: cover.{jpg,jpeg,png,svg} → folder.{jpg,jpeg,png} →
+    a single image sitting alone in the album dir (handles loose
+    per-album art that wasn't renamed to cover.jpg).
+    """
     search_dirs: list[Path] = []
     d = album_dir
     while True:
@@ -197,11 +205,58 @@ def find_cover_file(album_dir: Path, artist_dir: Path) -> Path | None:
         d = d.parent
         if not d.is_relative_to(artist_dir):
             break
+    named = ("cover.jpg", "cover.jpeg", "cover.png", "cover.svg",
+             "folder.jpg", "folder.jpeg", "folder.png")
     for d in search_dirs:
-        for name in ("cover.jpg", "cover.jpeg", "cover.png", "cover.svg"):
+        for name in named:
             p = d / name
             if p.exists():
                 return p
+    # Fallback: if album_dir contains exactly one image file, treat it as the cover.
+    imgs = [p for p in album_dir.iterdir()
+            if p.is_file() and p.suffix.lower() in _IMG_EXT]
+    if len(imgs) == 1:
+        return imgs[0]
+    return None
+
+
+def extract_embedded_cover(audio_path: Path) -> bytes | None:
+    """Return raw bytes of embedded artwork from an audio file, or None.
+
+    Used as the last-resort cover source for compilation/Singles dirs that
+    have no on-disk cover.jpg. mutagen handles MP4 ('covr'), ID3 (APIC),
+    and FLAC (Picture blocks) transparently.
+    """
+    if mutagen is None or not audio_path.exists():
+        return None
+    try:
+        mf = mutagen.File(audio_path)
+    except Exception:
+        return None
+    if mf is None:
+        return None
+    # MP4 / M4A / AAC: 'covr' atom is a list of MP4Cover (bytes-like)
+    covr = getattr(mf, "tags", None) and mf.tags.get("covr") if mf.tags else None
+    if covr:
+        try:
+            return bytes(covr[0])
+        except Exception:
+            pass
+    # ID3 (MP3): APIC frames
+    if mf.tags:
+        for key in mf.tags.keys():
+            if key.startswith("APIC"):
+                try:
+                    return mf.tags[key].data
+                except Exception:
+                    pass
+    # FLAC: Picture blocks at the file level
+    pics = getattr(mf, "pictures", None)
+    if pics:
+        try:
+            return pics[0].data
+        except Exception:
+            pass
     return None
 
 
@@ -212,25 +267,39 @@ def cover_thumb(
     size: int = 96,
     quality: int = 65,
     out_dir: Path | None = None,
+    fallback_audio: Path | None = None,
 ) -> str | None:
     """Write a small JPEG thumbnail to ``out_dir/<album_id>.<hash>.jpg``
     and return the relative path (or None when no cover was found).
 
-    Externalising the thumbnail keeps the catalogue.json small (used to
-    bake the bytes in as base64; that bloated the JSON to >240 KB on a
-    45-album catalogue). The hash in the filename gives each cover its
-    own immutable URL so browsers can cache aggressively.
+    Discovery order:
+      1. cover.* / folder.* / single loose image in album_dir
+      2. embedded artwork in ``fallback_audio`` (first track of the album)
+
+    Externalising the thumbnail keeps catalogue.json small (used to be
+    base64-baked; that bloated the JSON past 240 KB on 45 albums). The
+    hash in the filename gives each cover its own immutable URL so
+    browsers can cache aggressively.
     """
     if out_dir is None:
         out_dir = ROOT / "public" / "_thumbs"
     cover_file = find_cover_file(album_dir, artist_dir)
-    if cover_file is None:
+    raw: bytes | None = None
+    src_ext: str | None = None
+    if cover_file is not None:
+        if cover_file.suffix.lower() == ".svg":
+            return None  # SVGs served as-is via cover_path
+        raw = cover_file.read_bytes()
+        if len(raw) < 128:
+            raw = None  # LFS pointer stub or empty — fall through to embedded
+        else:
+            src_ext = cover_file.suffix.lower()
+    if raw is None and fallback_audio is not None:
+        raw = extract_embedded_cover(fallback_audio)
+        if raw and len(raw) < 128:
+            raw = None
+    if raw is None:
         return None
-    if cover_file.suffix.lower() == ".svg":
-        return None  # SVGs served as-is via cover_path
-    raw = cover_file.read_bytes()
-    if len(raw) < 128:
-        return None  # LFS pointer stub or empty file — not a real image
     if Image is not None:
         try:
             im = Image.open(io.BytesIO(raw)).convert("RGB")
@@ -242,7 +311,7 @@ def cover_thumb(
         except Exception:
             return None  # PIL can't open it — not a real image
     else:
-        ext = "png" if cover_file.suffix.lower() == ".png" else "jpg"
+        ext = "png" if src_ext == ".png" else "jpg"
     h = hashlib.sha256(raw).hexdigest()[:8]
     out_dir.mkdir(parents=True, exist_ok=True)
     name = f"{album_id}.{h}.{ext}"
@@ -464,6 +533,11 @@ def process_album(
     ]
 
     cover_file = find_cover_file(album_dir, artist_dir)
+    # First on-disk track (if any) is the fallback source for embedded artwork.
+    fallback_audio = next(
+        (Path(t["_path"]) for t in tracks if t.get("_path")),
+        None,
+    )
     entry = {
         "id": album_id,
         "title": meta.get("title", album_name.split(" / ")[-1]),
@@ -471,9 +545,14 @@ def process_album(
         "genre": genre,
         "notes": meta.get("notes", ""),
         "license": meta.get("license", ""),
-        # P3: thumbnails now written to public/_thumbs/<id>.<hash>.jpg.
+        # P3: thumbnails written to public/_thumbs/<id>.<hash>.jpg.
         # Catalogue field is the relative path; data adapter wires it up.
-        "cover_thumb": cover_thumb(album_dir, artist_dir, album_id, size=args.thumb_size, quality=args.thumb_quality),
+        # Compilation/Singles dirs without cover.jpg fall back to embedded art.
+        "cover_thumb": cover_thumb(
+            album_dir, artist_dir, album_id,
+            size=args.thumb_size, quality=args.thumb_quality,
+            fallback_audio=fallback_audio,
+        ),
         "cover_path": str(cover_file.relative_to(ROOT)) if cover_file else None,
         "total_size_mb": total_mb,
         "shards": shards,
@@ -551,6 +630,31 @@ def main(build_zips: bool | None = None) -> int:
         f"catalogue.json written: {len(artists)} artists, {total_songs} songs, "
         f"{size_kb} KB -> {OUT}"
     )
+    # Sweep orphaned thumbs: every rebuild may produce a new hash (PIL
+    # output isn't byte-stable across versions), so unreferenced files
+    # in public/_thumbs/ would accumulate forever.
+    thumbs_dir = ROOT / "public" / "_thumbs"
+    if thumbs_dir.exists():
+        referenced = {
+            alb["cover_thumb"].split("/")[-1]
+            for a in artists for alb in a.get("albums", [])
+            if alb.get("cover_thumb")
+        }
+        removed = 0
+        for f in thumbs_dir.iterdir():
+            if f.is_file() and f.name not in referenced:
+                f.unlink()
+                removed += 1
+        if removed:
+            print(f"swept {removed} orphan thumb(s) from public/_thumbs/")
+    no_cover = [
+        f"  - {a['name']} / {alb['title']}"
+        for a in artists for alb in a.get("albums", []) if not alb.get("cover_thumb")
+    ]
+    if no_cover:
+        print(f"warning: {len(no_cover)} album(s) have no cover art — drop a cover.jpg in:")
+        for line in no_cover:
+            print(line)
     return 0
 
 

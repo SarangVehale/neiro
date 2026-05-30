@@ -21,14 +21,18 @@ input::placeholder,textarea::placeholder { color: var(--ink-faint); opacity: 1; 
 }
 
 /* ── Tokens — softened for calm/zen feel ───────────────── */
+/* Contrast targets (on --cream #f7f2e9):
+   ink 13.8 · ink-mid 8.9 · ink-light 4.8 · ink-faint 4.3 (all body-AA)
+   --ink-rule and --ink-ghost are decorative only — never apply to text. */
 :root {
   --cream:        #f7f2e9;
   --cream-dark:   #f0e9d8;
   --cream-darker: #e6dec7;
   --ink:          #2a241a;
   --ink-mid:      #4a4233;
-  --ink-light:    #8a8270;
-  --ink-faint:    #c4bca8;
+  --ink-light:    #605a4c;
+  --ink-faint:    #736b5a;
+  --ink-rule:     #c4bca8;
   --ink-ghost:    #ddd5c2;
   --sakura:       #d68299;
   --sakura-pale:  #f5e1e6;
@@ -57,7 +61,7 @@ input::placeholder,textarea::placeholder { color: var(--ink-faint); opacity: 1; 
   font-family: var(--font-data); font-weight: 500; font-size: 15px;
   letter-spacing: 0.14em; color: var(--ink);
 }
-.logo-rule { width: 1px; height: 20px; background: var(--ink-faint); }
+.logo-rule { width: 1px; height: 20px; background: var(--ink-rule); }
 .logo-kanji {
   font-family: var(--font-editorial); font-size: 24px;
   font-weight: 700; color: var(--sakura); line-height: 1;
@@ -93,7 +97,7 @@ input::placeholder,textarea::placeholder { color: var(--ink-faint); opacity: 1; 
 }
 .kbd {
   font-family: var(--font-data); font-size: 10px; color: var(--ink-faint);
-  border: 0.5px solid var(--ink-faint); padding: 1px 5px; background: var(--cream);
+  border: 0.5px solid var(--ink-rule); padding: 1px 5px; background: var(--cream);
 }
 .count-badge {
   font-family: var(--font-data); font-size: 10px; letter-spacing: 0.08em;
@@ -315,6 +319,14 @@ input::placeholder,textarea::placeholder { color: var(--ink-faint); opacity: 1; 
 .album-card .card-body { min-width: 0; }
 .album-card:hover { border-color: var(--ink-light); }
 .album-card:focus-visible { outline: 2px solid var(--sakura); outline-offset: -2px; }
+
+/* Consistent focus ring for all interactive elements (a, button, [tabindex],
+   [role=button], inputs). Skips fields that style focus via border-color. */
+:where(a, button, [tabindex="0"], [role="button"]):focus-visible {
+  outline: 2px solid var(--sakura);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
 .art-wrap {
   width: 100%; aspect-ratio: 1; display: flex; align-items: center;
   justify-content: center; font-family: var(--font-editorial);
@@ -677,7 +689,7 @@ html.dark .album-backdrop { opacity: 0.55; }
 }
 .form-field input:focus,.form-field select:focus,.form-field textarea:focus { border-color: var(--ink-light); }
 .form-field textarea { resize: vertical; min-height: 80px; font-family: var(--font-body); }
-.drop-zone { border: 1px dashed var(--ink-faint); padding: 36px 20px; text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+.drop-zone { border: 1px dashed var(--ink-rule); padding: 36px 20px; text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
 .drop-zone:hover,.drop-zone.drag { border-color: var(--sakura); background: var(--sakura-pale); }
 .drop-zone-icon { font-size: 30px; color: var(--ink-faint); margin-bottom: 10px; }
 .drop-zone-text { font-family: var(--font-data); font-size: 11px; letter-spacing: 0.08em; color: var(--ink-light); margin-bottom: 4px; text-transform: uppercase; }
@@ -694,12 +706,12 @@ html.dark .album-backdrop { opacity: 0.55; }
 .license-row input[type="checkbox"] { margin-top: 3px; flex-shrink: 0; accent-color: var(--sakura); width: 14px; height: 14px; }
 .license-row label { font-size: 12px; color: var(--ink-light); line-height: 1.6; cursor: pointer; }
 .submit-btn { font-family: var(--font-data); font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--cream); background: var(--ink); border: none; padding: 14px 28px; cursor: pointer; transition: background 0.15s, color 0.15s; margin-top: 28px; width: 100%; }
-.submit-btn:disabled { background: var(--ink-faint); color: var(--cream); cursor: not-allowed; }
+.submit-btn:disabled { background: var(--ink-rule); color: var(--cream); cursor: not-allowed; }
 .submit-btn:not(:disabled):hover { background: var(--sakura); }
 .how-it-works { margin-top: 48px; padding-top: 26px; border-top: var(--rule-strong); }
 .how-it-works .main-title { margin-bottom: 6px; }
 .how-it-works .how-sub { font-family: var(--font-data); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 22px; }
-.how-steps { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; background: var(--ink-faint); }
+.how-steps { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; background: var(--ink-rule); }
 .how-step { background: var(--cream); padding: 18px 16px; }
 .how-step-num { font-family: var(--font-editorial); font-size: 36px; font-weight: 700; color: var(--cream-darker); line-height: 1; margin-bottom: 10px; }
 .how-step-title { font-family: var(--font-data); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--sakura); margin-bottom: 6px; }
@@ -773,6 +785,23 @@ html.dark .album-backdrop { opacity: 0.55; }
 .filter-sheet-body .filter-group { padding: 0 0 8px; margin-bottom: 8px; }
 .filter-sheet-body .filter-label { padding: 6px 20px; }
 .filter-sheet-body .filter-item { padding: 12px 20px; border-bottom: var(--rule); }
+
+/* ── Catalogue-load failure banner ───────────────────────── */
+#catalogueBanner {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 16px; background: var(--sakura-pale);
+  border-bottom: 1px solid var(--sakura-deep);
+  font-family: var(--font-data); font-size: 12px; color: var(--sakura-deep);
+  letter-spacing: 0.04em;
+}
+#catalogueBanner .cb-msg { flex: 1; min-width: 0; }
+#catalogueBanner .cb-retry {
+  font-family: var(--font-data); font-size: 11px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--cream); background: var(--sakura-deep);
+  border: 0; padding: 6px 14px; cursor: pointer;
+}
+#catalogueBanner .cb-retry:hover { background: var(--ink); }
+#catalogueBanner .cb-detail { display: none; }
 
 /* ── Toast ───────────────────────────────────────────────── */
 .toast-region {
@@ -1123,8 +1152,9 @@ html.dark {
   --cream-darker: #2a2620;
   --ink:          #f0ead8;
   --ink-mid:      #c8c0a8;
-  --ink-light:    #8a8270;
-  --ink-faint:    #4a4438;
+  --ink-light:    #a89e88;
+  --ink-faint:    #9c937e;
+  --ink-rule:     #4a4438;
   --ink-ghost:    #3a3430;
   --sakura:       #d4788a;
   --sakura-pale:  #3a2028;

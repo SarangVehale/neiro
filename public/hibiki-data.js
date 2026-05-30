@@ -81,13 +81,31 @@ function adapt(raw) {
   return cat;
 }
 
+function showCatalogueBanner(detail) {
+  if (document.getElementById("catalogueBanner")) return;
+  const b = document.createElement("div");
+  b.id = "catalogueBanner";
+  b.setAttribute("role", "alert");
+  b.innerHTML =
+    '<span class="cb-msg">Couldn’t load the music catalogue. The library is empty until this is fixed.</span>' +
+    '<button type="button" class="cb-retry" aria-label="Reload">Reload</button>' +
+    '<span class="cb-detail" aria-hidden="true"></span>';
+  b.querySelector(".cb-detail").textContent = detail || "";
+  b.querySelector(".cb-retry").addEventListener("click", () => location.reload());
+  // Wait for body if the script runs before DOMContentLoaded.
+  const attach = () => document.body && document.body.prepend(b);
+  if (document.body) attach();
+  else document.addEventListener("DOMContentLoaded", attach, { once: true });
+}
+
 async function loadCatalogue() {
   try {
     const res = await fetch("_catalogue/catalogue.json", { cache: "no-cache" });
     if (!res.ok) throw new Error("catalogue.json " + res.status);
     return adapt(await res.json());
   } catch (err) {
-    console.warn("[HIBIKI] catalogue load failed:", err);
+    console.warn("[NEIRO] catalogue load failed:", err);
+    showCatalogueBanner(String(err && err.message || err));
     return adapt({ artists: [], meta: { contributors: [] } });
   }
 }
