@@ -5,3 +5,9 @@
 *.jpg  filter=lfs diff=lfs merge=lfs -text
 *.png  filter=lfs diff=lfs merge=lfs -text
 _zips/**/*.zip filter=lfs diff=lfs merge=lfs -text
+
+# public/ ships through GitHub Pages, which does NOT resolve LFS pointers —
+# Pages serves the 129-byte stub as image/jpeg and the browser fails decode.
+# Small in-shell images stay as regular blobs.
+public/**/*.jpg -filter -diff -merge
+public/**/*.png -filter -diff -merge
