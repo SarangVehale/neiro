@@ -1,6 +1,6 @@
 # NEIRO 音色 — Audit
 
-_Last reviewed: 2026-05-30 against commit `167ab32`+._
+_Last reviewed: 2026-05-30 against commit `f6a400c`+._
 
 A snapshot of the current state across security, compliance, dependencies,
 system, disaster-recovery and continuity dimensions. Items are scored as:
@@ -19,6 +19,7 @@ Verified end-to-end via Playwright against the live deployment.
 | Area | Status | Evidence |
 |---|---|---|
 | Library grid + filters + search + sort | ✅ | Last QA session: 45 cards, filter "flac"=1, search "benjamin"=4. |
+| Album cover thumbnails on live Pages | ✅ | All 41 emitted `<img>` decode in-browser on the live site (verified via `img.decode()`); 4 albums correctly fall back to the kanji tile. |
 | Album page + tracklist + downloads | ✅ | Track download saves a 12 MB `.m4a` with progress toast; shard download saves zip. |
 | Player bar play/pause/next/prev | ✅ | `pbTitle` advances after `#pbNext`. |
 | Shuffle + repeat (off/all/one) | ✅ | `pbShuffle.active`, `pbRepeat.repeat-one` confirmed. |
@@ -157,8 +158,19 @@ worker-src  'self';
 - ✅ Tests workflow (`.github/workflows/test.yml`) runs on every push.
 - ✅ PR validation workflow (`.github/workflows/validate-pr.yml`) gates
   contributions.
+- ✅ Monthly Wayback snapshot (`.github/workflows/archive.yml`) hedges
+  against repo deletion / Pages outage.
 - 🟡 No staging environment — main is production. Acceptable at this
   scale but worth flagging.
+- ⚠️ **GitHub Pages does not resolve Git LFS pointers.** Any LFS-tracked
+  file ending up in the deploy artifact is served as the 129-byte
+  pointer stub. The deploy workflow deliberately runs without
+  `lfs: true` (bandwidth quota), so the constraint is permanent:
+  anything that needs to be served on `*.github.io/...` must be a
+  regular blob. Enforced by `.gitattributes` exempting
+  `public/**/*.{jpg,png}`. The constraint extends to PNG/JPG/anything
+  else binary that lands under `public/` — keep this in mind when
+  adding shell assets (favicons, OG images, hero art).
 
 ### 4.2 Error handling
 
@@ -194,6 +206,7 @@ worker-src  'self';
 | The catalogue.json | Corrupted | Empty library, no albums | Fall back already returns `{ artists: [] }`. Build script is deterministic — re-run reproduces the same JSON. |
 | Service worker | Bad release pinned | Stuck on stale shell | `VERSION` bump in `sw.js` forces re-fetch. Documented in `docs/DEPLOY.md`. |
 | LFS bandwidth quota | Exhausted (it has been) | Audio 429s | Switch `MEDIA_BASE` to R2 secrets via workflow. Already wired. |
+| LFS-tracked asset under `public/` | Pages serves the 129-byte pointer stub as `image/jpeg` | Image fails to decode in the browser | `.gitattributes` exempts `public/**/*.{jpg,png}` from LFS as of `f6a400c`. Discovered the same day after live-cover verification turned up `EncodingError`; thumbs had been broken on Pages since `5b5b48a`. |
 
 ### 5.2 Backups
 
@@ -242,8 +255,8 @@ That's a fork-bus-factor of 1.
 - ✅ `docs/ARCHITECTURE.md` exists.
 - ✅ `docs/DEPLOY.md` exists.
 - ✅ `docs/AUDIT.md` (this file) covers the current state.
-- 🟡 An `OPERATIONS.md` covering rollback, SW cache busts, R2 secret
-  rotation, and "what to do when LFS quota hits" would close the gap.
+- ✅ `docs/OPERATIONS.md` covers rollback, SW cache busts, R2 secret
+  rotation, LFS quota response, and a site-down runbook.
 
 ### 6.3 Cost & funding continuity
 
@@ -275,12 +288,26 @@ Closed in this pass:
 - ✅ `script-src 'self'` — `'unsafe-inline'` removed. Inline SW
   registration moved to `boot.js`; `onerror=""` handlers on `<img>`
   re-bound via `addEventListener('error', …)`.
+- ✅ `public/**/*.{jpg,png}` exempted from LFS in `.gitattributes`
+  (`f6a400c`). Fixed 41 broken thumbs + `apple-touch-icon.png` +
+  `og-image.png` on the live site — all had been served as 129-byte
+  pointer stubs since covers were externalised in `5b5b48a`.
+  Verification: `img.decode()` succeeds for every emitted thumb on
+  Pages.
 
-Open (need infra/human, not code):
+Open:
 
-1. Add `frame-ancestors` via HTTP headers (when GH Pages exposes them).
-2. List a co-maintainer; document the hand-off.
-3. Consider Cloudflare Pages mirror for outage redundancy.
-4. Add a sponsors / funding link (`FUNDING.yml`).
+1. Add `frame-ancestors` via HTTP headers (when GH Pages exposes them) —
+   needs infra.
+2. List a co-maintainer; document the hand-off — needs human.
+3. Consider Cloudflare Pages mirror for outage redundancy — needs infra.
+4. Add a sponsors / funding link (`FUNDING.yml`) — needs maintainer
+   sponsor handles.
+5. **CI guard against LFS pointers under `public/`.** The site shipped
+   broken thumbs for weeks before live verification caught it. A trivial
+   build-step (e.g. `find public/ -size -200c \( -name '*.jpg' -o -name
+   '*.png' -o -name '*.svg' \) -exec head -c 8 {} \; | grep -q version
+   && exit 1`) would have failed CI and surfaced the issue at deploy
+   time. Worth adding to `build.yml`.
 
 None of these is a blocker for the current public launch.
