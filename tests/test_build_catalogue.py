@@ -114,6 +114,44 @@ def test_extract_embedded_cover_handles_missing_file(tmp_path):
     assert bc.extract_embedded_cover(tmp_path / "nope.m4a") is None
 
 
+# ── Singles renumbering ──────────────────────────────────────
+
+def test_duplicate_track_numbers_get_renumbered(tmp_path, monkeypatch):
+    """All-same track numbers (Singles dir) should renumber to 1..N."""
+    music = tmp_path / "music"
+    album = music / "Comp Artist"; album.mkdir(parents=True)
+    # Three tracks, all with no metadata → number falls through to 1
+    for name in ("a.m4a", "b.m4a", "c.m4a"):
+        (album / name).write_bytes(b"\0" * 1024)
+    monkeypatch.setattr(bc, "ROOT", tmp_path)
+    monkeypatch.setattr(bc, "MUSIC", music)
+    monkeypatch.setattr(bc, "OUT", tmp_path / "_catalogue" / "catalogue.json")
+    monkeypatch.setattr(bc, "ZIPS", tmp_path / "_zips")
+    rc = bc.main(build_zips=False)
+    assert rc == 0
+    data = json.loads((tmp_path / "_catalogue" / "catalogue.json").read_text())
+    tracks = data["artists"][0]["albums"][0]["tracks"]
+    nums = [t["number"] for t in tracks]
+    assert nums == [1, 2, 3], f"expected sequential, got {nums}"
+
+
+def test_unique_track_numbers_preserved(tmp_path, monkeypatch):
+    """Albums with already-unique numbers shouldn't be touched."""
+    music = tmp_path / "music"
+    album = music / "Real Artist" / "Real Album"; album.mkdir(parents=True)
+    (album / "01 - One.m4a").write_bytes(b"\0" * 1024)
+    (album / "02 - Two.m4a").write_bytes(b"\0" * 1024)
+    (album / "05 - Five.m4a").write_bytes(b"\0" * 1024)
+    monkeypatch.setattr(bc, "ROOT", tmp_path)
+    monkeypatch.setattr(bc, "MUSIC", music)
+    monkeypatch.setattr(bc, "OUT", tmp_path / "_catalogue" / "catalogue.json")
+    monkeypatch.setattr(bc, "ZIPS", tmp_path / "_zips")
+    bc.main(build_zips=False)
+    data = json.loads((tmp_path / "_catalogue" / "catalogue.json").read_text())
+    nums = [t["number"] for t in data["artists"][0]["albums"][0]["tracks"]]
+    assert nums == [1, 2, 5], f"expected [1,2,5] preserved, got {nums}"
+
+
 # ── end-to-end: synthetic music tree ─────────────────────────
 
 def test_main_end_to_end(tmp_path, monkeypatch):

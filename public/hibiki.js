@@ -279,7 +279,13 @@ ${upNext.length ? `
       ${cover ? `<img src="${cover}" alt="">` : kChar(ki)}
     </div>
     <div class="album-hero-info">
-      <div class="hero-genre-tag">${esc(album.genre)}<span class="sep"> · </span>${album.year}</div>
+      ${(() => {
+        const g = album.genre && album.genre !== 'Unknown' ? esc(album.genre) : '';
+        const y = album.year ? String(album.year) : '';
+        if (!g && !y) return '';
+        const sep = g && y ? '<span class="sep"> · </span>' : '';
+        return `<div class="hero-genre-tag">${g}${sep}${y}</div>`;
+      })()}
       <h1 class="hero-album-title">${esc(album.title)}</h1>
       <div class="hero-artist-name" data-nav="artist" data-artist-id="${album.artistId}">${esc(album.artist)}</div>
       <div class="hero-actions">
@@ -417,14 +423,15 @@ ${upNext.length ? `
     </div>
     <div class="contrib-path">
       <div class="contrib-path-num">02</div>
-      <div class="contrib-path-title">Direct — open a PR</div>
-      <div class="contrib-path-desc">Already on GitHub? Fork the repo, add your files under <code>music/&lt;Artist&gt;/&lt;Album&gt;/</code> with a <code>meta.yaml</code>, and open a PR. The build script picks it up automatically.</div>
-      <a class="contrib-cta" href="https://github.com/SarangVehale/hibiki/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer"><i class="ti ti-link" aria-hidden="true"></i> Read CONTRIBUTING.md</a>
+      <div class="contrib-path-title">Direct — edit on GitHub</div>
+      <div class="contrib-path-desc">Already on GitHub? You don't need git installed — press <code>.</code> on the <a href="https://github.com/SarangVehale/hibiki" target="_blank" rel="noopener noreferrer">repo page</a> to open <strong>github.dev</strong>, drop your files into <code>music/&lt;Artist&gt;/&lt;Album&gt;/</code> with a <code>meta.yaml</code>, and commit. CI validates and the maintainer merges.</div>
+      <a class="contrib-cta" href="https://github.dev/SarangVehale/hibiki" target="_blank" rel="noopener noreferrer"><i class="ti ti-edit" aria-hidden="true"></i> Open in github.dev</a>
     </div>
     <div class="contrib-path">
       <div class="contrib-path-num">03</div>
       <div class="contrib-path-title">Quiet — email</div>
-      <div class="contrib-path-desc">No GitHub account? Send a link to the files plus the licence info, and the maintainer will add it for you.</div>
+      <div class="contrib-path-desc">No GitHub account at all? Email a link to the files (Dropbox / Drive / Wetransfer) plus a one-line licence statement. The maintainer adds it for you within a few days.</div>
+      <a class="contrib-cta" href="mailto:sarang.kernel@gmail.com?subject=NEIRO%20%E2%80%94%20album%20submission&body=Hi%2C%0A%0AI'd%20like%20to%20contribute%20this%20album%20to%20NEIRO.%0A%0A--%20Album%20details%20--%0AArtist%3A%20%0AAlbum%3A%20%0AYear%3A%20%0AGenre%3A%20%0A%0A--%20Files%20--%0ALink%20to%20audio%20(Drive%2FDropbox%2FWeTransfer)%3A%20%0ALink%20to%20cover%20art%20(optional)%3A%20%0A%0A--%20Licence%20--%0AI%20confirm%20I%20own%20or%20have%20permission%20to%20share%20this%20material%2C%20and%20it%20may%20be%20published%20under%20the%20licence%20I%20specify%20here%3A%20%0A%0AThanks!%0A"><i class="ti ti-mail" aria-hidden="true"></i> Compose email</a>
     </div>
   </div>
 

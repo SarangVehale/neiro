@@ -176,6 +176,24 @@ python scripts/sync_r2.py \
 
 **https://sarangvehale.github.io/hibiki/**
 
+## Mirror archive
+
+The catalogue and shell are snapshotted monthly to the **Internet Archive's
+Wayback Machine** (`17 3 1 * *` UTC, see `.github/workflows/archive.yml`)
+so the site survives repo deletion or extended GitHub Pages outage.
+
+- **Homepage:** https://web.archive.org/web/2026*/https://sarangvehale.github.io/hibiki/
+- **Catalogue JSON:** https://web.archive.org/web/2026*/https://sarangvehale.github.io/hibiki/_catalogue/catalogue.json
+- **Sitemap:** https://web.archive.org/web/2026*/https://sarangvehale.github.io/hibiki/sitemap.xml
+
+Wayback rewrites the catalogue's `media_base_url` to route audio fetches
+through their archive too — so a snapshot is genuinely independent of
+this repo and its LFS / R2 backing. Any snapshot timestamp can be used
+to recover the full library at that point in time.
+
+See [docs/OPERATIONS.md](docs/OPERATIONS.md) for the site-down runbook
+that points at these URLs as the last-resort recovery.
+
 ## Security
 
 See [SECURITY.md](SECURITY.md) for vulnerability reporting and DMCA/takedown policy.

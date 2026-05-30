@@ -490,7 +490,15 @@ def process_album(
     if not tracks:
         return 0, None
 
-    tracks.sort(key=lambda t: t["number"])
+    tracks.sort(key=lambda t: (t["number"], t.get("title") or ""))
+    # Compilation / Singles dirs: ID3 tracknumber is often "1/1" on every
+    # file (each was tagged as a one-track release). That makes the album
+    # view render "01" repeated. If duplicates exist, renumber sequentially
+    # in the post-sort order.
+    nums = [t["number"] for t in tracks]
+    if len(tracks) > 1 and len(set(nums)) < len(tracks):
+        for i, t in enumerate(tracks, 1):
+            t["number"] = i
 
     # Genre: album meta.yaml > inherited sub-artist yaml > top-level artist yaml > audio tags
     tag_genres = [t.get("genre") for t in tracks]
@@ -533,11 +541,10 @@ def process_album(
     ]
 
     cover_file = find_cover_file(album_dir, artist_dir)
-    # First on-disk track (if any) is the fallback source for embedded artwork.
-    fallback_audio = next(
-        (Path(t["_path"]) for t in tracks if t.get("_path")),
-        None,
-    )
+    # Lex-first on-disk file (by filename), not the sorted track order — keeps
+    # the extracted cover stable when the track sort changes (e.g. when we
+    # renumber duplicate track-numbers in compilation dirs).
+    fallback_audio = audio_files[0] if audio_files else None
     entry = {
         "id": album_id,
         "title": meta.get("title", album_name.split(" / ")[-1]),

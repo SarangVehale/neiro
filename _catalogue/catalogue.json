@@ -2,7 +2,7 @@
   "meta": {
     "total_songs": 496,
     "total_artists": 28,
-    "built_at": "2026-05-30T09:21:32.864838+00:00",
+    "built_at": "2026-05-30T15:40:29.363803+00:00",
     "contributors": [
       {
         "handle": "@waveform_rin",
@@ -43,14 +43,6 @@
           "tracks": [
             {
               "number": 1,
-              "title": "Shree Hari Stotram",
-              "duration_sec": 297,
-              "format": "M4A",
-              "size_mb": 12.0,
-              "path": "music/Agam Aggarwal/1. Agam Aggarwal - Shree Hari Stotram.m4a"
-            },
-            {
-              "number": 1,
               "title": "Kaalbhairav Ashtakam",
               "duration_sec": 274,
               "format": "M4A",
@@ -58,7 +50,7 @@
               "path": "music/Agam Aggarwal/Agam Aggarwal - Kaalbhairav Ashtakam.m4a"
             },
             {
-              "number": 1,
+              "number": 2,
               "title": "Namaskartha Mantra",
               "duration_sec": 359,
               "format": "M4A",
@@ -66,12 +58,20 @@
               "path": "music/Agam Aggarwal/Agam Aggarwal - Namaskartha Mantra.m4a"
             },
             {
-              "number": 1,
+              "number": 3,
               "title": "Rudrashtakam",
               "duration_sec": 312,
               "format": "M4A",
               "size_mb": 12.1,
               "path": "music/Agam Aggarwal/Agam Aggarwal - Rudrashtakam.m4a"
+            },
+            {
+              "number": 4,
+              "title": "Shree Hari Stotram",
+              "duration_sec": 297,
+              "format": "M4A",
+              "size_mb": 12.0,
+              "path": "music/Agam Aggarwal/1. Agam Aggarwal - Shree Hari Stotram.m4a"
             }
           ]
         }
@@ -1076,7 +1076,7 @@
           "genre": "Unknown",
           "notes": "",
           "license": "",
-          "cover_thumb": "_thumbs/charlie-puth-singles.d4cb7fbe.jpg",
+          "cover_thumb": "_thumbs/charlie-puth-singles.004a1e35.jpg",
           "cover_path": null,
           "total_size_mb": 54.2,
           "shards": [
@@ -1089,14 +1089,6 @@
           "tracks": [
             {
               "number": 1,
-              "title": "Left and Right (Feat. Jung Kook of BTS)",
-              "duration_sec": 154,
-              "format": "M4A",
-              "size_mb": 6.1,
-              "path": "music/Charlie Puth/BTS - Left and Right (Feat. Jung Kook of BTS).m4a"
-            },
-            {
-              "number": 1,
               "title": "Cheating on You",
               "duration_sec": 196,
               "format": "M4A",
@@ -1104,7 +1096,15 @@
               "path": "music/Charlie Puth/Cheating on You.m4a"
             },
             {
-              "number": 1,
+              "number": 2,
+              "title": "Left and Right (Feat. Jung Kook of BTS)",
+              "duration_sec": 154,
+              "format": "M4A",
+              "size_mb": 6.1,
+              "path": "music/Charlie Puth/BTS - Left and Right (Feat. Jung Kook of BTS).m4a"
+            },
+            {
+              "number": 3,
               "title": "That's Hilarious",
               "duration_sec": 144,
               "format": "M4A",
@@ -1112,7 +1112,7 @@
               "path": "music/Charlie Puth/That's Hilarious.m4a"
             },
             {
-              "number": 2,
+              "number": 4,
               "title": "Attention",
               "duration_sec": 208,
               "format": "M4A",
@@ -1120,7 +1120,7 @@
               "path": "music/Charlie Puth/Attention.m4a"
             },
             {
-              "number": 2,
+              "number": 5,
               "title": "Charlie Be Quiet!",
               "duration_sec": 128,
               "format": "M4A",
@@ -1128,7 +1128,7 @@
               "path": "music/Charlie Puth/Charlie Be Quiet!.m4a"
             },
             {
-              "number": 3,
+              "number": 6,
               "title": "Light Switch",
               "duration_sec": 187,
               "format": "M4A",
@@ -1136,7 +1136,7 @@
               "path": "music/Charlie Puth/Light Switch.m4a"
             },
             {
-              "number": 5,
+              "number": 7,
               "title": "We Don't Talk Anymore",
               "duration_sec": 217,
               "format": "M4A",
@@ -1144,7 +1144,7 @@
               "path": "music/Charlie Puth/We Don't Talk Anymore.m4a"
             },
             {
-              "number": 12,
+              "number": 8,
               "title": "No More Drama",
               "duration_sec": 140,
               "format": "M4A",
@@ -2171,7 +2171,7 @@
               "path": "music/JVKE/golden hour.m4a"
             },
             {
-              "number": 1,
+              "number": 2,
               "title": "her",
               "duration_sec": 171,
               "format": "M4A",
@@ -2218,7 +2218,7 @@
               "path": "music/Jamie Duffy/Jamie Duffy - Rising.m4a"
             },
             {
-              "number": 1,
+              "number": 2,
               "title": "Réalta",
               "duration_sec": 232,
               "format": "M4A",
@@ -2226,7 +2226,7 @@
               "path": "music/Jamie Duffy/Jamie Duffy - Réalta.m4a"
             },
             {
-              "number": 1,
+              "number": 3,
               "title": "Solas",
               "duration_sec": 192,
               "format": "M4A",
@@ -2234,7 +2234,7 @@
               "path": "music/Jamie Duffy/Jamie Duffy - Solas.m4a"
             },
             {
-              "number": 1,
+              "number": 4,
               "title": "Torus",
               "duration_sec": 227,
               "format": "M4A",
@@ -2509,7 +2509,7 @@
               "path": "music/Lana Del Rey/Born to Die - Paradise Edition (2012)/01. Lana Del Rey - Born To Die.m4a"
             },
             {
-              "number": 1,
+              "number": 2,
               "title": "Ride",
               "duration_sec": 289,
               "format": "M4A",
@@ -2517,15 +2517,7 @@
               "path": "music/Lana Del Rey/Born to Die - Paradise Edition (2012)/16. Lana Del Rey - Ride.m4a"
             },
             {
-              "number": 2,
-              "title": "Off To The Races",
-              "duration_sec": 299,
-              "format": "M4A",
-              "size_mb": 11.8,
-              "path": "music/Lana Del Rey/Born to Die - Paradise Edition (2012)/02. Lana Del Rey - Off To The Races.m4a"
-            },
-            {
-              "number": 2,
+              "number": 3,
               "title": "American",
               "duration_sec": 248,
               "format": "M4A",
@@ -2533,7 +2525,15 @@
               "path": "music/Lana Del Rey/Born to Die - Paradise Edition (2012)/17. Lana Del Rey - American.m4a"
             },
             {
-              "number": 3,
+              "number": 4,
+              "title": "Off To The Races",
+              "duration_sec": 299,
+              "format": "M4A",
+              "size_mb": 11.8,
+              "path": "music/Lana Del Rey/Born to Die - Paradise Edition (2012)/02. Lana Del Rey - Off To The Races.m4a"
+            },
+            {
+              "number": 5,
               "title": "Blue Jeans",
               "duration_sec": 209,
               "format": "M4A",
@@ -2541,7 +2541,7 @@
               "path": "music/Lana Del Rey/Born to Die - Paradise Edition (2012)/03. Lana Del Rey - Blue Jeans.m4a"
             },
             {
-              "number": 3,
+              "number": 6,
               "title": "Cola",
               "duration_sec": 260,
               "format": "M4A",
@@ -2549,15 +2549,7 @@
               "path": "music/Lana Del Rey/Born to Die - Paradise Edition (2012)/18. Lana Del Rey - Cola.m4a"
             },
             {
-              "number": 4,
-              "title": "Video Games",
-              "duration_sec": 281,
-              "format": "M4A",
-              "size_mb": 11.1,
-              "path": "music/Lana Del Rey/Born to Die - Paradise Edition (2012)/04. Lana Del Rey - Video Games.m4a"
-            },
-            {
-              "number": 4,
+              "number": 7,
               "title": "Body Electric",
               "duration_sec": 233,
               "format": "M4A",
@@ -2565,15 +2557,15 @@
               "path": "music/Lana Del Rey/Born to Die - Paradise Edition (2012)/19. Lana Del Rey - Body Electric.m4a"
             },
             {
-              "number": 5,
-              "title": "Diet Mountain Dew",
-              "duration_sec": 222,
+              "number": 8,
+              "title": "Video Games",
+              "duration_sec": 281,
               "format": "M4A",
-              "size_mb": 8.9,
-              "path": "music/Lana Del Rey/Born to Die - Paradise Edition (2012)/05. Lana Del Rey - Diet Mountain Dew.m4a"
+              "size_mb": 11.1,
+              "path": "music/Lana Del Rey/Born to Die - Paradise Edition (2012)/04. Lana Del Rey - Video Games.m4a"
             },
             {
-              "number": 5,
+              "number": 9,
               "title": "Blue Velvet",
               "duration_sec": 158,
               "format": "M4A",
@@ -2581,15 +2573,15 @@
               "path": "music/Lana Del Rey/Born to Die - Paradise Edition (2012)/20. Lana Del Rey - Blue Velvet.m4a"
             },
             {
-              "number": 6,
-              "title": "National Anthem",
-              "duration_sec": 230,
+              "number": 10,
+              "title": "Diet Mountain Dew",
+              "duration_sec": 222,
               "format": "M4A",
-              "size_mb": 9.2,
-              "path": "music/Lana Del Rey/Born to Die - Paradise Edition (2012)/06. Lana Del Rey - National Anthem.m4a"
+              "size_mb": 8.9,
+              "path": "music/Lana Del Rey/Born to Die - Paradise Edition (2012)/05. Lana Del Rey - Diet Mountain Dew.m4a"
             },
             {
-              "number": 6,
+              "number": 11,
               "title": "Gods & Monsters",
               "duration_sec": 237,
               "format": "M4A",
@@ -2597,7 +2589,15 @@
               "path": "music/Lana Del Rey/Born to Die - Paradise Edition (2012)/21. Lana Del Rey - Gods & Monsters.m4a"
             },
             {
-              "number": 7,
+              "number": 12,
+              "title": "National Anthem",
+              "duration_sec": 230,
+              "format": "M4A",
+              "size_mb": 9.2,
+              "path": "music/Lana Del Rey/Born to Die - Paradise Edition (2012)/06. Lana Del Rey - National Anthem.m4a"
+            },
+            {
+              "number": 13,
               "title": "Dark Paradise",
               "duration_sec": 243,
               "format": "M4A",
@@ -2605,7 +2605,7 @@
               "path": "music/Lana Del Rey/Born to Die - Paradise Edition (2012)/07. Lana Del Rey - Dark Paradise.m4a"
             },
             {
-              "number": 7,
+              "number": 14,
               "title": "Yayo",
               "duration_sec": 321,
               "format": "M4A",
@@ -2613,15 +2613,7 @@
               "path": "music/Lana Del Rey/Born to Die - Paradise Edition (2012)/22. Lana Del Rey - Yayo.m4a"
             },
             {
-              "number": 8,
-              "title": "Radio",
-              "duration_sec": 214,
-              "format": "M4A",
-              "size_mb": 8.6,
-              "path": "music/Lana Del Rey/Born to Die - Paradise Edition (2012)/08. Lana Del Rey - Radio.m4a"
-            },
-            {
-              "number": 8,
+              "number": 15,
               "title": "Bel Air",
               "duration_sec": 237,
               "format": "M4A",
@@ -2629,7 +2621,15 @@
               "path": "music/Lana Del Rey/Born to Die - Paradise Edition (2012)/23. Lana Del Rey - Bel Air.m4a"
             },
             {
-              "number": 9,
+              "number": 16,
+              "title": "Radio",
+              "duration_sec": 214,
+              "format": "M4A",
+              "size_mb": 8.6,
+              "path": "music/Lana Del Rey/Born to Die - Paradise Edition (2012)/08. Lana Del Rey - Radio.m4a"
+            },
+            {
+              "number": 17,
               "title": "Carmen",
               "duration_sec": 248,
               "format": "M4A",
@@ -2637,7 +2637,7 @@
               "path": "music/Lana Del Rey/Born to Die - Paradise Edition (2012)/09. Lana Del Rey - Carmen.m4a"
             },
             {
-              "number": 10,
+              "number": 18,
               "title": "Million Dollar Man",
               "duration_sec": 231,
               "format": "M4A",
@@ -2645,7 +2645,7 @@
               "path": "music/Lana Del Rey/Born to Die - Paradise Edition (2012)/10. Lana Del Rey - Million Dollar Man.m4a"
             },
             {
-              "number": 11,
+              "number": 19,
               "title": "Summertime Sadness",
               "duration_sec": 265,
               "format": "M4A",
@@ -2653,7 +2653,7 @@
               "path": "music/Lana Del Rey/Born to Die - Paradise Edition (2012)/11. Lana Del Rey - Summertime Sadness.m4a"
             },
             {
-              "number": 12,
+              "number": 20,
               "title": "This Is What Makes Us Girls",
               "duration_sec": 238,
               "format": "M4A",
@@ -2661,7 +2661,7 @@
               "path": "music/Lana Del Rey/Born to Die - Paradise Edition (2012)/12. Lana Del Rey - This Is What Makes Us Girls.m4a"
             },
             {
-              "number": 13,
+              "number": 21,
               "title": "Without You",
               "duration_sec": 229,
               "format": "M4A",
@@ -2669,7 +2669,7 @@
               "path": "music/Lana Del Rey/Born to Die - Paradise Edition (2012)/13. Lana Del Rey - Without You.m4a"
             },
             {
-              "number": 14,
+              "number": 22,
               "title": "Lolita",
               "duration_sec": 220,
               "format": "M4A",
@@ -2677,7 +2677,7 @@
               "path": "music/Lana Del Rey/Born to Die - Paradise Edition (2012)/14. Lana Del Rey - Lolita.m4a"
             },
             {
-              "number": 15,
+              "number": 23,
               "title": "Lucky Ones",
               "duration_sec": 225,
               "format": "M4A",
@@ -2956,12 +2956,12 @@
             {
               "label": "Part 1 of 12",
               "path": "_zips/Lofi - Singles [Part 1 of 12].zip",
-              "size_mb": 126.3
+              "size_mb": 127.6
             },
             {
               "label": "Part 2 of 12",
               "path": "_zips/Lofi - Singles [Part 2 of 12].zip",
-              "size_mb": 129.9
+              "size_mb": 128.6
             },
             {
               "label": "Part 3 of 12",
@@ -3017,38 +3017,6 @@
           "tracks": [
             {
               "number": 1,
-              "title": "hide and seek",
-              "duration_sec": 124,
-              "format": "M4A",
-              "size_mb": 4.8,
-              "path": "music/Lofi/01. No Spirit - hide and seek.m4a"
-            },
-            {
-              "number": 1,
-              "title": "Keep On Dreaming",
-              "duration_sec": 188,
-              "format": "M4A",
-              "size_mb": 7.4,
-              "path": "music/Lofi/02. SoulChef - Keep On Dreaming.m4a"
-            },
-            {
-              "number": 1,
-              "title": "moving on",
-              "duration_sec": 87,
-              "format": "M4A",
-              "size_mb": 3.4,
-              "path": "music/Lofi/06. linanthem - moving on.m4a"
-            },
-            {
-              "number": 1,
-              "title": "Hey",
-              "duration_sec": 152,
-              "format": "M4A",
-              "size_mb": 6.2,
-              "path": "music/Lofi/07. ron quixote - Hey.m4a"
-            },
-            {
-              "number": 1,
               "title": "Big Deal",
               "duration_sec": 134,
               "format": "M4A",
@@ -3056,39 +3024,7 @@
               "path": "music/Lofi/09. Rain Burgundy - Big Deal.m4a"
             },
             {
-              "number": 1,
-              "title": "Windsong",
-              "duration_sec": 106,
-              "format": "M4A",
-              "size_mb": 4.4,
-              "path": "music/Lofi/10. Gyatso - Windsong.m4a"
-            },
-            {
-              "number": 1,
-              "title": "out west",
-              "duration_sec": 98,
-              "format": "M4A",
-              "size_mb": 4.1,
-              "path": "music/Lofi/11. Sweeps - out west.m4a"
-            },
-            {
-              "number": 1,
-              "title": "Heels",
-              "duration_sec": 130,
-              "format": "M4A",
-              "size_mb": 5.1,
-              "path": "music/Lofi/13. Sandy Mental - Heels.m4a"
-            },
-            {
-              "number": 1,
-              "title": "Do Me Right",
-              "duration_sec": 122,
-              "format": "M4A",
-              "size_mb": 5.2,
-              "path": "music/Lofi/16. Kevoe West - Do Me Right.m4a"
-            },
-            {
-              "number": 1,
+              "number": 2,
               "title": "Corner",
               "duration_sec": 118,
               "format": "M4A",
@@ -3096,95 +3032,7 @@
               "path": "music/Lofi/17. Koralle - Corner.m4a"
             },
             {
-              "number": 1,
-              "title": "waves roll in",
-              "duration_sec": 194,
-              "format": "M4A",
-              "size_mb": 7.7,
-              "path": "music/Lofi/18. Elijah Who - waves roll in.m4a"
-            },
-            {
-              "number": 1,
-              "title": "So Too",
-              "duration_sec": 134,
-              "format": "M4A",
-              "size_mb": 6.0,
-              "path": "music/Lofi/19. Fed Nance - So Too.m4a"
-            },
-            {
-              "number": 1,
-              "title": "Soul Assassin",
-              "duration_sec": 152,
-              "format": "M4A",
-              "size_mb": 6.2,
-              "path": "music/Lofi/20. SWUM - Soul Assassin.m4a"
-            },
-            {
-              "number": 1,
-              "title": "shorea",
-              "duration_sec": 134,
-              "format": "M4A",
-              "size_mb": 5.3,
-              "path": "music/Lofi/21. mt. fujitive - shorea.m4a"
-            },
-            {
-              "number": 1,
-              "title": "Safe and Sound",
-              "duration_sec": 137,
-              "format": "M4A",
-              "size_mb": 5.8,
-              "path": "music/Lofi/22. If Only - Safe and Sound.m4a"
-            },
-            {
-              "number": 1,
-              "title": "Tunnel Vision",
-              "duration_sec": 128,
-              "format": "M4A",
-              "size_mb": 5.2,
-              "path": "music/Lofi/23. Bipeula - Tunnel Vision.m4a"
-            },
-            {
-              "number": 1,
-              "title": "Starting Point",
-              "duration_sec": 125,
-              "format": "M4A",
-              "size_mb": 5.0,
-              "path": "music/Lofi/24. Swink - Starting Point.m4a"
-            },
-            {
-              "number": 1,
-              "title": "Enredadera",
-              "duration_sec": 106,
-              "format": "M4A",
-              "size_mb": 4.3,
-              "path": "music/Lofi/29. Made in M - Enredadera.m4a"
-            },
-            {
-              "number": 1,
-              "title": "gone",
-              "duration_sec": 97,
-              "format": "M4A",
-              "size_mb": 4.1,
-              "path": "music/Lofi/31. Elijah Who - gone.m4a"
-            },
-            {
-              "number": 1,
-              "title": "Vienna Games",
-              "duration_sec": 177,
-              "format": "M4A",
-              "size_mb": 7.0,
-              "path": "music/Lofi/32. Yasper - Vienna Games.m4a"
-            },
-            {
-              "number": 1,
-              "title": "Riptide",
-              "duration_sec": 139,
-              "format": "M4A",
-              "size_mb": 6.0,
-              "path": "music/Lofi/33. SWUM - Riptide.m4a"
-            },
-            {
-              "number": 1,
+              "number": 3,
               "title": "Daydreams",
               "duration_sec": 202,
               "format": "MP3",
@@ -3192,7 +3040,47 @@
               "path": "music/Lofi/Daydreams.mp3"
             },
             {
-              "number": 1,
+              "number": 4,
+              "title": "Do Me Right",
+              "duration_sec": 122,
+              "format": "M4A",
+              "size_mb": 5.2,
+              "path": "music/Lofi/16. Kevoe West - Do Me Right.m4a"
+            },
+            {
+              "number": 5,
+              "title": "Enredadera",
+              "duration_sec": 106,
+              "format": "M4A",
+              "size_mb": 4.3,
+              "path": "music/Lofi/29. Made in M - Enredadera.m4a"
+            },
+            {
+              "number": 6,
+              "title": "Heels",
+              "duration_sec": 130,
+              "format": "M4A",
+              "size_mb": 5.1,
+              "path": "music/Lofi/13. Sandy Mental - Heels.m4a"
+            },
+            {
+              "number": 7,
+              "title": "Hey",
+              "duration_sec": 152,
+              "format": "M4A",
+              "size_mb": 6.2,
+              "path": "music/Lofi/07. ron quixote - Hey.m4a"
+            },
+            {
+              "number": 8,
+              "title": "Keep On Dreaming",
+              "duration_sec": 188,
+              "format": "M4A",
+              "size_mb": 7.4,
+              "path": "music/Lofi/02. SoulChef - Keep On Dreaming.m4a"
+            },
+            {
+              "number": 9,
               "title": "Lampaui",
               "duration_sec": 168,
               "format": "M4A",
@@ -3200,31 +3088,119 @@
               "path": "music/Lofi/Lelampa - Lampaui.m4a"
             },
             {
-              "number": 2,
-              "title": "Sapphire",
-              "duration_sec": 90,
+              "number": 10,
+              "title": "Riptide",
+              "duration_sec": 139,
               "format": "M4A",
-              "size_mb": 3.6,
-              "path": "music/Lofi/01. The Deli - Sapphire.m4a"
+              "size_mb": 6.0,
+              "path": "music/Lofi/33. SWUM - Riptide.m4a"
             },
             {
-              "number": 2,
-              "title": "Long Distance",
-              "duration_sec": 193,
+              "number": 11,
+              "title": "Safe and Sound",
+              "duration_sec": 137,
               "format": "M4A",
-              "size_mb": 7.6,
-              "path": "music/Lofi/02. Kupla - Long Distance.m4a"
+              "size_mb": 5.8,
+              "path": "music/Lofi/22. If Only - Safe and Sound.m4a"
             },
             {
-              "number": 2,
-              "title": "The Finishing Line",
-              "duration_sec": 167,
+              "number": 12,
+              "title": "So Too",
+              "duration_sec": 134,
               "format": "M4A",
-              "size_mb": 6.8,
-              "path": "music/Lofi/03. Dusty Decks - The Finishing Line.m4a"
+              "size_mb": 6.0,
+              "path": "music/Lofi/19. Fed Nance - So Too.m4a"
             },
             {
-              "number": 2,
+              "number": 13,
+              "title": "Soul Assassin",
+              "duration_sec": 152,
+              "format": "M4A",
+              "size_mb": 6.2,
+              "path": "music/Lofi/20. SWUM - Soul Assassin.m4a"
+            },
+            {
+              "number": 14,
+              "title": "Starting Point",
+              "duration_sec": 125,
+              "format": "M4A",
+              "size_mb": 5.0,
+              "path": "music/Lofi/24. Swink - Starting Point.m4a"
+            },
+            {
+              "number": 15,
+              "title": "Tunnel Vision",
+              "duration_sec": 128,
+              "format": "M4A",
+              "size_mb": 5.2,
+              "path": "music/Lofi/23. Bipeula - Tunnel Vision.m4a"
+            },
+            {
+              "number": 16,
+              "title": "Vienna Games",
+              "duration_sec": 177,
+              "format": "M4A",
+              "size_mb": 7.0,
+              "path": "music/Lofi/32. Yasper - Vienna Games.m4a"
+            },
+            {
+              "number": 17,
+              "title": "Windsong",
+              "duration_sec": 106,
+              "format": "M4A",
+              "size_mb": 4.4,
+              "path": "music/Lofi/10. Gyatso - Windsong.m4a"
+            },
+            {
+              "number": 18,
+              "title": "gone",
+              "duration_sec": 97,
+              "format": "M4A",
+              "size_mb": 4.1,
+              "path": "music/Lofi/31. Elijah Who - gone.m4a"
+            },
+            {
+              "number": 19,
+              "title": "hide and seek",
+              "duration_sec": 124,
+              "format": "M4A",
+              "size_mb": 4.8,
+              "path": "music/Lofi/01. No Spirit - hide and seek.m4a"
+            },
+            {
+              "number": 20,
+              "title": "moving on",
+              "duration_sec": 87,
+              "format": "M4A",
+              "size_mb": 3.4,
+              "path": "music/Lofi/06. linanthem - moving on.m4a"
+            },
+            {
+              "number": 21,
+              "title": "out west",
+              "duration_sec": 98,
+              "format": "M4A",
+              "size_mb": 4.1,
+              "path": "music/Lofi/11. Sweeps - out west.m4a"
+            },
+            {
+              "number": 22,
+              "title": "shorea",
+              "duration_sec": 134,
+              "format": "M4A",
+              "size_mb": 5.3,
+              "path": "music/Lofi/21. mt. fujitive - shorea.m4a"
+            },
+            {
+              "number": 23,
+              "title": "waves roll in",
+              "duration_sec": 194,
+              "format": "M4A",
+              "size_mb": 7.7,
+              "path": "music/Lofi/18. Elijah Who - waves roll in.m4a"
+            },
+            {
+              "number": 24,
               "title": "By & By",
               "duration_sec": 120,
               "format": "M4A",
@@ -3232,7 +3208,23 @@
               "path": "music/Lofi/04. mell-ø - By & By.m4a"
             },
             {
-              "number": 2,
+              "number": 25,
+              "title": "Long Distance",
+              "duration_sec": 193,
+              "format": "M4A",
+              "size_mb": 7.6,
+              "path": "music/Lofi/02. Kupla - Long Distance.m4a"
+            },
+            {
+              "number": 26,
+              "title": "Sapphire",
+              "duration_sec": 90,
+              "format": "M4A",
+              "size_mb": 3.6,
+              "path": "music/Lofi/01. The Deli - Sapphire.m4a"
+            },
+            {
+              "number": 27,
               "title": "Shining Sun",
               "duration_sec": 161,
               "format": "M4A",
@@ -3240,7 +3232,15 @@
               "path": "music/Lofi/12. Klim - Shining Sun.m4a"
             },
             {
-              "number": 2,
+              "number": 28,
+              "title": "The Finishing Line",
+              "duration_sec": 167,
+              "format": "M4A",
+              "size_mb": 6.8,
+              "path": "music/Lofi/03. Dusty Decks - The Finishing Line.m4a"
+            },
+            {
+              "number": 29,
               "title": "night walk",
               "duration_sec": 189,
               "format": "M4A",
@@ -3248,7 +3248,7 @@
               "path": "music/Lofi/30. Nymano - night walk.m4a"
             },
             {
-              "number": 3,
+              "number": 30,
               "title": "Fairy Forest",
               "duration_sec": 184,
               "format": "M4A",
@@ -3256,23 +3256,7 @@
               "path": "music/Lofi/03. Blue Fox - Fairy Forest.m4a"
             },
             {
-              "number": 3,
-              "title": "Wildflower",
-              "duration_sec": 154,
-              "format": "M4A",
-              "size_mb": 6.1,
-              "path": "music/Lofi/25. Blue Wednesday - Wildflower.m4a"
-            },
-            {
-              "number": 3,
-              "title": "Smoovy",
-              "duration_sec": 185,
-              "format": "M4A",
-              "size_mb": 7.3,
-              "path": "music/Lofi/28. mtbrd - Smoovy.m4a"
-            },
-            {
-              "number": 3,
+              "number": 31,
               "title": "Imbre",
               "duration_sec": 230,
               "format": "M4A",
@@ -3280,7 +3264,23 @@
               "path": "music/Lofi/Jordan Critz - Imbre.m4a"
             },
             {
-              "number": 4,
+              "number": 32,
+              "title": "Smoovy",
+              "duration_sec": 185,
+              "format": "M4A",
+              "size_mb": 7.3,
+              "path": "music/Lofi/28. mtbrd - Smoovy.m4a"
+            },
+            {
+              "number": 33,
+              "title": "Wildflower",
+              "duration_sec": 154,
+              "format": "M4A",
+              "size_mb": 6.1,
+              "path": "music/Lofi/25. Blue Wednesday - Wildflower.m4a"
+            },
+            {
+              "number": 34,
               "title": "Bonsai Tree",
               "duration_sec": 152,
               "format": "M4A",
@@ -3288,7 +3288,7 @@
               "path": "music/Lofi/04. Tenno - Bonsai Tree.m4a"
             },
             {
-              "number": 4,
+              "number": 35,
               "title": "Boss of the Chill (Lo-Fi Remix)",
               "duration_sec": 55,
               "format": "M4A",
@@ -3296,7 +3296,7 @@
               "path": "music/Lofi/08. NICKELODEON - Boss of the Chill (Lo-Fi Remix).m4a"
             },
             {
-              "number": 4,
+              "number": 36,
               "title": "Dahlia",
               "duration_sec": 127,
               "format": "M4A",
@@ -3304,23 +3304,7 @@
               "path": "music/Lofi/27. no one’s perfect - Dahlia.m4a"
             },
             {
-              "number": 5,
-              "title": "Nostalgia",
-              "duration_sec": 150,
-              "format": "M4A",
-              "size_mb": 5.9,
-              "path": "music/Lofi/05. Team Astro - Nostalgia.m4a"
-            },
-            {
-              "number": 5,
-              "title": "The Louisville Lip",
-              "duration_sec": 173,
-              "format": "M4A",
-              "size_mb": 7.2,
-              "path": "music/Lofi/14. PRGMAT - The Louisville Lip.m4a"
-            },
-            {
-              "number": 5,
+              "number": 37,
               "title": "Golden Hour",
               "duration_sec": 194,
               "format": "MP3",
@@ -3328,7 +3312,23 @@
               "path": "music/Lofi/Golden-Hour.mp3"
             },
             {
-              "number": 6,
+              "number": 38,
+              "title": "Nostalgia",
+              "duration_sec": 150,
+              "format": "M4A",
+              "size_mb": 5.9,
+              "path": "music/Lofi/05. Team Astro - Nostalgia.m4a"
+            },
+            {
+              "number": 39,
+              "title": "The Louisville Lip",
+              "duration_sec": 173,
+              "format": "M4A",
+              "size_mb": 7.2,
+              "path": "music/Lofi/14. PRGMAT - The Louisville Lip.m4a"
+            },
+            {
+              "number": 40,
               "title": "Life is Short",
               "duration_sec": 177,
               "format": "M4A",
@@ -3336,7 +3336,7 @@
               "path": "music/Lofi/06. xander. - Life is Short.m4a"
             },
             {
-              "number": 7,
+              "number": 41,
               "title": "Opening the Box",
               "duration_sec": 193,
               "format": "M4A",
@@ -3344,15 +3344,7 @@
               "path": "music/Lofi/07. Raimu - Opening the Box.m4a"
             },
             {
-              "number": 8,
-              "title": "Snow & Sand",
-              "duration_sec": 165,
-              "format": "M4A",
-              "size_mb": 6.4,
-              "path": "music/Lofi/05. j'san - Snow & Sand.m4a"
-            },
-            {
-              "number": 8,
+              "number": 42,
               "title": "One Piece At A Time",
               "duration_sec": 144,
               "format": "M4A",
@@ -3360,7 +3352,15 @@
               "path": "music/Lofi/08. Mondo Loops - One Piece At A Time.m4a"
             },
             {
-              "number": 8,
+              "number": 43,
+              "title": "Snow & Sand",
+              "duration_sec": 165,
+              "format": "M4A",
+              "size_mb": 6.4,
+              "path": "music/Lofi/05. j'san - Snow & Sand.m4a"
+            },
+            {
+              "number": 44,
               "title": "Storm Clouds",
               "duration_sec": 156,
               "format": "MP3",
@@ -3368,7 +3368,7 @@
               "path": "music/Lofi/storm-clouds-purpple-cat.mp3"
             },
             {
-              "number": 9,
+              "number": 45,
               "title": "Cascades",
               "duration_sec": 132,
               "format": "M4A",
@@ -3376,7 +3376,7 @@
               "path": "music/Lofi/09. Yasumu - Cascades.m4a"
             },
             {
-              "number": 9,
+              "number": 46,
               "title": "Hurricane",
               "duration_sec": 331,
               "format": "M4A",
@@ -3384,7 +3384,7 @@
               "path": "music/Lofi/Hurricane - Slow Meadow.m4a"
             },
             {
-              "number": 9,
+              "number": 47,
               "title": "Magical Moments",
               "duration_sec": 151,
               "format": "MP3",
@@ -3392,7 +3392,7 @@
               "path": "music/Lofi/Magical-Moments.mp3"
             },
             {
-              "number": 10,
+              "number": 48,
               "title": "LILY",
               "duration_sec": 124,
               "format": "M4A",
@@ -3400,7 +3400,7 @@
               "path": "music/Lofi/10. Kanisan - LILY.m4a"
             },
             {
-              "number": 11,
+              "number": 49,
               "title": "Millennium",
               "duration_sec": 154,
               "format": "M4A",
@@ -3408,7 +3408,7 @@
               "path": "music/Lofi/11. Dimension 32 - Millennium.m4a"
             },
             {
-              "number": 11,
+              "number": 50,
               "title": "Sonder",
               "duration_sec": 189,
               "format": "MP3",
@@ -3416,7 +3416,7 @@
               "path": "music/Lofi/Sonder.mp3"
             },
             {
-              "number": 12,
+              "number": 51,
               "title": "Playing All Night",
               "duration_sec": 156,
               "format": "M4A",
@@ -3424,7 +3424,7 @@
               "path": "music/Lofi/12. Hoogway - Playing All Night.m4a"
             },
             {
-              "number": 13,
+              "number": 52,
               "title": "Interlude",
               "duration_sec": 148,
               "format": "M4A",
@@ -3432,7 +3432,7 @@
               "path": "music/Lofi/13. Epona - Interlude.m4a"
             },
             {
-              "number": 14,
+              "number": 53,
               "title": "Building Dreams",
               "duration_sec": 181,
               "format": "M4A",
@@ -3440,7 +3440,7 @@
               "path": "music/Lofi/14. Purrple Cat - Building Dreams.m4a"
             },
             {
-              "number": 14,
+              "number": 54,
               "title": "Building Dreams",
               "duration_sec": 181,
               "format": "M4A",
@@ -3448,7 +3448,7 @@
               "path": "music/Lofi/26. Purrple Cat - Building Dreams.m4a"
             },
             {
-              "number": 15,
+              "number": 55,
               "title": "Another Daydream",
               "duration_sec": 152,
               "format": "M4A",
@@ -3456,7 +3456,7 @@
               "path": "music/Lofi/15. cxlt. - Another Daydream.m4a"
             },
             {
-              "number": 16,
+              "number": 56,
               "title": "Iris",
               "duration_sec": 145,
               "format": "M4A",
@@ -3464,7 +3464,7 @@
               "path": "music/Lofi/16. DaniSogen - Iris.m4a"
             },
             {
-              "number": 17,
+              "number": 57,
               "title": "Epsilon",
               "duration_sec": 122,
               "format": "M4A",
@@ -3472,7 +3472,7 @@
               "path": "music/Lofi/17. Sleepermane - Epsilon.m4a"
             },
             {
-              "number": 18,
+              "number": 58,
               "title": "Play Well",
               "duration_sec": 102,
               "format": "M4A",
@@ -3480,7 +3480,7 @@
               "path": "music/Lofi/18. Casiio - Play Well.m4a"
             },
             {
-              "number": 19,
+              "number": 59,
               "title": "Dreams of Dusk",
               "duration_sec": 199,
               "format": "M4A",
@@ -3488,7 +3488,7 @@
               "path": "music/Lofi/19. amies - Dreams of Dusk.m4a"
             },
             {
-              "number": 20,
+              "number": 60,
               "title": "Imagine",
               "duration_sec": 150,
               "format": "M4A",
@@ -3496,7 +3496,7 @@
               "path": "music/Lofi/20. brillion. - Imagine.m4a"
             },
             {
-              "number": 21,
+              "number": 61,
               "title": "Building Memories",
               "duration_sec": 155,
               "format": "M4A",
@@ -3504,7 +3504,7 @@
               "path": "music/Lofi/21. KYU - Building Memories.m4a"
             },
             {
-              "number": 22,
+              "number": 62,
               "title": "Pastel Memories",
               "duration_sec": 171,
               "format": "M4A",
@@ -3512,7 +3512,7 @@
               "path": "music/Lofi/22. Tonion - Pastel Memories.m4a"
             },
             {
-              "number": 23,
+              "number": 63,
               "title": "Between Pages",
               "duration_sec": 120,
               "format": "M4A",
@@ -3520,7 +3520,7 @@
               "path": "music/Lofi/23. Goson - Between Pages.m4a"
             },
             {
-              "number": 24,
+              "number": 64,
               "title": "Youth",
               "duration_sec": 144,
               "format": "M4A",
@@ -3528,7 +3528,7 @@
               "path": "music/Lofi/24. Ambulo - Youth.m4a"
             },
             {
-              "number": 25,
+              "number": 65,
               "title": "Fearless Love",
               "duration_sec": 137,
               "format": "M4A",
@@ -3536,7 +3536,7 @@
               "path": "music/Lofi/25. Tibeauthetraveler - Fearless Love.m4a"
             },
             {
-              "number": 26,
+              "number": 66,
               "title": "Figures",
               "duration_sec": 165,
               "format": "M4A",
@@ -3544,7 +3544,7 @@
               "path": "music/Lofi/26. Banks - Figures.m4a"
             },
             {
-              "number": 27,
+              "number": 67,
               "title": "Build me a Shed",
               "duration_sec": 139,
               "format": "M4A",
@@ -3552,7 +3552,7 @@
               "path": "music/Lofi/27. WYS - Build me a Shed.m4a"
             },
             {
-              "number": 28,
+              "number": 68,
               "title": "A Kid At Heart",
               "duration_sec": 166,
               "format": "M4A",
@@ -3560,7 +3560,7 @@
               "path": "music/Lofi/28. Laffey - A Kid At Heart.m4a"
             },
             {
-              "number": 29,
+              "number": 69,
               "title": "Gentle",
               "duration_sec": 155,
               "format": "M4A",
@@ -3568,7 +3568,7 @@
               "path": "music/Lofi/29. Elijah Lee - Gentle.m4a"
             },
             {
-              "number": 30,
+              "number": 70,
               "title": "Layers",
               "duration_sec": 147,
               "format": "M4A",
@@ -3576,7 +3576,7 @@
               "path": "music/Lofi/30. S N U G - Layers.m4a"
             },
             {
-              "number": 31,
+              "number": 71,
               "title": "Staying Free",
               "duration_sec": 131,
               "format": "M4A",
@@ -3584,7 +3584,7 @@
               "path": "music/Lofi/31. kainbeats - Staying Free.m4a"
             },
             {
-              "number": 32,
+              "number": 72,
               "title": "Floating with you",
               "duration_sec": 176,
               "format": "M4A",
@@ -3592,7 +3592,7 @@
               "path": "music/Lofi/32. Nadav Cohen - Floating with you.m4a"
             },
             {
-              "number": 33,
+              "number": 73,
               "title": "Mosaic",
               "duration_sec": 118,
               "format": "M4A",
@@ -3600,7 +3600,7 @@
               "path": "music/Lofi/33. Dontcry - Mosaic.m4a"
             },
             {
-              "number": 34,
+              "number": 74,
               "title": "Particles",
               "duration_sec": 129,
               "format": "M4A",
@@ -3608,7 +3608,7 @@
               "path": "music/Lofi/34. Bcalm - Particles.m4a"
             },
             {
-              "number": 35,
+              "number": 75,
               "title": "Morning Dew",
               "duration_sec": 177,
               "format": "M4A",
@@ -3616,7 +3616,7 @@
               "path": "music/Lofi/35. Blue Wednesday - Morning Dew.m4a"
             },
             {
-              "number": 36,
+              "number": 76,
               "title": "Merhaba",
               "duration_sec": 132,
               "format": "M4A",
@@ -3624,7 +3624,7 @@
               "path": "music/Lofi/36. HM Surf - Merhaba.m4a"
             },
             {
-              "number": 48,
+              "number": 77,
               "title": "When I Was A Boy",
               "duration_sec": 193,
               "format": "MP3",
@@ -3632,7 +3632,7 @@
               "path": "music/Lofi/When-I-Was-A-Boy.mp3"
             },
             {
-              "number": 69,
+              "number": 78,
               "title": "Adrift Among Infinite Stars",
               "duration_sec": 405,
               "format": "MP3",
@@ -3640,7 +3640,7 @@
               "path": "music/Lofi/Adrift-Among-Infinite-Stars.mp3"
             },
             {
-              "number": 70,
+              "number": 79,
               "title": "Relaxing Chill Music | ARNOR",
               "duration_sec": 671,
               "format": "MP3",
@@ -3648,7 +3648,7 @@
               "path": "music/Lofi/Arnor.mp3"
             },
             {
-              "number": 72,
+              "number": 80,
               "title": "Evening Improvisation (with Ethera)",
               "duration_sec": 169,
               "format": "MP3",
@@ -3656,7 +3656,7 @@
               "path": "music/Lofi/Evening-Improvisation-with-Ethera.mp3"
             },
             {
-              "number": 73,
+              "number": 81,
               "title": "Forest River Nature Sounds-Mountain Stream Waterfall-8 Hr Relaxing Birds & Water Sounds for Sleeping",
               "duration_sec": 28651,
               "format": "MP3",
@@ -3664,7 +3664,7 @@
               "path": "music/Lofi/Forest River Nature Sounds-Mountain Stream Waterfall-8 Hr Relaxing Birds & Water Sounds for Sleeping.mp3"
             },
             {
-              "number": 74,
+              "number": 82,
               "title": "Forest Sounds | Woodland Ambience, Bird Song",
               "duration_sec": 10800,
               "format": "MP3",
@@ -3672,7 +3672,7 @@
               "path": "music/Lofi/Forest Sounds.mp3"
             },
             {
-              "number": 75,
+              "number": 83,
               "title": "Purple Dream",
               "duration_sec": 134,
               "format": "MP3",
@@ -3680,7 +3680,7 @@
               "path": "music/Lofi/Ghostrifter-Official-Purple-Dream.mp3"
             },
             {
-              "number": 79,
+              "number": 84,
               "title": "Late at Night",
               "duration_sec": 216,
               "format": "MP3",
@@ -3688,7 +3688,7 @@
               "path": "music/Lofi/Late-at-Night.mp3"
             },
             {
-              "number": 81,
+              "number": 85,
               "title": "Little Wishes",
               "duration_sec": 190,
               "format": "MP3",
@@ -3696,7 +3696,7 @@
               "path": "music/Lofi/Little-Wishes.mp3"
             },
             {
-              "number": 83,
+              "number": 86,
               "title": "Joe Hisaishi - Spirited Away - The Name Of Life (Slowed + Reverb)",
               "duration_sec": 440,
               "format": "M4A",
@@ -3704,7 +3704,7 @@
               "path": "music/Lofi/Mieaaa - Joe Hisaishi - Spirited Away - The Name Of Life (Slowed + Reverb).m4a"
             },
             {
-              "number": 84,
+              "number": 87,
               "title": "Missing You",
               "duration_sec": 227,
               "format": "MP3",
@@ -3712,7 +3712,7 @@
               "path": "music/Lofi/Missing-You.mp3"
             },
             {
-              "number": 86,
+              "number": 88,
               "title": "Transcendence",
               "duration_sec": 822,
               "format": "MP3",
@@ -3720,7 +3720,7 @@
               "path": "music/Lofi/Transcendence.mp3"
             },
             {
-              "number": 88,
+              "number": 89,
               "title": "fireplace_part1",
               "duration_sec": 21618,
               "format": "M4A",
@@ -3728,7 +3728,7 @@
               "path": "music/Lofi/fireplace_part1.m4a"
             },
             {
-              "number": 89,
+              "number": 90,
               "title": "fireplace_part2",
               "duration_sec": 21618,
               "format": "M4A",
@@ -3736,7 +3736,7 @@
               "path": "music/Lofi/fireplace_part2.m4a"
             },
             {
-              "number": 90,
+              "number": 91,
               "title": "rain_part1",
               "duration_sec": 18018,
               "format": "M4A",
@@ -3744,7 +3744,7 @@
               "path": "music/Lofi/rain_part1.m4a"
             },
             {
-              "number": 91,
+              "number": 92,
               "title": "rain_part2",
               "duration_sec": 18018,
               "format": "M4A",
@@ -3812,7 +3812,7 @@
               "path": "music/Lofi/Otros/4. Otros - Renewal.m4a"
             },
             {
-              "number": 4,
+              "number": 5,
               "title": "Renewal",
               "duration_sec": 143,
               "format": "M4A",
@@ -3820,7 +3820,7 @@
               "path": "music/Lofi/Otros/Renewal.m4a"
             },
             {
-              "number": 5,
+              "number": 6,
               "title": "Aerial",
               "duration_sec": 188,
               "format": "M4A",
@@ -3828,7 +3828,7 @@
               "path": "music/Lofi/Otros/5. Otros - Aerial.m4a"
             },
             {
-              "number": 6,
+              "number": 7,
               "title": "Petals",
               "duration_sec": 157,
               "format": "M4A",
@@ -3856,7 +3856,7 @@
           ],
           "tracks": [
             {
-              "number": 108,
+              "number": 1,
               "title": "After Mood",
               "duration_sec": 161,
               "format": "MP3",
@@ -3864,7 +3864,7 @@
               "path": "music/Lofi/Tokyo chill lab/After Mood/After Mood.mp3"
             },
             {
-              "number": 108,
+              "number": 2,
               "title": "Afterglow Hush",
               "duration_sec": 184,
               "format": "MP3",
@@ -3872,7 +3872,7 @@
               "path": "music/Lofi/Tokyo chill lab/After Mood/Afterglow Hush.mp3"
             },
             {
-              "number": 108,
+              "number": 3,
               "title": "Anon",
               "duration_sec": 205,
               "format": "MP3",
@@ -3880,7 +3880,7 @@
               "path": "music/Lofi/Tokyo chill lab/After Mood/Anon.mp3"
             },
             {
-              "number": 108,
+              "number": 4,
               "title": "Cold",
               "duration_sec": 183,
               "format": "MP3",
@@ -3888,7 +3888,7 @@
               "path": "music/Lofi/Tokyo chill lab/After Mood/Cold.mp3"
             },
             {
-              "number": 108,
+              "number": 5,
               "title": "Come Back",
               "duration_sec": 210,
               "format": "MP3",
@@ -3896,7 +3896,7 @@
               "path": "music/Lofi/Tokyo chill lab/After Mood/Come Back.mp3"
             },
             {
-              "number": 108,
+              "number": 6,
               "title": "Direction",
               "duration_sec": 204,
               "format": "MP3",
@@ -3904,7 +3904,7 @@
               "path": "music/Lofi/Tokyo chill lab/After Mood/Direction.mp3"
             },
             {
-              "number": 108,
+              "number": 7,
               "title": "Don't Search for the Right",
               "duration_sec": 192,
               "format": "MP3",
@@ -3912,7 +3912,7 @@
               "path": "music/Lofi/Tokyo chill lab/After Mood/Don't Search for the Right.mp3"
             },
             {
-              "number": 108,
+              "number": 8,
               "title": "Echoes in the Blue",
               "duration_sec": 188,
               "format": "MP3",
@@ -3920,7 +3920,7 @@
               "path": "music/Lofi/Tokyo chill lab/After Mood/Echoes in the Blue.mp3"
             },
             {
-              "number": 108,
+              "number": 9,
               "title": "Frequency",
               "duration_sec": 161,
               "format": "MP3",
@@ -3928,7 +3928,7 @@
               "path": "music/Lofi/Tokyo chill lab/After Mood/Frequency.mp3"
             },
             {
-              "number": 108,
+              "number": 10,
               "title": "Glass Tide",
               "duration_sec": 234,
               "format": "MP3",
@@ -3936,7 +3936,7 @@
               "path": "music/Lofi/Tokyo chill lab/After Mood/Glass Tide.mp3"
             },
             {
-              "number": 108,
+              "number": 11,
               "title": "How to Place",
               "duration_sec": 202,
               "format": "MP3",
@@ -3944,7 +3944,7 @@
               "path": "music/Lofi/Tokyo chill lab/After Mood/How to Place.mp3"
             },
             {
-              "number": 108,
+              "number": 12,
               "title": "Inner",
               "duration_sec": 156,
               "format": "MP3",
@@ -3952,7 +3952,7 @@
               "path": "music/Lofi/Tokyo chill lab/After Mood/Inner.mp3"
             },
             {
-              "number": 108,
+              "number": 13,
               "title": "No Soul",
               "duration_sec": 171,
               "format": "MP3",
@@ -3960,7 +3960,7 @@
               "path": "music/Lofi/Tokyo chill lab/After Mood/No Soul.mp3"
             },
             {
-              "number": 108,
+              "number": 14,
               "title": "Nostalgia",
               "duration_sec": 193,
               "format": "MP3",
@@ -3968,7 +3968,7 @@
               "path": "music/Lofi/Tokyo chill lab/After Mood/Nostalgia.mp3"
             },
             {
-              "number": 108,
+              "number": 15,
               "title": "See You Tomorrow",
               "duration_sec": 181,
               "format": "MP3",
@@ -3976,7 +3976,7 @@
               "path": "music/Lofi/Tokyo chill lab/After Mood/See You Tomorrow.mp3"
             },
             {
-              "number": 108,
+              "number": 16,
               "title": "Slowly, Blurry",
               "duration_sec": 184,
               "format": "MP3",
@@ -3984,7 +3984,7 @@
               "path": "music/Lofi/Tokyo chill lab/After Mood/Slowly, Blurry.mp3"
             },
             {
-              "number": 108,
+              "number": 17,
               "title": "Tar",
               "duration_sec": 172,
               "format": "MP3",
@@ -3992,7 +3992,7 @@
               "path": "music/Lofi/Tokyo chill lab/After Mood/Tar.mp3"
             },
             {
-              "number": 108,
+              "number": 18,
               "title": "Undone",
               "duration_sec": 214,
               "format": "MP3",
@@ -4000,7 +4000,7 @@
               "path": "music/Lofi/Tokyo chill lab/After Mood/Undone.mp3"
             },
             {
-              "number": 108,
+              "number": 19,
               "title": "Unfinished",
               "duration_sec": 241,
               "format": "MP3",
@@ -4008,7 +4008,7 @@
               "path": "music/Lofi/Tokyo chill lab/After Mood/Unfinished.mp3"
             },
             {
-              "number": 108,
+              "number": 20,
               "title": "White Sky",
               "duration_sec": 177,
               "format": "MP3",
@@ -4036,7 +4036,7 @@
           ],
           "tracks": [
             {
-              "number": 108,
+              "number": 1,
               "title": "Clockwork",
               "duration_sec": 131,
               "format": "MP3",
@@ -4044,7 +4044,7 @@
               "path": "music/Lofi/Tokyo chill lab/Angst/Clockwork.mp3"
             },
             {
-              "number": 108,
+              "number": 2,
               "title": "Gentle Thirst",
               "duration_sec": 181,
               "format": "MP3",
@@ -4052,7 +4052,7 @@
               "path": "music/Lofi/Tokyo chill lab/Angst/Gentle Thirst.mp3"
             },
             {
-              "number": 108,
+              "number": 3,
               "title": "Halo",
               "duration_sec": 113,
               "format": "MP3",
@@ -4060,7 +4060,7 @@
               "path": "music/Lofi/Tokyo chill lab/Angst/Halo.mp3"
             },
             {
-              "number": 108,
+              "number": 4,
               "title": "Happiness Anxiety",
               "duration_sec": 147,
               "format": "MP3",
@@ -4068,7 +4068,7 @@
               "path": "music/Lofi/Tokyo chill lab/Angst/Happiness Anxiety.mp3"
             },
             {
-              "number": 108,
+              "number": 5,
               "title": "I Need Help",
               "duration_sec": 166,
               "format": "MP3",
@@ -4076,7 +4076,7 @@
               "path": "music/Lofi/Tokyo chill lab/Angst/I Need Help.mp3"
             },
             {
-              "number": 108,
+              "number": 6,
               "title": "Kumori",
               "duration_sec": 119,
               "format": "MP3",
@@ -4084,7 +4084,7 @@
               "path": "music/Lofi/Tokyo chill lab/Angst/Kumori.mp3"
             },
             {
-              "number": 108,
+              "number": 7,
               "title": "Let Me Stay in the Quiet",
               "duration_sec": 202,
               "format": "MP3",
@@ -4092,7 +4092,7 @@
               "path": "music/Lofi/Tokyo chill lab/Angst/Let Me Stay in the Quiet.mp3"
             },
             {
-              "number": 108,
+              "number": 8,
               "title": "Matrix",
               "duration_sec": 133,
               "format": "MP3",
@@ -4100,7 +4100,7 @@
               "path": "music/Lofi/Tokyo chill lab/Angst/Matrix.mp3"
             },
             {
-              "number": 108,
+              "number": 9,
               "title": "Miniature",
               "duration_sec": 167,
               "format": "MP3",
@@ -4108,7 +4108,7 @@
               "path": "music/Lofi/Tokyo chill lab/Angst/Miniature.mp3"
             },
             {
-              "number": 108,
+              "number": 10,
               "title": "Polite Life",
               "duration_sec": 182,
               "format": "MP3",
@@ -4116,7 +4116,7 @@
               "path": "music/Lofi/Tokyo chill lab/Angst/Polite Life.mp3"
             },
             {
-              "number": 108,
+              "number": 11,
               "title": "Proust",
               "duration_sec": 165,
               "format": "MP3",
@@ -4124,7 +4124,7 @@
               "path": "music/Lofi/Tokyo chill lab/Angst/Proust.mp3"
             },
             {
-              "number": 108,
+              "number": 12,
               "title": "Route",
               "duration_sec": 162,
               "format": "MP3",
@@ -4132,7 +4132,7 @@
               "path": "music/Lofi/Tokyo chill lab/Angst/Route.mp3"
             },
             {
-              "number": 108,
+              "number": 13,
               "title": "Rudder",
               "duration_sec": 130,
               "format": "MP3",
@@ -4140,7 +4140,7 @@
               "path": "music/Lofi/Tokyo chill lab/Angst/Rudder.mp3"
             },
             {
-              "number": 108,
+              "number": 14,
               "title": "Sandalwood",
               "duration_sec": 173,
               "format": "MP3",
@@ -4148,7 +4148,7 @@
               "path": "music/Lofi/Tokyo chill lab/Angst/Sandalwood.mp3"
             },
             {
-              "number": 108,
+              "number": 15,
               "title": "Sea of Codes",
               "duration_sec": 149,
               "format": "MP3",
@@ -4156,7 +4156,7 @@
               "path": "music/Lofi/Tokyo chill lab/Angst/Sea of Codes.mp3"
             },
             {
-              "number": 108,
+              "number": 16,
               "title": "Sky On the Ceiling",
               "duration_sec": 160,
               "format": "MP3",
@@ -4164,7 +4164,7 @@
               "path": "music/Lofi/Tokyo chill lab/Angst/Sky On the Ceiling.mp3"
             },
             {
-              "number": 108,
+              "number": 17,
               "title": "Sound",
               "duration_sec": 119,
               "format": "MP3",
@@ -4172,7 +4172,7 @@
               "path": "music/Lofi/Tokyo chill lab/Angst/Sound.mp3"
             },
             {
-              "number": 108,
+              "number": 18,
               "title": "Space Shower",
               "duration_sec": 117,
               "format": "MP3",
@@ -4180,7 +4180,7 @@
               "path": "music/Lofi/Tokyo chill lab/Angst/Space Shower.mp3"
             },
             {
-              "number": 108,
+              "number": 19,
               "title": "Warmth",
               "duration_sec": 126,
               "format": "MP3",
@@ -4188,7 +4188,7 @@
               "path": "music/Lofi/Tokyo chill lab/Angst/Warmth.mp3"
             },
             {
-              "number": 108,
+              "number": 20,
               "title": "Wednesday in Tokyo",
               "duration_sec": 161,
               "format": "MP3",
@@ -4216,7 +4216,7 @@
           ],
           "tracks": [
             {
-              "number": 108,
+              "number": 1,
               "title": "Asphalt (2025 Remaster)",
               "duration_sec": 203,
               "format": "MP3",
@@ -4224,7 +4224,7 @@
               "path": "music/Lofi/Tokyo chill lab/First Instar Melody (Side-A)/Asphalt (2025 Remaster).mp3"
             },
             {
-              "number": 108,
+              "number": 2,
               "title": "Bop Bop Bop",
               "duration_sec": 203,
               "format": "MP3",
@@ -4232,7 +4232,7 @@
               "path": "music/Lofi/Tokyo chill lab/First Instar Melody (Side-A)/Bop Bop Bop.mp3"
             },
             {
-              "number": 108,
+              "number": 3,
               "title": "Curtain Call",
               "duration_sec": 218,
               "format": "MP3",
@@ -4240,7 +4240,7 @@
               "path": "music/Lofi/Tokyo chill lab/First Instar Melody (Side-A)/Curtain Call.mp3"
             },
             {
-              "number": 108,
+              "number": 4,
               "title": "Deep Breath",
               "duration_sec": 203,
               "format": "MP3",
@@ -4248,7 +4248,7 @@
               "path": "music/Lofi/Tokyo chill lab/First Instar Melody (Side-A)/Deep Breath.mp3"
             },
             {
-              "number": 108,
+              "number": 5,
               "title": "Low Orbit",
               "duration_sec": 196,
               "format": "MP3",
@@ -4256,7 +4256,7 @@
               "path": "music/Lofi/Tokyo chill lab/First Instar Melody (Side-A)/Low Orbit.mp3"
             },
             {
-              "number": 108,
+              "number": 6,
               "title": "Milk Tea",
               "duration_sec": 279,
               "format": "MP3",
@@ -4264,7 +4264,7 @@
               "path": "music/Lofi/Tokyo chill lab/First Instar Melody (Side-A)/Milk Tea.mp3"
             },
             {
-              "number": 108,
+              "number": 7,
               "title": "Monologue",
               "duration_sec": 210,
               "format": "MP3",
@@ -4272,7 +4272,7 @@
               "path": "music/Lofi/Tokyo chill lab/First Instar Melody (Side-A)/Monologue.mp3"
             },
             {
-              "number": 108,
+              "number": 8,
               "title": "Peel the Crescent Moon",
               "duration_sec": 184,
               "format": "MP3",
@@ -4280,7 +4280,7 @@
               "path": "music/Lofi/Tokyo chill lab/First Instar Melody (Side-A)/Peel the Crescent Moon.mp3"
             },
             {
-              "number": 108,
+              "number": 9,
               "title": "Satellites in My Coffee",
               "duration_sec": 267,
               "format": "MP3",
@@ -4288,7 +4288,7 @@
               "path": "music/Lofi/Tokyo chill lab/First Instar Melody (Side-A)/Satellites in My Coffee.mp3"
             },
             {
-              "number": 108,
+              "number": 10,
               "title": "Wind Again",
               "duration_sec": 231,
               "format": "MP3",
@@ -4316,7 +4316,7 @@
           ],
           "tracks": [
             {
-              "number": 108,
+              "number": 1,
               "title": "As Is",
               "duration_sec": 216,
               "format": "MP3",
@@ -4324,7 +4324,7 @@
               "path": "music/Lofi/Tokyo chill lab/I'm Fine/As Is.mp3"
             },
             {
-              "number": 108,
+              "number": 2,
               "title": "Autumn Leaves, Unread Mails",
               "duration_sec": 132,
               "format": "MP3",
@@ -4332,7 +4332,7 @@
               "path": "music/Lofi/Tokyo chill lab/I'm Fine/Autumn Leaves, Unread Mails.mp3"
             },
             {
-              "number": 108,
+              "number": 3,
               "title": "Battery",
               "duration_sec": 184,
               "format": "MP3",
@@ -4340,7 +4340,7 @@
               "path": "music/Lofi/Tokyo chill lab/I'm Fine/Battery.mp3"
             },
             {
-              "number": 108,
+              "number": 4,
               "title": "Contour",
               "duration_sec": 211,
               "format": "MP3",
@@ -4348,7 +4348,7 @@
               "path": "music/Lofi/Tokyo chill lab/I'm Fine/Contour.mp3"
             },
             {
-              "number": 108,
+              "number": 5,
               "title": "Cut and Paste",
               "duration_sec": 192,
               "format": "MP3",
@@ -4356,7 +4356,7 @@
               "path": "music/Lofi/Tokyo chill lab/I'm Fine/Cut and Paste.mp3"
             },
             {
-              "number": 108,
+              "number": 6,
               "title": "Dream of That Day",
               "duration_sec": 120,
               "format": "MP3",
@@ -4364,7 +4364,7 @@
               "path": "music/Lofi/Tokyo chill lab/I'm Fine/Dream of That Day.mp3"
             },
             {
-              "number": 108,
+              "number": 7,
               "title": "I'm Fine",
               "duration_sec": 181,
               "format": "MP3",
@@ -4372,7 +4372,7 @@
               "path": "music/Lofi/Tokyo chill lab/I'm Fine/I'm Fine.mp3"
             },
             {
-              "number": 108,
+              "number": 8,
               "title": "In the Gap",
               "duration_sec": 214,
               "format": "MP3",
@@ -4380,7 +4380,7 @@
               "path": "music/Lofi/Tokyo chill lab/I'm Fine/In the Gap.mp3"
             },
             {
-              "number": 108,
+              "number": 9,
               "title": "Like BGM",
               "duration_sec": 134,
               "format": "MP3",
@@ -4388,7 +4388,7 @@
               "path": "music/Lofi/Tokyo chill lab/I'm Fine/Like BGM.mp3"
             },
             {
-              "number": 108,
+              "number": 10,
               "title": "Nevertheless,",
               "duration_sec": 154,
               "format": "MP3",
@@ -4396,7 +4396,7 @@
               "path": "music/Lofi/Tokyo chill lab/I'm Fine/Nevertheless,.mp3"
             },
             {
-              "number": 108,
+              "number": 11,
               "title": "Pain",
               "duration_sec": 147,
               "format": "MP3",
@@ -4404,7 +4404,7 @@
               "path": "music/Lofi/Tokyo chill lab/I'm Fine/Pain.mp3"
             },
             {
-              "number": 108,
+              "number": 12,
               "title": "Potsu Potsu",
               "duration_sec": 131,
               "format": "MP3",
@@ -4412,7 +4412,7 @@
               "path": "music/Lofi/Tokyo chill lab/I'm Fine/Potsu Potsu.mp3"
             },
             {
-              "number": 108,
+              "number": 13,
               "title": "Record",
               "duration_sec": 139,
               "format": "MP3",
@@ -4420,7 +4420,7 @@
               "path": "music/Lofi/Tokyo chill lab/I'm Fine/Record.mp3"
             },
             {
-              "number": 108,
+              "number": 14,
               "title": "Room 108",
               "duration_sec": 154,
               "format": "MP3",
@@ -4428,7 +4428,7 @@
               "path": "music/Lofi/Tokyo chill lab/I'm Fine/Room 108.mp3"
             },
             {
-              "number": 108,
+              "number": 15,
               "title": "Scattered",
               "duration_sec": 202,
               "format": "MP3",
@@ -4436,7 +4436,7 @@
               "path": "music/Lofi/Tokyo chill lab/I'm Fine/Scattered.mp3"
             },
             {
-              "number": 108,
+              "number": 16,
               "title": "The Sunset",
               "duration_sec": 189,
               "format": "MP3",
@@ -4444,7 +4444,7 @@
               "path": "music/Lofi/Tokyo chill lab/I'm Fine/The Sunset.mp3"
             },
             {
-              "number": 108,
+              "number": 17,
               "title": "To the End",
               "duration_sec": 188,
               "format": "MP3",
@@ -4452,7 +4452,7 @@
               "path": "music/Lofi/Tokyo chill lab/I'm Fine/To the End.mp3"
             },
             {
-              "number": 108,
+              "number": 18,
               "title": "Ultramarine Blue",
               "duration_sec": 131,
               "format": "MP3",
@@ -4460,7 +4460,7 @@
               "path": "music/Lofi/Tokyo chill lab/I'm Fine/Ultramarine Blue.mp3"
             },
             {
-              "number": 108,
+              "number": 19,
               "title": "Unevenness",
               "duration_sec": 126,
               "format": "MP3",
@@ -4468,7 +4468,7 @@
               "path": "music/Lofi/Tokyo chill lab/I'm Fine/Unevenness.mp3"
             },
             {
-              "number": 108,
+              "number": 20,
               "title": "Utsutsu",
               "duration_sec": 186,
               "format": "MP3",
@@ -4476,7 +4476,7 @@
               "path": "music/Lofi/Tokyo chill lab/I'm Fine/Utsutsu.mp3"
             },
             {
-              "number": 108,
+              "number": 21,
               "title": "Word",
               "duration_sec": 187,
               "format": "MP3",
@@ -4504,7 +4504,7 @@
           ],
           "tracks": [
             {
-              "number": 108,
+              "number": 1,
               "title": "Drag",
               "duration_sec": 153,
               "format": "MP3",
@@ -4512,7 +4512,7 @@
               "path": "music/Lofi/Tokyo chill lab/Lofi Pop/Drag.mp3"
             },
             {
-              "number": 108,
+              "number": 2,
               "title": "Drunkenness",
               "duration_sec": 164,
               "format": "MP3",
@@ -4520,7 +4520,7 @@
               "path": "music/Lofi/Tokyo chill lab/Lofi Pop/Drunkenness.mp3"
             },
             {
-              "number": 108,
+              "number": 3,
               "title": "Gray Side",
               "duration_sec": 185,
               "format": "MP3",
@@ -4528,7 +4528,7 @@
               "path": "music/Lofi/Tokyo chill lab/Lofi Pop/Gray Side.mp3"
             },
             {
-              "number": 108,
+              "number": 4,
               "title": "Just Move",
               "duration_sec": 148,
               "format": "MP3",
@@ -4536,7 +4536,7 @@
               "path": "music/Lofi/Tokyo chill lab/Lofi Pop/Just Move.mp3"
             },
             {
-              "number": 108,
+              "number": 5,
               "title": "Loosen Up",
               "duration_sec": 169,
               "format": "MP3",
@@ -4544,7 +4544,7 @@
               "path": "music/Lofi/Tokyo chill lab/Lofi Pop/Loosen Up.mp3"
             },
             {
-              "number": 108,
+              "number": 6,
               "title": "Not Moving, Still Breathing",
               "duration_sec": 200,
               "format": "MP3",
@@ -4552,7 +4552,7 @@
               "path": "music/Lofi/Tokyo chill lab/Lofi Pop/Not Moving, Still Breathing.mp3"
             },
             {
-              "number": 108,
+              "number": 7,
               "title": "Smoke Flow",
               "duration_sec": 178,
               "format": "MP3",
@@ -4560,7 +4560,7 @@
               "path": "music/Lofi/Tokyo chill lab/Lofi Pop/Smoke Flow.mp3"
             },
             {
-              "number": 108,
+              "number": 8,
               "title": "Snooze (Remastered)",
               "duration_sec": 136,
               "format": "MP3",
@@ -4568,7 +4568,7 @@
               "path": "music/Lofi/Tokyo chill lab/Lofi Pop/Snooze (Remastered).mp3"
             },
             {
-              "number": 108,
+              "number": 9,
               "title": "Sunny Space",
               "duration_sec": 163,
               "format": "MP3",
@@ -4576,7 +4576,7 @@
               "path": "music/Lofi/Tokyo chill lab/Lofi Pop/Sunny Space.mp3"
             },
             {
-              "number": 108,
+              "number": 10,
               "title": "Voice",
               "duration_sec": 213,
               "format": "MP3",
@@ -4604,7 +4604,7 @@
           ],
           "tracks": [
             {
-              "number": 108,
+              "number": 1,
               "title": "In That Sea",
               "duration_sec": 236,
               "format": "MP3",
@@ -4612,7 +4612,7 @@
               "path": "music/Lofi/Tokyo chill lab/Summer Chrysails (Side-A)/In That Sea.mp3"
             },
             {
-              "number": 108,
+              "number": 2,
               "title": "Last Train, Same Me",
               "duration_sec": 219,
               "format": "MP3",
@@ -4620,7 +4620,7 @@
               "path": "music/Lofi/Tokyo chill lab/Summer Chrysails (Side-A)/Last Train, Same Me.mp3"
             },
             {
-              "number": 108,
+              "number": 3,
               "title": "Light and Silence",
               "duration_sec": 205,
               "format": "MP3",
@@ -4628,7 +4628,7 @@
               "path": "music/Lofi/Tokyo chill lab/Summer Chrysails (Side-A)/Light and Silence.mp3"
             },
             {
-              "number": 108,
+              "number": 4,
               "title": "Perfect Day",
               "duration_sec": 251,
               "format": "MP3",
@@ -4636,7 +4636,7 @@
               "path": "music/Lofi/Tokyo chill lab/Summer Chrysails (Side-A)/Perfect Day.mp3"
             },
             {
-              "number": 108,
+              "number": 5,
               "title": "Point and Point",
               "duration_sec": 230,
               "format": "MP3",
@@ -4644,7 +4644,7 @@
               "path": "music/Lofi/Tokyo chill lab/Summer Chrysails (Side-A)/Point and Point.mp3"
             },
             {
-              "number": 108,
+              "number": 6,
               "title": "Ride Through the Nigh",
               "duration_sec": 221,
               "format": "MP3",
@@ -4652,7 +4652,7 @@
               "path": "music/Lofi/Tokyo chill lab/Summer Chrysails (Side-A)/Ride Through the Nigh.mp3"
             },
             {
-              "number": 108,
+              "number": 7,
               "title": "Run and Ride",
               "duration_sec": 214,
               "format": "MP3",
@@ -4660,7 +4660,7 @@
               "path": "music/Lofi/Tokyo chill lab/Summer Chrysails (Side-A)/Run and Ride.mp3"
             },
             {
-              "number": 108,
+              "number": 8,
               "title": "Summer Loop",
               "duration_sec": 182,
               "format": "MP3",
@@ -4668,7 +4668,7 @@
               "path": "music/Lofi/Tokyo chill lab/Summer Chrysails (Side-A)/Summer Loop.mp3"
             },
             {
-              "number": 108,
+              "number": 9,
               "title": "Tail Light",
               "duration_sec": 148,
               "format": "MP3",
@@ -4676,7 +4676,7 @@
               "path": "music/Lofi/Tokyo chill lab/Summer Chrysails (Side-A)/Tail Light.mp3"
             },
             {
-              "number": 108,
+              "number": 10,
               "title": "The Sound of the Sea",
               "duration_sec": 276,
               "format": "MP3",
@@ -4999,7 +4999,7 @@
           ],
           "tracks": [
             {
-              "number": 108,
+              "number": 1,
               "title": "New Riot",
               "duration_sec": 149,
               "format": "MP3",
@@ -5007,7 +5007,7 @@
               "path": "music/Reble/New Riot.mp3"
             },
             {
-              "number": 108,
+              "number": 2,
               "title": "Praying Mantis",
               "duration_sec": 192,
               "format": "MP3",
@@ -5168,7 +5168,7 @@
           "genre": "Unknown",
           "notes": "",
           "license": "",
-          "cover_thumb": "_thumbs/the-1975-singles.f09805a8.jpg",
+          "cover_thumb": "_thumbs/the-1975-singles.4f1782c9.jpg",
           "cover_path": null,
           "total_size_mb": 32.6,
           "shards": [
@@ -5223,7 +5223,7 @@
           "genre": "Unknown",
           "notes": "",
           "license": "",
-          "cover_thumb": "_thumbs/the-weekend-singles.591f533c.jpg",
+          "cover_thumb": "_thumbs/the-weekend-singles.1ed22a93.jpg",
           "cover_path": null,
           "total_size_mb": 35.1,
           "shards": [
@@ -5243,7 +5243,7 @@
               "path": "music/The Weekend/One Of The Girls.m4a"
             },
             {
-              "number": 1,
+              "number": 2,
               "title": "Starboy [Explicit]",
               "duration_sec": 230,
               "format": "M4A",
@@ -5251,7 +5251,7 @@
               "path": "music/The Weekend/Starboy [Explicit].m4a"
             },
             {
-              "number": 9,
+              "number": 3,
               "title": "Blinding Lights",
               "duration_sec": 200,
               "format": "M4A",
@@ -5259,7 +5259,7 @@
               "path": "music/The Weekend/Blinding Lights.m4a"
             },
             {
-              "number": 11,
+              "number": 4,
               "title": "Save Your Tears",
               "duration_sec": 215,
               "format": "M4A",

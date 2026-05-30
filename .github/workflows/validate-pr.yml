@@ -27,29 +27,96 @@ jobs:
         id: check
         run: |
           python - <<'PY'
-          import os, pathlib, sys
+          import pathlib, sys
+          try:
+              import yaml
+          except ImportError:
+              yaml = None
           AUDIO = {".flac", ".mp3", ".m4a", ".aac"}
           MAX_FILE_MB, MAX_TOTAL_MB = 100, 500
           music = pathlib.Path("music")
-          errors, warnings, total = [], [], 0.0
+          errors, warnings, hints, total = [], [], [], 0.0
+
           audio_files = [p for p in music.rglob("*") if p.suffix.lower() in AUDIO] if music.exists() else []
+          # Group audio by album dir
+          album_dirs = {p.parent for p in audio_files}
+
+          # 1. Size limits — hard errors
           for p in audio_files:
               mb = p.stat().st_size / (1024*1024); total += mb
               if mb > MAX_FILE_MB:
-                  errors.append(f"{p.name}: {mb:.1f} MB exceeds {MAX_FILE_MB} MB/file")
+                  errors.append(
+                      f"`{p.name}` is {mb:.1f} MB — exceeds the {MAX_FILE_MB} MB/file limit. "
+                      f"Re-encode to FLAC or MP3 320 kbps if a smaller version works."
+                  )
           if total > MAX_TOTAL_MB:
-              errors.append(f"total {total:.0f} MB exceeds {MAX_TOTAL_MB} MB/PR")
-          covers = list(music.rglob("cover.*")) if music.exists() else []
-          if audio_files and not covers:
-              warnings.append("no cover art found")
-          summary = [
-              "## Automated checks",
-              f"- {'❌' if errors else '✅'} Within size limits ({total:.0f} MB total, {len(audio_files)} files)",
-              f"- {'⚠️' if not covers else '✅'} Cover art present",
-              f"- {'✅' if audio_files else '⚠️'} Audio files detected",
+              errors.append(
+                  f"Total upload is {total:.0f} MB — exceeds the {MAX_TOTAL_MB} MB/PR limit. "
+                  f"Split into multiple PRs (one album each is fine)."
+              )
+
+          # 2. Cover art — warning, not blocker (build embeds-art fallback)
+          covers = list(music.rglob("cover.*"))
+          for d in album_dirs:
+              if not any((d / f"cover{ext}").exists() for ext in (".jpg",".jpeg",".png",".svg")):
+                  hints.append(
+                      f"`{d}` — no `cover.jpg`. Build will try to extract embedded artwork "
+                      f"from the first track; if that also fails the album shows a kanji tile."
+                  )
+
+          # 3. meta.yaml — warning + tell them where it should go
+          for d in album_dirs:
+              meta = d / "meta.yaml"
+              if not meta.exists():
+                  hints.append(
+                      f"`{d}/meta.yaml` is missing — without it, the album shows "
+                      f"\"Unknown / null\" instead of genre + year. Template at the bottom of this comment."
+                  )
+              elif yaml is not None:
+                  try:
+                      yaml.safe_load(meta.read_text(encoding="utf-8"))
+                  except yaml.YAMLError as e:
+                      errors.append(
+                          f"`{meta}` doesn't parse as YAML: {e}. "
+                          f"Common cause: a `:` inside a value that isn't quoted."
+                      )
+
+          # 4. Track filename hint
+          for p in audio_files:
+              stem = p.stem
+              # Expected: "NN - Title" or just a song title (compilation/Singles dir)
+              if " - " in stem and not stem[:2].isdigit():
+                  hints.append(
+                      f"`{p.name}` — filename has `-` but no leading track number. "
+                      f"Use `NN - Title.ext` if this is a numbered tracklist; ignore if it's a single."
+                  )
+
+          summary = ["## Automated checks", ""]
+          summary.append(f"- {'❌' if any('exceeds' in e for e in errors) else '✅'} Size limits — {total:.0f} MB total, {len(audio_files)} file(s) across {len(album_dirs)} album dir(s)")
+          summary.append(f"- {'✅' if covers else '⚠️'} Cover art — {len(covers)} `cover.*` file(s) found")
+          summary.append(f"- {'✅' if not any('meta.yaml' in e for e in errors) else '❌'} `meta.yaml` parses")
+          summary.append(f"- {'✅' if audio_files else '⚠️'} Audio files detected")
+
+          if errors:
+              summary += ["", "### Errors (must fix before merge)", *[f"- {e}" for e in errors]]
+          if hints:
+              summary += ["", "### Heads-up (build will still work, but)", *[f"- {h}" for h in hints]]
+
+          summary += [
+              "",
+              "### Need help?",
+              "- New to GitHub? Press **`.`** on the repo page to open it in github.dev — edit in the browser, no install.",
+              "- See [`CONTRIBUTING.md`](https://github.com/SarangVehale/hibiki/blob/main/CONTRIBUTING.md) for the full walkthrough.",
+              "- `meta.yaml` template:",
+              "  ```yaml",
+              "  title: Album Title",
+              "  year:  2024",
+              "  genre: Ambient",
+              "  license: CC-BY-4.0",
+              "  notes: Optional one-liner about the release.",
+              "  ```",
           ]
-          if errors: summary += ["", "### Errors", *[f"- {e}" for e in errors]]
-          if warnings: summary += ["", "### Warnings", *[f"- {w}" for w in warnings]]
+
           pathlib.Path("pr_summary.md").write_text("\n".join(summary))
           print("\n".join(summary))
           sys.exit(1 if errors else 0)

@@ -1,11 +1,32 @@
-# Contributing to HIBIKI
+# Contributing to NEIRO
 
 Thank you for adding to the archive. The whole project is structured so
 that "adding music" is the same gesture as any other open-source PR.
 
-## Adding an album
+## Never used GitHub before?
 
-1. **Confirm you have the right to share it.** HIBIKI only accepts
+You don't need git installed. You don't need the command line. You need
+a free GitHub account and a web browser.
+
+1. Sign up at https://github.com/join (takes ~30 seconds).
+2. Open https://github.com/SarangVehale/hibiki and press the **`.`**
+   key. The page reloads as **github.dev** — a full editor in the
+   browser, file tree on the left.
+3. Drag-and-drop your audio + `cover.jpg` into a new folder under
+   `music/<Artist>/<Album>/`, create a `meta.yaml` (template below),
+   commit from the panel on the left, and let the prompt walk you
+   through opening a pull request.
+4. The bot leaves a comment on your PR with any issues. Fix them in
+   github.dev, push, and the maintainer takes it from there.
+
+If you'd rather not touch GitHub at all, use the **email path** on the
+[Contribute page](https://sarangvehale.github.io/hibiki/#/contribute) —
+share a Drive / Dropbox / WeTransfer link plus a one-line licence
+statement and the maintainer adds it for you.
+
+## Adding an album (the conventional way)
+
+1. **Confirm you have the right to share it.** NEIRO only accepts
    material the contributor owns or that is unambiguously in the public
    domain. If you're not the rights-holder, get written permission first
    and attach it to the PR.
