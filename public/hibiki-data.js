@@ -51,6 +51,10 @@ function adapt(raw) {
       });
       const _enc = p => p ? p.split('/').map(encodeURIComponent).join('/') : null;
       album.coverUrl    = (mediaBase && album.cover_path) ? mediaBase + "/" + _enc(album.cover_path) : null;
+      // P3: covers are now externalised to public/_thumbs/<id>.<hash>.<ext>.
+      // album.cover_thumb is the relative path; same-origin so loading="lazy"
+      // works and the catalogue.json shrinks from 245 KB to 100 KB.
+      if (album.cover_thumb && !album.cover) album.cover = album.cover_thumb;
       album.artist      = artist.name;
       album.artistId    = artist.id;
       album.kanjiIdx    = ai % KANJI.length;

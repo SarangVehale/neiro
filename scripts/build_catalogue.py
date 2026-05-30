@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import hashlib
 import io
 import json
 import os
@@ -207,14 +208,21 @@ def find_cover_file(album_dir: Path, artist_dir: Path) -> Path | None:
 def cover_thumb(
     album_dir: Path,
     artist_dir: Path,
+    album_id: str,
     size: int = 96,
     quality: int = 65,
+    out_dir: Path | None = None,
 ) -> str | None:
-    """Return a tiny base64-encoded JPEG thumbnail, or None.
+    """Write a small JPEG thumbnail to ``out_dir/<album_id>.<hash>.jpg``
+    and return the relative path (or None when no cover was found).
 
-    Searches album_dir and all parent dirs up to artist_dir (inclusive),
-    so sub-artist directories with a shared cover are found automatically.
+    Externalising the thumbnail keeps the catalogue.json small (used to
+    bake the bytes in as base64; that bloated the JSON to >240 KB on a
+    45-album catalogue). The hash in the filename gives each cover its
+    own immutable URL so browsers can cache aggressively.
     """
+    if out_dir is None:
+        out_dir = ROOT / "public" / "_thumbs"
     cover_file = find_cover_file(album_dir, artist_dir)
     if cover_file is None:
         return None
@@ -230,11 +238,16 @@ def cover_thumb(
             buf = io.BytesIO()
             im.save(buf, "JPEG", quality=quality, optimize=True)
             raw = buf.getvalue()
+            ext = "jpg"
         except Exception:
             return None  # PIL can't open it — not a real image
-    b64 = base64.b64encode(raw).decode("ascii")
-    mime = "image/png" if cover_file.suffix.lower() == ".png" else "image/jpeg"
-    return f"data:{mime};base64,{b64}"
+    else:
+        ext = "png" if cover_file.suffix.lower() == ".png" else "jpg"
+    h = hashlib.sha256(raw).hexdigest()[:8]
+    out_dir.mkdir(parents=True, exist_ok=True)
+    name = f"{album_id}.{h}.{ext}"
+    (out_dir / name).write_bytes(raw)
+    return f"_thumbs/{name}"
 
 
 def shard_tracks(tracks: list[dict]) -> list[list[dict]]:
@@ -458,7 +471,9 @@ def process_album(
         "genre": genre,
         "notes": meta.get("notes", ""),
         "license": meta.get("license", ""),
-        "cover": cover_thumb(album_dir, artist_dir, size=args.thumb_size, quality=args.thumb_quality),
+        # P3: thumbnails now written to public/_thumbs/<id>.<hash>.jpg.
+        # Catalogue field is the relative path; data adapter wires it up.
+        "cover_thumb": cover_thumb(album_dir, artist_dir, album_id, size=args.thumb_size, quality=args.thumb_quality),
         "cover_path": str(cover_file.relative_to(ROOT)) if cover_file else None,
         "total_size_mb": total_mb,
         "shards": shards,

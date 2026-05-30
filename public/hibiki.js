@@ -76,10 +76,22 @@
   function toast(msg, k = '音色') {
     const t = document.createElement('div');
     t.className = 'toast';
-    t.innerHTML = `<span class="tk">${k}</span>${msg}`;
+    t.innerHTML = `<span class="tk">${esc(k)}</span>${esc(msg)}`;
     toastRegion.appendChild(t);
     setTimeout(() => t.remove(), 3000);
   }
+  // Sticky toast variant — caller controls dismiss / updates.
+  function toastSticky(msg, k = '音色') {
+    const t = document.createElement('div');
+    t.className = 'toast toast-sticky';
+    t.innerHTML = `<span class="tk">${esc(k)}</span><span class="t-msg">${esc(msg)}</span>`;
+    toastRegion.appendChild(t);
+    return t;
+  }
+  function updateToast(el, msg) {
+    const m = el?.querySelector('.t-msg'); if (m) m.textContent = msg;
+  }
+  function dismissToast(el) { if (!el) return; el.style.animation = 'toastOut 0.25s ease-in forwards'; setTimeout(() => el.remove(), 250); }
 
   // ── Filtering / search ────────────────────────────────────
   function filteredAlbums() {
@@ -257,18 +269,23 @@ ${upNext.length ? `
     const album = CATALOGUE.allAlbums.find(a=>a.id===id);
     if (!album) return noResult('波','Album not found');
     const ki = albumIdx(album) % 6;
+    const cover = album.coverUrl || album.cover;
     return `
 <div class="album-page">
+  ${cover ? `<div class="album-backdrop" aria-hidden="true" style="background-image:url(${esc(cover)})"></div>` : ''}
   <button class="album-back" data-nav="library"><i class="ti ti-arrow-left"></i> Back to library</button>
   <div class="album-hero">
     <div class="album-hero-art ${kClass(ki)} art-wrap" aria-hidden="true">
-      ${album.coverUrl || album.cover ? `<img src="${album.coverUrl || album.cover}" alt="">` : kChar(ki)}
+      ${cover ? `<img src="${cover}" alt="">` : kChar(ki)}
     </div>
     <div class="album-hero-info">
       <div class="hero-genre-tag">${esc(album.genre)}<span class="sep"> · </span>${album.year}</div>
       <h1 class="hero-album-title">${esc(album.title)}</h1>
       <div class="hero-artist-name" data-nav="artist" data-artist-id="${album.artistId}">${esc(album.artist)}</div>
       <div class="hero-actions">
+        <button class="hero-action-btn hero-play-btn" data-play-album="${album.id}" aria-label="Play album">
+          <i class="ti ti-player-play" aria-hidden="true"></i> Play
+        </button>
         <button class="hero-action-btn" data-share-hash="${hashFor('library','album',album.id)}" aria-label="Copy share link">
           <i class="ti ti-link" aria-hidden="true"></i> Share
         </button>
@@ -390,7 +407,31 @@ ${upNext.length ? `
     return `
 <div class="contribute-layout">
   <h1 class="page-heading">Share music <span class="kanji-after">音楽を共有する</span></h1>
-  <p class="page-sub">Fill the form below — submitting opens a prefilled GitHub issue so the maintainer can review and merge the files</p>
+  <p class="page-sub">Three ways to add an album. Pick the path that fits you.</p>
+
+  <div class="contrib-paths">
+    <div class="contrib-path">
+      <div class="contrib-path-num">01</div>
+      <div class="contrib-path-title">Fastest — open an issue</div>
+      <div class="contrib-path-desc">Tell the maintainer what you'd like to add. Use the form below; we'll pre-fill a GitHub issue with your metadata. Best if you're new to GitHub.</div>
+    </div>
+    <div class="contrib-path">
+      <div class="contrib-path-num">02</div>
+      <div class="contrib-path-title">Direct — open a PR</div>
+      <div class="contrib-path-desc">Already on GitHub? Fork the repo, add your files under <code>music/&lt;Artist&gt;/&lt;Album&gt;/</code> with a <code>meta.yaml</code>, and open a PR. The build script picks it up automatically.</div>
+      <a class="contrib-cta" href="https://github.com/SarangVehale/hibiki/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer"><i class="ti ti-link" aria-hidden="true"></i> Read CONTRIBUTING.md</a>
+    </div>
+    <div class="contrib-path">
+      <div class="contrib-path-num">03</div>
+      <div class="contrib-path-title">Quiet — email</div>
+      <div class="contrib-path-desc">No GitHub account? Send a link to the files plus the licence info, and the maintainer will add it for you.</div>
+    </div>
+  </div>
+
+  <div class="contrib-form-intro">
+    <span class="form-section-label">— Path 01 form —</span>
+    <p class="contrib-form-note">Filling this out opens a prefilled GitHub issue. The audio files themselves are uploaded once the maintainer responds (a static site can't accept large file uploads directly).</p>
+  </div>
   <div class="form-section">
     <span class="form-section-label">Release info</span>
     <div class="form-grid-2">
@@ -624,6 +665,9 @@ ${upNext.length ? `
     app.querySelectorAll('[data-share-hash]').forEach(btn=>{
       btn.addEventListener('click', e=>{ e.stopPropagation(); copyShareLink(btn.dataset.shareHash); });
     });
+    app.querySelectorAll('[data-play-album]').forEach(btn=>{
+      btn.addEventListener('click', e=>{ e.stopPropagation(); playFrom(btn.dataset.playAlbum, 0); });
+    });
     const surprise = app.querySelector('#surpriseBtn');
     if (surprise) surprise.addEventListener('click', () => {
       const all = CATALOGUE.allAlbums; if (!all.length) return;
@@ -708,9 +752,13 @@ ${upNext.length ? `
   function vrow(cls,icon,name,status) { return `<div class="val-row val-${cls}"><i class="ti ${icon}" aria-hidden="true"></i><span class="vr-name">${esc(name)}</span><span class="vr-status">${esc(status)}</span></div>`; }
 
   // ── Real downloads ────────────────────────────────────────
-  // Resolves a button's data-* attrs into a URL+filename and triggers a download
-  // via a hidden <a download>. Falls back to a toast if no URL is available.
-  function triggerDownload(ds) {
+  // Cross-origin <a href download> is silently ignored by browsers, so a
+  // direct `download` attribute against media.githubusercontent.com just
+  // navigates the tab to the audio. We fetch the response stream, build a
+  // same-origin Blob URL, and trigger the download from that — which
+  // honors the `download` attribute. Progress is reported via a sticky
+  // toast since shards can be 50 MB+.
+  async function triggerDownload(ds) {
     let url = null, filename = null;
     if (ds.dlTrack) {
       const album = CATALOGUE.allAlbums.find(a => a.id === ds.dlTrack);
@@ -721,7 +769,6 @@ ${upNext.length ? `
       const sh = album?.shards[parseInt(ds.shardIdx)];
       if (sh?.path) { url = sh.path; filename = `${album.artist} - ${album.title} (${sh.label}).zip`; }
     } else if (ds.dlAlbum) {
-      // Card-level "↓ ZIP / ↓ N parts" — go to album page if multi-part
       const album = CATALOGUE.allAlbums.find(a => a.id === ds.dlAlbum);
       if (album?.shards?.length > 1) {
         navigate(state.route==='artists'?'artists':'library','album',album.id);
@@ -732,10 +779,48 @@ ${upNext.length ? `
       if (sh?.path) { url = sh.path; filename = `${album.artist} - ${album.title}.zip`; }
     }
     if (!url) { toast('Download not available — file URL missing','⚠'); return; }
-    const a = document.createElement('a');
-    a.href = url; a.download = filename || ''; a.rel = 'noopener';
-    document.body.appendChild(a); a.click(); a.remove();
-    toast('Download started','↓');
+
+    const progress = toastSticky(`Downloading ${filename}…`, '↓');
+    let objURL = null;
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const total = +res.headers.get('content-length') || 0;
+      const totalMB = total ? (total / 1048576).toFixed(1) : '?';
+
+      if (res.body && total) {
+        const reader = res.body.getReader();
+        const chunks = []; let got = 0; let lastPct = -1;
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          chunks.push(value);
+          got += value.length;
+          const pct = Math.floor((got / total) * 100);
+          if (pct !== lastPct) {
+            lastPct = pct;
+            updateToast(progress, `${filename} — ${(got/1048576).toFixed(1)} / ${totalMB} MB (${pct}%)`);
+          }
+        }
+        objURL = URL.createObjectURL(new Blob(chunks));
+      } else {
+        // No body stream / no content-length — fall back to single blob
+        objURL = URL.createObjectURL(await res.blob());
+      }
+
+      const a = document.createElement('a');
+      a.href = objURL; a.download = filename || ''; a.rel = 'noopener';
+      document.body.appendChild(a); a.click(); a.remove();
+
+      dismissToast(progress);
+      toast(`Saved — ${filename}`, '✓');
+    } catch (e) {
+      dismissToast(progress);
+      toast(`Download failed — ${e.message}`, '⚠');
+    } finally {
+      // Browser holds the blob until it actually saves; revoke after a bit
+      if (objURL) setTimeout(() => URL.revokeObjectURL(objURL), 60000);
+    }
   }
 
   // ── Queue helpers (F1) ────────────────────────────────────
@@ -991,6 +1076,7 @@ ${upNext.length ? `
   audio.addEventListener('play',  ()=>{ state.player.playing=true;  updatePlayState(); refreshNP(); });
   audio.addEventListener('pause', ()=>{ if(_loadingTrack) return; state.player.playing=false; updatePlayState(); refreshNP(); });
 
+  let _lastPositionPush = 0;
   function updateProgress() {
     const p=state.player;
     const pct=p.duration>0?(p.currentTime/p.duration*100).toFixed(1):0;
@@ -1005,6 +1091,20 @@ ${upNext.length ? `
     if(fpFill) fpFill.style.width=pct+'%';
     if(fpC)    fpC.textContent=fmt(p.currentTime);
     if(fpThumb) fpThumb.style.left=pct+'%';
+    // M1: push position to MediaSession ~once per second so the OS scrub
+    // bar tracks correctly without flooding the API every paint frame.
+    const now = Date.now();
+    if (now - _lastPositionPush > 1000 && 'mediaSession' in navigator
+        && navigator.mediaSession.setPositionState && p.duration > 0) {
+      _lastPositionPush = now;
+      try {
+        navigator.mediaSession.setPositionState({
+          duration: p.duration,
+          position: Math.min(p.currentTime, p.duration),
+          playbackRate: audio.playbackRate || 1,
+        });
+      } catch(_) {}
+    }
   }
 
   function updateBar() {
@@ -1021,6 +1121,7 @@ ${upNext.length ? `
     if(pbCurrent) pbCurrent.textContent=fmt(p.currentTime);
     if(pbFmt)  { pbFmt.textContent=fmtLbl(item.track.format); pbFmt.className='pb-fmt-badge'; }
     syncFullPlayer();
+    updateMediaSession();
   }
 
   function updatePlayState() {
@@ -1029,6 +1130,55 @@ ${upNext.length ? `
     if(pbPlay) pbPlay.setAttribute('aria-label', state.player.playing?'Pause':'Play');
     const fpI=document.getElementById('fpPlayIcon');
     if(fpI) fpI.className=cls;
+    // M1: mirror state to the OS-level media session
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.playbackState = state.player.playing ? 'playing' : 'paused';
+    }
+  }
+
+  // ── M1: Media Session ─────────────────────────────────────
+  // Surfaces NEIRO playback on iOS / Android lock screens and routes
+  // Bluetooth play/pause/skip events back into the player. Called from
+  // updateBar() whenever the track changes; action handlers are set
+  // once on first call.
+  let _mediaActionsBound = false;
+  function updateMediaSession() {
+    if (!('mediaSession' in navigator)) return;
+    const it = state.player.queue[state.player.idx];
+    if (!it) { try { navigator.mediaSession.metadata = null; } catch(_) {} return; }
+    // Absolute artwork URL so the OS can fetch it independently
+    const cover = it.album.coverUrl || it.album.cover || null;
+    const artwork = cover ? [{
+      src: cover.startsWith('http') || cover.startsWith('data:') ? cover :
+           new URL(cover, location.href).toString(),
+      sizes: '96x96',
+      type: cover.endsWith('.png') ? 'image/png' : 'image/jpeg',
+    }] : [];
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title:  it.track.title || '',
+        artist: it.artist || '',
+        album:  it.album.title || '',
+        artwork,
+      });
+    } catch(_) {}
+    if (_mediaActionsBound) return;
+    _mediaActionsBound = true;
+    const safe = (h) => { try { navigator.mediaSession.setActionHandler(h.k, h.fn); } catch(_) {} };
+    safe({ k:'play',           fn: () => { if (!state.player.playing) togglePlay(); } });
+    safe({ k:'pause',          fn: () => { if (state.player.playing) togglePlay(); } });
+    safe({ k:'previoustrack',  fn: prevTrack });
+    safe({ k:'nexttrack',      fn: nextTrack });
+    safe({ k:'seekto',         fn: (e) => {
+      if (!isFinite(e.seekTime)) return;
+      try {
+        if (e.fastSeek && typeof audio.fastSeek === 'function') audio.fastSeek(e.seekTime);
+        else audio.currentTime = e.seekTime;
+        state.player.currentTime = e.seekTime;
+        updateProgress();
+      } catch(_) {}
+    } });
+    safe({ k:'stop',           fn: () => { audio.pause(); audio.currentTime = 0; } });
   }
 
   function refreshNP() {

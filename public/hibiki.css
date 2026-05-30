@@ -218,6 +218,29 @@ input::placeholder,textarea::placeholder { color: var(--ink-faint); opacity: 1; 
   transition: color 0.15s, border-color 0.15s, background 0.15s;
 }
 .hero-action-btn:hover { color: var(--sakura-deep); border-color: var(--sakura); background: var(--sakura-pale); }
+/* Primary "Play album" CTA — distinguished from secondary actions */
+.hero-action-btn.hero-play-btn {
+  color: white; background: var(--sakura); border-color: var(--sakura);
+  font-size: 11px; letter-spacing: 0.14em; padding: 8px 16px; font-weight: 500;
+}
+.hero-action-btn.hero-play-btn:hover {
+  background: var(--sakura-deep); border-color: var(--sakura-deep); color: white;
+}
+.hero-action-btn.hero-play-btn i { font-size: 14px; }
+
+/* Subtle route-entrance fade — every view fades in on render. */
+@keyframes view-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.album-page, .layout, .artist-page, .artist-listing,
+.contribute-layout, .contrib-layout, .about-layout {
+  animation: view-in 0.24s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .album-page, .layout, .artist-page, .artist-listing,
+  .contribute-layout, .contrib-layout, .about-layout { animation: none; }
+}
 
 /* Track row actions cell (queue + play-next + download) */
 .td-actions {
@@ -494,7 +517,22 @@ input::placeholder,textarea::placeholder { color: var(--ink-faint); opacity: 1; 
 .fp-scrub-bar { position: relative; }
 
 /* ── ALBUM PAGE ──────────────────────────────────────────── */
-.album-page { padding: 0 0 24px; }
+.album-page { padding: 0 0 24px; position: relative; isolation: isolate; }
+/* Spotify-style soft backdrop behind the hero, drawn from the cover. */
+.album-backdrop {
+  position: absolute; inset: 0 0 auto 0; height: 400px; z-index: -1;
+  background-size: cover; background-position: center;
+  filter: blur(48px) saturate(1.2) brightness(0.85);
+  transform: scale(1.4); transform-origin: top center;
+  opacity: 0.35;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7) 60%, rgba(0,0,0,0) 100%);
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7) 60%, rgba(0,0,0,0) 100%);
+  pointer-events: none;
+}
+html.dark .album-backdrop { opacity: 0.55; }
+@media (prefers-reduced-motion: reduce) {
+  .album-backdrop { filter: blur(32px); opacity: 0.25; }
+}
 .album-back {
   display: inline-flex; align-items: center; gap: 6px; padding: 10px 24px 0;
   font-family: var(--font-data); font-size: 10px; letter-spacing: 0.1em;
@@ -574,6 +612,51 @@ input::placeholder,textarea::placeholder { color: var(--ink-faint); opacity: 1; 
 
 /* ── CONTRIBUTE ──────────────────────────────────────────── */
 .contribute-layout { max-width: 720px; margin: 0 auto; padding: 36px 24px 80px; }
+/* Three-method walkthrough at the top */
+.contrib-paths {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px; margin: 20px 0 28px; border-bottom: var(--rule); padding-bottom: 24px;
+}
+.contrib-path {
+  border: var(--rule-strong); background: var(--cream-dark);
+  padding: 16px 14px; display: flex; flex-direction: column; gap: 8px;
+}
+.contrib-path-num {
+  font-family: var(--font-data); font-size: 11px; letter-spacing: 0.2em;
+  color: var(--sakura); font-weight: 500;
+}
+.contrib-path-title {
+  font-family: var(--font-editorial); font-size: 15px; font-weight: 600;
+  color: var(--ink); line-height: 1.25;
+}
+.contrib-path-desc {
+  font-size: 12px; color: var(--ink-light); line-height: 1.55;
+}
+.contrib-path-desc code {
+  font-family: var(--font-data); font-size: 11px;
+  background: var(--cream); border: var(--rule); padding: 1px 4px;
+}
+.contrib-cta {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-data); font-size: 10px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--sakura-deep);
+  border-bottom: 0.5px solid var(--sakura); align-self: flex-start;
+  padding-bottom: 2px; margin-top: auto;
+}
+.contrib-cta:hover { color: var(--sakura); }
+.contrib-form-intro { margin: 18px 0 14px; }
+.contrib-form-note {
+  font-size: 12px; color: var(--ink-light); line-height: 1.55;
+  margin-top: 8px;
+}
+@media (max-width: 640px) {
+  .contrib-paths { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+}
+
+/* Contribute nav link with a quiet sakura emphasis */
+.nav-links a[data-route="contribute"] { color: var(--sakura-deep); }
+.nav-links a[data-route="contribute"]:hover { color: var(--sakura); }
+.mobile-nav a[data-route="contribute"] { color: var(--sakura-deep); }
 .page-heading { font-family: var(--font-editorial); font-size: 36px; font-weight: 700; color: var(--ink); margin-bottom: 4px; letter-spacing: -0.005em; }
 .page-heading .kanji-after { font-family: var(--font-editorial); font-size: 18px; font-weight: 400; color: var(--sakura); margin-left: 12px; vertical-align: baseline; }
 .page-sub { font-family: var(--font-editorial); font-size: 15px; color: var(--ink-light); margin-bottom: 36px; font-style: italic; border-bottom: var(--rule); padding-bottom: 22px; }

@@ -34,6 +34,7 @@ jobs:
           fi
 
           python3 scripts/inject_cdn.py "$MEDIA_BASE"
+          python3 scripts/build_sitemap.py
           cp -f _zips/*.zip public/_zips/ 2>/dev/null || true
 
       - name: Upload Pages artifact
