@@ -181,11 +181,15 @@
   <main class="main" role="main">
     <div class="main-header">
       <h1 class="main-title">All albums <small>${albums.length} results</small></h1>
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <div class="main-header-actions">
         <button class="mobile-filter-btn${fc?' has-filter':''}" id="mobileFilterBtn" aria-label="Open filters">
           <i class="ti ti-adjustments-horizontal" aria-hidden="true"></i>
           Filters
           <span class="mfb-badge">${fc||''}</span>
+        </button>
+        <button class="surprise-btn" id="surpriseBtn" aria-label="Random album">
+          <i class="ti ti-arrows-shuffle" aria-hidden="true"></i>
+          Surprise me
         </button>
         <span class="sort-control">sorted by — <span class="sort-pill">${sortLabels[state.sort]}</span></span>
       </div>
@@ -264,6 +268,11 @@ ${upNext.length ? `
       <div class="hero-genre-tag">${esc(album.genre)}<span class="sep"> · </span>${album.year}</div>
       <h1 class="hero-album-title">${esc(album.title)}</h1>
       <div class="hero-artist-name" data-nav="artist" data-artist-id="${album.artistId}">${esc(album.artist)}</div>
+      <div class="hero-actions">
+        <button class="hero-action-btn" data-share-hash="${hashFor('library','album',album.id)}" aria-label="Copy share link">
+          <i class="ti ti-link" aria-hidden="true"></i> Share
+        </button>
+      </div>
       <div class="hero-stats">
         <div class="hero-stat"><strong>${album.tracks.length}</strong>Tracks</div>
         <div class="hero-stat"><strong>${fmtMB(album.totalSize)}</strong>Total size</div>
@@ -283,7 +292,7 @@ ${upNext.length ? `
       <thead><tr>
         <th scope="col">#</th><th scope="col">Title</th><th scope="col">Duration</th>
         <th scope="col">Format</th><th scope="col">Size</th>
-        <th scope="col"><span class="sr-only">Download</span></th>
+        <th scope="col"><span class="sr-only">Actions</span></th>
       </tr></thead>
       <tbody>
         ${album.tracks.map((tr,i)=>{
@@ -300,7 +309,11 @@ ${upNext.length ? `
   <td class="td-dur">${fmt(tr.duration_sec)}</td>
   <td class="td-fmt"><span class="fmt-pill ${fmtCls(tr.format)}">${fmtLbl(tr.format)}</span></td>
   <td class="td-size">${tr.size_mb.toFixed(1)} MB</td>
-  <td class="td-dl"><button class="track-dl" data-dl-track="${id}" data-track-idx="${i}" aria-label="Download ${esc(tr.title)}">↓ track</button></td>
+  <td class="td-actions">
+    <button class="track-action" data-queue-add="${id}" data-track-idx="${i}" title="Add to queue" aria-label="Add to queue"><i class="ti ti-playlist-add" aria-hidden="true"></i></button>
+    <button class="track-action" data-queue-next="${id}" data-track-idx="${i}" title="Play next" aria-label="Play next"><i class="ti ti-corner-down-right" aria-hidden="true"></i></button>
+    <button class="track-dl" data-dl-track="${id}" data-track-idx="${i}" aria-label="Download ${esc(tr.title)}">↓</button>
+  </td>
 </tr>`;}).join('')}
       </tbody>
     </table>
@@ -601,6 +614,22 @@ ${upNext.length ? `
         triggerDownload(btn.dataset);
       });
     });
+    // Queue / play-next / share / surprise
+    app.querySelectorAll('[data-queue-add]').forEach(btn=>{
+      btn.addEventListener('click', e=>{ e.stopPropagation(); addToQueue(btn.dataset.queueAdd, parseInt(btn.dataset.trackIdx)); });
+    });
+    app.querySelectorAll('[data-queue-next]').forEach(btn=>{
+      btn.addEventListener('click', e=>{ e.stopPropagation(); playNextTrack(btn.dataset.queueNext, parseInt(btn.dataset.trackIdx)); });
+    });
+    app.querySelectorAll('[data-share-hash]').forEach(btn=>{
+      btn.addEventListener('click', e=>{ e.stopPropagation(); copyShareLink(btn.dataset.shareHash); });
+    });
+    const surprise = app.querySelector('#surpriseBtn');
+    if (surprise) surprise.addEventListener('click', () => {
+      const all = CATALOGUE.allAlbums; if (!all.length) return;
+      const a = all[Math.floor(Math.random() * all.length)];
+      navigate('library', 'album', a.id);
+    });
     app.querySelectorAll('[data-play]').forEach(row=>{
       row.addEventListener('click', e=>{
         if(e.target.closest('[data-dl]')) return;
@@ -708,6 +737,63 @@ ${upNext.length ? `
     document.body.appendChild(a); a.click(); a.remove();
     toast('Download started','↓');
   }
+
+  // ── Queue helpers (F1) ────────────────────────────────────
+  // Build a queue-item object from album + track index
+  function _qi(album, trackIdx) {
+    const artist = CATALOGUE.artists.find(a => a.id === album.artistId);
+    return { track: album.tracks[trackIdx], albumId: album.id, album,
+      artist: artist?.name || album.artist, trackIdx };
+  }
+  function addToQueue(albumId, trackIdx) {
+    const album = CATALOGUE.allAlbums.find(a => a.id === albumId); if (!album) return;
+    state.player.queue.push(_qi(album, trackIdx));
+    // If nothing is loaded yet, start playing what was just queued
+    if (state.player.queue.length === 1) { state.player.idx = 0; state.player.playing = true; loadTrack(); updateBar(); updatePlayState(); }
+    refreshNP();
+    toast('Added to queue', '＋');
+  }
+  function playNextTrack(albumId, trackIdx) {
+    const album = CATALOGUE.allAlbums.find(a => a.id === albumId); if (!album) return;
+    const item = _qi(album, trackIdx);
+    if (!state.player.queue.length) { state.player.queue = [item]; state.player.idx = 0; state.player.playing = true; loadTrack(); updateBar(); updatePlayState(); }
+    else state.player.queue.splice(state.player.idx + 1, 0, item);
+    refreshNP();
+    toast('Playing next', '↦');
+  }
+
+  // ── Share helper (F4) ─────────────────────────────────────
+  async function copyShareLink(hash) {
+    const url = window.location.origin + window.location.pathname + (hash || window.location.hash || '');
+    try { await navigator.clipboard.writeText(url); toast('Link copied', '⧉'); }
+    catch (_) {
+      // Older browsers / insecure contexts: fall back to a temporary input
+      const ta = document.createElement('textarea'); ta.value = url;
+      ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta);
+      ta.select(); try { document.execCommand('copy'); toast('Link copied', '⧉'); }
+      catch { toast(url, '⧉'); } ta.remove();
+    }
+  }
+
+  // ── Continue listening (F3) ───────────────────────────────
+  const RESUME_KEY = 'neiro-resume';
+  function saveSession() {
+    const p = state.player; const it = p.queue[p.idx]; if (!it) return;
+    try { localStorage.setItem(RESUME_KEY, JSON.stringify({
+      albumId: it.albumId, trackIdx: it.trackIdx, t: Math.floor(p.currentTime||0), ts: Date.now()
+    })); } catch(_) {}
+  }
+  function loadSession() {
+    try { const raw = localStorage.getItem(RESUME_KEY); if (!raw) return null;
+      const s = JSON.parse(raw);
+      // Drop sessions older than 30 days
+      if (Date.now() - (s.ts||0) > 30 * 86400 * 1000) return null;
+      return s;
+    } catch(_) { return null; }
+  }
+  // Throttle saves: every 5 seconds while playing
+  let _lastSave = 0;
+  function _maybeSave() { const now = Date.now(); if (now - _lastSave > 5000) { _lastSave = now; saveSession(); } }
 
   // ── Mobile filter sheet ───────────────────────────────────
   const filterSheet = document.getElementById('filterSheet');
@@ -879,6 +965,7 @@ ${upNext.length ? `
   audio.addEventListener('timeupdate', ()=>{
     state.player.currentTime=audio.currentTime||0;
     if(audio.duration&&isFinite(audio.duration)) state.player.duration=audio.duration;
+    _maybeSave();
   });
 
   // rAF-driven progress paint — batches all DOM writes to one frame
@@ -893,6 +980,11 @@ ${upNext.length ? `
       state.player.duration=audio.duration;
       if(pbTotal) pbTotal.textContent=fmt(audio.duration);
       updateBar();
+    }
+    // F3: if a resume position is pending from a saved session, seek to it
+    if (state.player._resumeTime != null) {
+      try { audio.currentTime = state.player._resumeTime; } catch(_) {}
+      state.player._resumeTime = null;
     }
   });
   audio.addEventListener('ended', ()=>nextTrack());
@@ -1102,6 +1194,11 @@ ${upNext.length ? `
   if(fpNextBtn)   fpNextBtn.addEventListener('click', ()=>{ nextTrack(); syncFullPlayer(); });
   if(fpShuffleBtn) fpShuffleBtn.addEventListener('click', ()=>{ toggleShuffle(); });
   if(fpRepeatBtn)  fpRepeatBtn.addEventListener('click', ()=>{ cycleRepeat(); });
+  const fpShareBtn = document.getElementById('fpShare');
+  if(fpShareBtn) fpShareBtn.addEventListener('click', ()=>{
+    const it = state.player.queue[state.player.idx];
+    copyShareLink(it ? hashFor('library','album',it.albumId) : window.location.hash);
+  });
 
   // Full player scrub — mouse
   if(fpScrubBarEl) fpScrubBarEl.addEventListener('click', e=>{
@@ -1177,6 +1274,26 @@ ${upNext.length ? `
   songBadge.textContent=`${CATALOGUE.totalSongs} songs`;
   pbVolFill.style.width=(state.player.volume*100)+'%';
   updateShuffleRepeatUI();
+
+  // F3: Restore previous session into the player bar without autoplaying.
+  // Browsers block autoplay without a user gesture and resuming without
+  // intent is annoying — user taps play, audio loads, loadedmetadata seeks
+  // to the saved position via state.player._resumeTime.
+  const _resume = loadSession();
+  if (_resume) {
+    const _ralbum = CATALOGUE.allAlbums.find(a => a.id === _resume.albumId);
+    const _rtr    = _ralbum?.tracks[_resume.trackIdx];
+    if (_ralbum && _rtr) {
+      state.player.queue = [_qi(_ralbum, _resume.trackIdx)];
+      state.player.idx   = 0;
+      state.player.currentTime = _resume.t || 0;
+      state.player.duration    = _rtr.duration_sec || 0;
+      state.player._resumeTime = _resume.t || 0;
+      updateBar(); updateProgress();
+      toast(`Tap play to resume — ${esc(_rtr.title)}`, '⟲');
+    }
+  }
+
   // Boot from URL hash so a direct link / browser back works on first paint
   const _boot = parseHash();
   _suppressPush = true; navigate(_boot.route, _boot.sub, _boot.id); _suppressPush = false;

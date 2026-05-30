@@ -156,6 +156,50 @@ input::placeholder,textarea::placeholder { color: var(--ink-faint); opacity: 1; 
   text-align: center; padding: 28px 0 22px; line-height: 1;
   user-select: none; border-top: var(--rule); margin-top: 8px;
 }
+/* Main header actions row (Library: filters / surprise / sort) */
+.main-header-actions {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+/* "Surprise me" random album button */
+.surprise-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-data); font-size: 10px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--sakura-deep);
+  background: var(--sakura-pale); border: 0.5px solid var(--sakura);
+  padding: 7px 12px; cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.surprise-btn:hover { background: var(--sakura); color: white; }
+.surprise-btn i { font-size: 13px; }
+
+/* Album-hero Share button + general hero-actions row */
+.hero-actions {
+  display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap;
+}
+.hero-action-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-data); font-size: 10px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--ink-light);
+  background: var(--cream-dark); border: var(--rule-strong);
+  padding: 6px 12px; cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.hero-action-btn:hover { color: var(--sakura-deep); border-color: var(--sakura); background: var(--sakura-pale); }
+
+/* Track row actions cell (queue + play-next + download) */
+.td-actions {
+  text-align: right; white-space: nowrap;
+  display: flex; gap: 4px; justify-content: flex-end; align-items: center;
+}
+.track-action {
+  width: 28px; height: 28px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 14px; color: var(--ink-faint);
+  border: var(--rule); background: transparent; cursor: pointer;
+  transition: color 0.1s, border-color 0.1s, background 0.1s;
+}
+.track-action:hover { color: var(--sakura-deep); border-color: var(--sakura); background: var(--sakura-pale); }
+
 /* Mobile filter button — shown only on ≤768px */
 .mobile-filter-btn {
   display: none; align-items: center; gap: 6px;
@@ -615,8 +659,23 @@ input::placeholder,textarea::placeholder { color: var(--ink-faint); opacity: 1; 
 .filter-sheet-body .filter-item { padding: 12px 20px; border-bottom: var(--rule); }
 
 /* ── Toast ───────────────────────────────────────────────── */
-.toast-region { position: fixed; top: 70px; right: 24px; z-index: 300; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+.toast-region {
+  position: fixed; top: 70px; right: 24px; z-index: 300;
+  display: flex; flex-direction: column; gap: 8px; pointer-events: none;
+}
+/* On mobile, anchor toasts above the player bar so they're never hidden;
+   span full width with a tighter inset. */
+@media (max-width: 768px) {
+  .toast-region {
+    top: auto; right: 12px; left: 12px;
+    bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+    align-items: stretch;
+  }
+}
 .toast { background: var(--ink); color: var(--cream); padding: 11px 16px; font-family: var(--font-data); font-size: 11px; letter-spacing: 0.06em; border-left: 2px solid var(--sakura); max-width: 320px; animation: toastIn 0.2s ease-out, toastOut 0.25s ease-in 2.6s forwards; pointer-events: auto; }
+@media (max-width: 768px) {
+  .toast { max-width: 100%; }
+}
 .toast .tk { font-family: var(--font-editorial); color: var(--sakura); font-size: 14px; margin-right: 8px; }
 @keyframes toastIn  { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
 @keyframes toastOut { to{opacity:0;transform:translateY(-6px)} }
@@ -827,8 +886,9 @@ input::placeholder,textarea::placeholder { color: var(--ink-faint); opacity: 1; 
   .tracklist tbody tr td:nth-child(4),
   .tracklist tbody tr td:nth-child(5) { display: none; }
   .td-title { font-size: 12px; }
-  .td-dl { width: auto; }
-  .track-dl { font-size: 8px; padding: 3px 6px; }
+  .td-actions { gap: 2px; }
+  .track-action { width: 30px; height: 30px; font-size: 13px; }
+  .track-dl { font-size: 9px; padding: 4px 7px; }
 
   /* download bar */
   .download-bar { padding: 10px 14px; flex-wrap: wrap; gap: 8px; }
@@ -863,6 +923,13 @@ input::placeholder,textarea::placeholder { color: var(--ink-faint); opacity: 1; 
     min-height: calc(100vh - 52px - 32px - 64px);
     padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
   }
+}
+
+/* ≤480px — drop play-next button (power-user action), tighter actions */
+@media (max-width: 480px) {
+  [data-queue-next] { display: none; }
+  .td-actions { gap: 3px; }
+  .track-action { width: 28px; height: 28px; }
 }
 
 /* ≤640px — phones: tighter, 2-col grid feels less cramped than 3 here */
