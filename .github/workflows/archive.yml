@@ -30,14 +30,35 @@ jobs:
             "$BASE/sitemap.xml"
             "$BASE/robots.txt"
           )
+          accepted=0
           for u in "${URLS[@]}"; do
             echo "saving: $u"
-            # save?url=… kicks off an async crawl. We don't block on it —
-            # the Wayback worker will pick it up within minutes.
-            code=$(curl -fsSL --max-time 30 -o /tmp/wb.html -w "%{http_code}" \
+            code=$(curl -sL --max-time 30 -o /tmp/wb.html -w "%{http_code}" \
               "https://web.archive.org/save/$u" || echo 000)
             echo "  → HTTP $code"
-            # Be polite — Save Page Now rate-limits ~1 req/sec.
+            # Save Page Now returns 200 on accept (sync), 429 when rate-
+            # limited (still accepted into the queue async). Anything else
+            # is a real failure.
+            case "$code" in 200|429) accepted=$((accepted + 1)) ;; esac
             sleep 5
           done
-          echo "snapshot requests dispatched"
+          echo "accepted: $accepted / ${#URLS[@]}"
+          # Fail loudly if nothing made it through — the cron shouldn't
+          # be reporting "success" while silently never archiving.
+          if [ "$accepted" -eq 0 ]; then
+            echo "::error::no Save Page Now requests were accepted"
+            exit 1
+          fi
+
+      - name: Verify at least one snapshot exists post-dispatch
+        run: |
+          # Wayback's worker may take minutes to actually crawl; allow time.
+          sleep 60
+          ok=$(curl -fsSL --max-time 30 \
+            "https://archive.org/wayback/available?url=https%3A//sarangvehale.github.io/hibiki/" \
+            | python3 -c "import json,sys; print(int(bool(json.load(sys.stdin).get('archived_snapshots',{}).get('closest'))))")
+          if [ "$ok" = "1" ]; then
+            echo "✅ at least one snapshot exists"
+          else
+            echo "::warning::no snapshot visible yet — Wayback worker may still be processing"
+          fi

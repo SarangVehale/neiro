@@ -192,3 +192,35 @@ See `DEPLOY.md` §"Adding music after initial setup". Operational notes:
   `cover.jpg` to the album dir to fix.
 - The `_thumbs` sweep step removes any thumb file not referenced by the
   current catalogue — safe to run repeatedly.
+
+---
+
+## Long-term failure modes
+
+What's likely to silently degrade or fail over months/years if nobody
+touches it. Each row lists the failure, the warning sign, and the
+single thing that fixes it.
+
+| Risk | Warning sign | Mitigation | Status |
+|---|---|---|---|
+| **LFS bandwidth quota** (10 GB/mo) exhausted by visitor traffic | Audio 429s on live site, build workflow fails at LFS checkout step | Execute `docs/R2_MIGRATION.md` — tooling and CI conditional are ready, secrets just need to be set | ⏰ pressing — at ~70% as of last check |
+| **LFS storage quota** (10 GB) exhausted | Push rejected: `GH008: This repository has exceeded its LFS quota` | Same R2 migration purges audio from LFS and reclaims space | ⏰ ~57% (5.7 GB of 10 GB) |
+| **GitHub Pages outage** | Live site 5xx; no announcement, no SLA | Wayback monthly mirror — first auto-run 2026-06-01 03:17 UTC; `archive.yml` cron. README points users at `web.archive.org/web/*/sarangvehale.github.io/hibiki/` | ✅ in place |
+| **Google Fonts removes a referenced weight** | Text falls back to system font silently | `font-display: swap` keeps the page usable. Could self-host woff2 files (~230 KB) to remove the dep | 🟡 acceptable |
+| **Stale service worker on returning visitors** | Users see old chrome after a deploy until SW updates | Bump `VERSION` in `public/sw.js` on every shell-affecting change | 🟡 manual — easy to forget |
+| **Python build deps drift** (mutagen, Pillow, PyYAML) | Build script crashes on a clean install, or thumb hashes shift after `pip install` | Pin versions in `requirements.txt`; add Dependabot for pip ecosystem in `.github/dependabot.yml` | ❌ not pinned, no pip Dependabot |
+| **Hardcoded email** (`sarang.kernel@gmail.com`) | Email path silently breaks if address changes | Lives in `public/hibiki.js`, `docs/OPERATIONS.md`, `.github/ISSUE_TEMPLATE/email-submission.yml`. Grep before changing; ideally consolidate into a single config | 🟡 known, search-and-replace required |
+| **Hardcoded GitHub username** (`SarangVehale`) | All deploy URLs, issue links, archive snapshots break on account rename | Same as above — grep first. The mirror archive doesn't rotate; old snapshots stay accessible | 🟡 known |
+| **New audio format** (`.ogg`, `.opus`, `.wav`) added under `music/` | File silently ignored — doesn't appear in catalogue | Update `AUDIO_EXT` in `scripts/build_catalogue.py` + the validator in `validate-pr.yml` + drop-zone `accept=` in `hibiki.js` | 🟡 trivial fix when needed |
+| **New binary asset format under `public/`** (`.heic`, `.avif`, `.webm`) | If LFS-tracked, Pages serves the 129-byte stub | CI guard in `build.yml` covers `jpg/png/gif/webp/ico`; extend the find filter when new types land | 🟡 trivial fix when needed |
+| **Bus-factor 1** | No co-maintainer; R2 secrets, Cloudflare login, Gmail filters all live with one person | `docs/AUDIT.md` §6.1 flags this. Documented hand-off (where the secrets live, how to rotate, who has Pages publish rights) is overdue | ❌ no co-maintainer listed |
+| **Archive workflow silently 4xx-ing** | All 4 Wayback Save requests come back non-200 but the workflow still reports success because the loop swallows curl errors | Tighten `archive.yml` to assert at least one snapshot per quarter via `archive.org/wayback/available` | 🟡 acceptable — re-tries monthly anyway |
+| **Catalogue.json grows past 1 MB** | Page TTFB rises; SW cache miss costs more | Currently 174 KB. Sharding the catalogue by artist becomes attractive past ~2 MB | 🟡 no action needed yet |
+
+### Most pressing item
+
+**R2 migration.** Everything else is either green or trivially fixable
+when it surfaces. R2 is the only item where doing nothing leads to a
+hard failure: audio breaks for users when LFS bandwidth runs out, and
+the only recovery is the migration that's already documented and ready
+to execute.
