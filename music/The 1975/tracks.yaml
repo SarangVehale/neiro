@@ -1,0 +1,18 @@
+- number: 10
+  title: Somebody Else
+  duration_sec: 347
+  format: M4A
+  size_mb: 13.37
+  path: music/The 1975/Somebody Else.m4a
+- number: 11
+  title: It's Not Living (If It's Not With You)
+  duration_sec: 248
+  format: M4A
+  size_mb: 9.61
+  path: music/The 1975/It's Not Living (If It's Not With You).m4a
+- number: 13
+  title: The Sound
+  duration_sec: 248
+  format: M4A
+  size_mb: 9.58
+  path: music/The 1975/The Sound.m4a

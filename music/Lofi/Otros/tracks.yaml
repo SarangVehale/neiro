@@ -1,0 +1,42 @@
+- number: 1
+  title: Wellspring
+  duration_sec: 159
+  format: M4A
+  size_mb: 6.22
+  path: music/Lofi/Otros/1. Otros - Wellspring.m4a
+- number: 2
+  title: Sound of Mind
+  duration_sec: 163
+  format: M4A
+  size_mb: 6.29
+  path: music/Lofi/Otros/2. Otros - Sound of Mind.m4a
+- number: 3
+  title: Offerings
+  duration_sec: 135
+  format: M4A
+  size_mb: 5.22
+  path: music/Lofi/Otros/3. Otros - Offerings.m4a
+- number: 4
+  title: Renewal
+  duration_sec: 143
+  format: M4A
+  size_mb: 5.56
+  path: music/Lofi/Otros/4. Otros - Renewal.m4a
+- number: 4
+  title: Renewal
+  duration_sec: 143
+  format: M4A
+  size_mb: 5.66
+  path: music/Lofi/Otros/Renewal.m4a
+- number: 5
+  title: Aerial
+  duration_sec: 188
+  format: M4A
+  size_mb: 7.33
+  path: music/Lofi/Otros/5. Otros - Aerial.m4a
+- number: 6
+  title: Petals
+  duration_sec: 157
+  format: M4A
+  size_mb: 5.8
+  path: music/Lofi/Otros/6. Otros - Petals.m4a

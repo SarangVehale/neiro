@@ -1,0 +1,24 @@
+- number: 1
+  title: One Of The Girls
+  duration_sec: 244
+  format: M4A
+  size_mb: 9.65
+  path: music/The Weekend/One Of The Girls.m4a
+- number: 1
+  title: Starboy [Explicit]
+  duration_sec: 230
+  format: M4A
+  size_mb: 9.05
+  path: music/The Weekend/Starboy [Explicit].m4a
+- number: 9
+  title: Blinding Lights
+  duration_sec: 200
+  format: M4A
+  size_mb: 7.91
+  path: music/The Weekend/Blinding Lights.m4a
+- number: 11
+  title: Save Your Tears
+  duration_sec: 215
+  format: M4A
+  size_mb: 8.52
+  path: music/The Weekend/Save Your Tears.m4a

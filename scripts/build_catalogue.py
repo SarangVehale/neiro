@@ -186,12 +186,19 @@ def find_album_dirs(artist_dir: Path) -> list[Path]:
         artist/sub-artist/album/track.mp3  (depth 4 from music/)
     as well as the standard:
         artist/album/track.mp3             (depth 3 from music/)
+
+    Metadata-only mode: a directory with no audio but a tracks.yaml file
+    is also recognised so albums survive once audio moves to R2.
     """
     result = []
     for d in sorted(artist_dir.rglob("*")):
-        if d.is_dir() and any(
+        if not d.is_dir():
+            continue
+        has_audio = any(
             f.is_file() and f.suffix.lower() in AUDIO_EXT for f in d.iterdir()
-        ):
+        )
+        has_tracks_yaml = (d / "tracks.yaml").exists()
+        if has_audio or has_tracks_yaml:
             result.append(d)
     return result
 
@@ -439,11 +446,12 @@ def process_artist(
     total_songs = 0
 
     # ── Loose tracks sitting directly in the artist folder ───────────────────
+    # Also fires when audio is gone but tracks.yaml is present (R2 mode).
     loose = sorted(
         p for p in artist_dir.iterdir()
         if p.is_file() and p.suffix.lower() in AUDIO_EXT
     )
-    if loose:
+    if loose or (artist_dir / "tracks.yaml").exists():
         n, entry = process_album(
             album_dir=artist_dir,
             artist_dir=artist_dir,

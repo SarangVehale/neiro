@@ -1,0 +1,42 @@
+- number: 1
+  title: Saiyaara
+  duration_sec: 370
+  format: M4A
+  size_mb: 14.8
+  path: music/Saiyaara/1. Tanishk Bagchi - Saiyaara.m4a
+- number: 2
+  title: Barbaad
+  duration_sec: 357
+  format: M4A
+  size_mb: 14.33
+  path: music/Saiyaara/2. The RISH - Barbaad.m4a
+- number: 3
+  title: Tum Ho Toh
+  duration_sec: 318
+  format: M4A
+  size_mb: 12.69
+  path: music/Saiyaara/3. Vishal Mishra - Tum Ho Toh.m4a
+- number: 4
+  title: Humsafar
+  duration_sec: 322
+  format: M4A
+  size_mb: 12.94
+  path: music/Saiyaara/4. Sachet-Parampara - Humsafar.m4a
+- number: 5
+  title: Dhun
+  duration_sec: 276
+  format: M4A
+  size_mb: 11.21
+  path: music/Saiyaara/5. Mithoon - Dhun.m4a
+- number: 6
+  title: Saiyaara Reprise - Female
+  duration_sec: 183
+  format: M4A
+  size_mb: 7.57
+  path: music/Saiyaara/6. Tanishk Bagchi - Saiyaara Reprise - Female.m4a
+- number: 7
+  title: Barbaad Reprise - Female
+  duration_sec: 129
+  format: M4A
+  size_mb: 5.51
+  path: music/Saiyaara/7. The RISH - Barbaad Reprise - Female.m4a

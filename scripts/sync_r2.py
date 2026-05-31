@@ -38,8 +38,8 @@ ROOT = Path(__file__).resolve().parent.parent
 MUSIC = ROOT / "music"
 
 AUDIO_EXT = {".flac", ".mp3", ".m4a", ".aac"}
+COVER_EXT = {".jpg", ".jpeg", ".png"}
 SKIP_EXT = {".yaml", ".yml", ".md", ".txt", ".ini"}
-SKIP_NAMES = {"cover.jpg", "cover.jpeg", "cover.png"}
 
 
 def md5(path: Path) -> str:
@@ -56,12 +56,18 @@ def mime(path: Path) -> str:
 
 
 def should_sync(path: Path) -> bool:
+    """Audio + full-res cover images get pushed to R2. cover_path in the
+    catalogue is resolved against media_base_url at render time, so the
+    R2 bucket must hold both audio and the high-res covers."""
     if path.suffix.lower() in SKIP_EXT:
         return False
-    if path.name.lower() in SKIP_NAMES:
-        return False
-    # Only sync audio files from music/
-    return path.suffix.lower() in AUDIO_EXT
+    suf = path.suffix.lower()
+    if suf in AUDIO_EXT:
+        return True
+    # Only sync cover.* / folder.* image files, not arbitrary loose images.
+    if suf in COVER_EXT and path.stem.lower() in ("cover", "folder"):
+        return True
+    return False
 
 
 def list_remote(client, bucket: str, prefix: str) -> dict[str, int]:
@@ -104,7 +110,9 @@ def main() -> int:
     print(f"  {len(remote)} objects found remotely")
 
     local_files = sorted(p for p in MUSIC.rglob("*") if p.is_file() and should_sync(p))
-    print(f"  {len(local_files)} audio files locally\n")
+    n_audio = sum(1 for p in local_files if p.suffix.lower() in AUDIO_EXT)
+    n_cover = len(local_files) - n_audio
+    print(f"  {n_audio} audio + {n_cover} cover files locally\n")
 
     uploaded = skipped = 0
     local_keys: set[str] = set()
