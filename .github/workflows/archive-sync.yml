@@ -1,0 +1,100 @@
+name: Archive sync (Internet Archive items)
+
+# Monthly incremental sync of music/ to archive.org as items. This is the
+# cold tier of the 3-point backup (R2 hot / LFS warm / IA cold). Each album
+# is a separate IA item — see scripts/sync_archive_org.py for the layout.
+#
+# Sequencing:
+#   - The initial 5.6 GB push must be run locally (`python scripts/
+#     sync_archive_org.py`) with audio on disk. This workflow handles the
+#     monthly delta, which is normally a few MB at most.
+#   - Pre-R2 migration: the workflow pulls audio from LFS. This burns LFS
+#     bandwidth proportional to the delta — fine while deltas are small.
+#   - Post-R2 migration: switch the checkout step to `lfs: false` and add
+#     an R2 sync step that pulls only the changed objects before running
+#     sync_archive_org.py. The script's size-based skip means unchanged
+#     audio is never re-fetched from R2 either.
+#
+# This is separate from the Wayback Machine workflow (archive.yml) which
+# snapshots the shell+catalogue HTML, not the audio bytes.
+
+on:
+  schedule:
+    # 04:23 UTC on the 7th of each month — staggered from archive.yml (1st)
+    # so the two archive jobs don't compete for the runner pool.
+    - cron: "23 4 7 * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry-run only (no uploads)"
+        type: boolean
+        default: false
+      only_artist:
+        description: "Restrict to one artist (exact directory name)"
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  ia-sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      IA_ACCESS_KEY: ${{ secrets.IA_ACCESS_KEY }}
+      IA_SECRET_KEY: ${{ secrets.IA_SECRET_KEY }}
+    steps:
+      - name: Guard against missing credentials
+        run: |
+          if [ -z "${IA_ACCESS_KEY:-}" ] || [ -z "${IA_SECRET_KEY:-}" ]; then
+            echo "::error::IA_ACCESS_KEY / IA_SECRET_KEY secrets are not set."
+            echo "See docs/INTERNET_ARCHIVE_SETUP.md for one-time setup."
+            exit 1
+          fi
+
+      - name: Checkout (with LFS — needed pre-R2)
+        uses: actions/checkout@v6
+        with:
+          lfs: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install deps
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt internetarchive
+
+      - name: Configure ia CLI
+        run: |
+          mkdir -p ~/.config/internetarchive
+          cat > ~/.config/internetarchive/ia.ini <<EOF
+          [s3]
+          access = ${IA_ACCESS_KEY}
+          secret = ${IA_SECRET_KEY}
+          [general]
+          screenname = neiro-music
+          EOF
+          chmod 600 ~/.config/internetarchive/ia.ini
+
+      - name: Sync to archive.org
+        run: |
+          set -euo pipefail
+          ARGS=()
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            ARGS+=("--dry-run")
+          fi
+          if [ -n "${{ inputs.only_artist }}" ]; then
+            ARGS+=("--only" "${{ inputs.only_artist }}")
+          fi
+          python scripts/sync_archive_org.py "${ARGS[@]}"
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "::notice::IA sync finished — see logs for per-album details."
+          echo "Items live at: https://archive.org/details/@neiro-music"
