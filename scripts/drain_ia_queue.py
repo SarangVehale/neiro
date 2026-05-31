@@ -32,7 +32,7 @@ import shutil
 import sys
 from pathlib import Path
 
-from sync_archive_org import get_session
+from sync_archive_org import check_ia_auth
 from sync_ia_delta import resolve_album
 
 try:
@@ -297,15 +297,10 @@ def main() -> int:
         return 0
 
     # Pre-flight: auth check
-    access = os.environ.get("IA_ACCESS_KEY")
-    secret = os.environ.get("IA_SECRET_KEY")
-    if not (access and secret):
-        try:
-            get_session().get_auth_config()
-        except Exception:
-            print("ERROR: IA credentials missing. Run `ia configure` or set "
-                  "IA_ACCESS_KEY + IA_SECRET_KEY.", file=sys.stderr)
-            return 2
+    if not check_ia_auth():
+        print("ERROR: IA credentials missing. Run `ia configure` or set "
+              "IA_ACCESS_KEY + IA_SECRET_KEY.", file=sys.stderr)
+        return 2
 
     print(f"Found {len(pending)} pending queue(s).\n")
     total_ok = total_fail = 0

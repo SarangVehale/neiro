@@ -33,8 +33,8 @@ from sync_archive_org import (
     COVER_NAMES,
     MUSIC,
     ROOT,
+    check_ia_auth,
     find_album_dirs,
-    get_session,
     sync_album_files,
 )
 
@@ -104,17 +104,10 @@ def main() -> int:
         print("No audio/cover files in input — nothing to upload.")
         return 0
 
-    # Auth check (same shape as sync_archive_org.py main)
-    if not args.dry_run:
-        access = os.environ.get("IA_ACCESS_KEY")
-        secret = os.environ.get("IA_SECRET_KEY")
-        if not (access and secret):
-            try:
-                get_session().get_auth_config()
-            except Exception:
-                print("ERROR: IA credentials missing. Run `ia configure` or set "
-                      "IA_ACCESS_KEY + IA_SECRET_KEY.", file=sys.stderr)
-                return 2
+    if not args.dry_run and not check_ia_auth():
+        print("ERROR: IA credentials missing. Run `ia configure` or set "
+              "IA_ACCESS_KEY + IA_SECRET_KEY.", file=sys.stderr)
+        return 2
 
     # Group files by album. Key by album_dir so nested-album files coalesce.
     grouped: dict[Path, tuple[Path, str, list[Path]]] = {}

@@ -50,6 +50,22 @@ except ImportError:
     print("ERROR: pip install internetarchive", file=sys.stderr)
     sys.exit(1)
 
+
+def check_ia_auth() -> bool:
+    """Return True iff IA credentials are available — either as
+    IA_ACCESS_KEY/IA_SECRET_KEY env vars (CI path) or in
+    ~/.config/internetarchive/ia.ini (local path).
+
+    `get_session()` reads ia.ini at construction and surfaces the keys
+    as .access_key / .secret_key attributes; we check those directly
+    instead of any helper, since the library's auth-check method
+    changed shape across versions.
+    """
+    if os.environ.get("IA_ACCESS_KEY") and os.environ.get("IA_SECRET_KEY"):
+        return True
+    s = get_session()
+    return bool(getattr(s, "access_key", None) and getattr(s, "secret_key", None))
+
 ROOT = Path(__file__).resolve().parent.parent
 MUSIC = ROOT / "music"
 AUDIO_EXT = {".flac", ".mp3", ".m4a", ".aac"}
@@ -272,17 +288,10 @@ def main() -> int:
     args = ap.parse_args()
 
     # Sanity: must have IA creds set
-    if not args.dry_run:
-        access = os.environ.get("IA_ACCESS_KEY")
-        secret = os.environ.get("IA_SECRET_KEY")
-        # internetarchive uses ~/.config/internetarchive/ia.ini OR env
-        if not (access and secret):
-            try:
-                get_session().get_auth_config()  # raises if not configured
-            except Exception:
-                print("ERROR: IA credentials missing. Run `ia configure` or set "
-                      "IA_ACCESS_KEY + IA_SECRET_KEY.", file=sys.stderr)
-                return 2
+    if not args.dry_run and not check_ia_auth():
+        print("ERROR: IA credentials missing. Run `ia configure` or set "
+              "IA_ACCESS_KEY + IA_SECRET_KEY.", file=sys.stderr)
+        return 2
 
     total_uploaded = total_skipped = total_albums = 0
 
