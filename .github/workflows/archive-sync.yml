@@ -49,7 +49,7 @@ jobs:
         run: |
           if [ -z "${IA_ACCESS_KEY:-}" ] || [ -z "${IA_SECRET_KEY:-}" ]; then
             echo "::error::IA_ACCESS_KEY / IA_SECRET_KEY secrets are not set."
-            echo "See docs/INTERNET_ARCHIVE_SETUP.md for one-time setup."
+            echo "See docs/SETUP_INTERNET_ARCHIVE.md for one-time setup."
             exit 1
           fi
 
