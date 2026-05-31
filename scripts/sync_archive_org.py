@@ -170,6 +170,12 @@ def sync_album(
 
     pointers = [f for f in files if is_lfs_pointer(f)]
     if pointers:
+        if dry_run:
+            # Pointer sizes would falsely flag every file as needing upload.
+            # Skipping is more honest than reporting bad deltas.
+            print(f"  [dry-run] {ident}: skipped — {len(pointers)} LFS "
+                  "pointer(s); run `git lfs pull` to preview deltas accurately")
+            return 0, 0
         print(f"ERROR: {ident}: refusing to upload — these are LFS pointer "
               "stubs, not real audio:", file=sys.stderr)
         for p in pointers:
