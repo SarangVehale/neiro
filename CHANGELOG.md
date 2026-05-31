@@ -7,6 +7,116 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+**Brand: NEIRO 音色**
+- User-facing rename from HIBIKI 響 to NEIRO 音色. *Internal* identifiers
+  (`hibiki.js`, `HIBIKI_CATALOGUE_PROMISE`, repo `SarangVehale/hibiki`)
+  preserved deliberately to avoid breaking CDN/Pages URLs *for now* — a
+  full purge of the old name (including the GitHub repo rename to
+  `neiro`) is pending and will land alongside the R2 cutover.
+
+**Backup tier 3 — Internet Archive cold storage**
+- `scripts/sync_archive_org.py` — one IA item per album, identifier
+  `neiro-<artist>-<album>`, audio + cover.jpg per item. Size-based
+  idempotent skip; `--dry-run`, `--only ARTIST`, `--collection` flags.
+- `.github/workflows/archive-sync.yml` — monthly cron (7th, 04:23 UTC)
+  + `workflow_dispatch` with `dry_run` / `only_artist` inputs.
+- Architectural decision: R2 (hot, serving) + LFS (warm, redundant) +
+  IA (cold, recovery only). All three tiers stay populated. IA is
+  push-only — front-end never reads from it.
+- `docs/SETUP_R2.md` and `docs/SETUP_INTERNET_ARCHIVE.md` —
+  step-by-step click-by-click runbooks for the one-time account work.
+
+**R2 migration step 2 — metadata snapshot**
+- 45 per-album `tracks.yaml` files committed: `build_catalogue.py` can
+  now rebuild the full catalogue without LFS audio downloads. Required
+  for CI cutover (step 5 of `docs/R2_MIGRATION.md`).
+- 11 `cover.jpg` files extracted from embedded APIC/`covr` art and
+  written to disk — Singles/compilation dirs previously relied on
+  `extract_embedded_cover()` at build time, which breaks once audio
+  leaves for R2.
+- `extract_metadata.py` now walks the same recursive album-discovery
+  scope as `build_catalogue.py` (was missing the 91 tracks nested under
+  `music/Lofi/Tokyo chill lab/<album>/`).
+
+**Genre classification**
+- `genres.yaml` — lowest-priority album-id → genre fallback. Lifted 43
+  of 45 albums out of "Unknown" without forcing per-album `meta.yaml`.
+- Built-in variant normaliser: "Lo-Fi" / "lofi hiphop" / "Lo-Fi hip
+  hop" all collapse to "Lofi"; "Hip Hop" → "Hip-Hop". Filter sidebar
+  no longer fragments into near-duplicates.
+- `scripts/classify_genres.py` — interactive maintainer CLI for
+  walking Unknown-genre albums. `--all`, `--dry-run`.
+- Per-album "edit" link → prefilled GitHub issue
+  (`.github/ISSUE_TEMPLATE/classify-genre.yml`) so non-technical users
+  can suggest corrections without touching the repo.
+
+**Front-end features**
+- Queue management (F1), shuffle (F2), continue-listening (F3), share
+  (F4), repositioned toast (U3).
+- Hash-based deep links + browser back/forward (M3).
+- Skeleton loaders (U1), subset font (P2), stale-while-revalidate SW (P4).
+- Self-hosted icons, media session API, OG/Twitter cards, robots.txt
+  + sitemap.xml, apple-touch-icon.
+
+**Ops + docs**
+- `docs/OPERATIONS.md` "Long-term failure modes" section enumerating
+  what silently degrades over months/years and the single fix per mode.
+- `docs/AUDIT.md` updated with the LFS-on-Pages incident postmortem.
+- `docs/R2_MIGRATION.md` — executable, stop-the-line-per-step checklist.
+- `meta.yaml` linter (`scripts/lint_meta.py`) + email-submission queue
+  (`.github/ISSUE_TEMPLATE/email-submission.yml`).
+- `dependabot.yml` extended to the pip ecosystem.
+
+### Fixed
+
+**LFS pointers shipped as `public/` binaries via GitHub Pages**
+- Pages does not resolve LFS — it served the 129-byte pointer stub
+  under `content-type: image/jpeg`, causing `EncodingError: cannot be
+  decoded` on every album thumb and OG image for several deploys.
+- `.gitattributes` overrides `public/**/*.{jpg,png}` back to regular
+  blobs. CI guard step in `build.yml` fails the build if any
+  `public/` binary <200 bytes starts with `version https://git-lfs`.
+- Incident postmortem in `docs/AUDIT.md`.
+
+**Cover art reliability**
+- Embedded-art fallback for Singles/comp dirs lacking `cover.jpg`.
+- AA contrast tightened across the dark palette.
+- Album-backdrop `scale(1.4)` caused horizontal overflow on mobile;
+  removed.
+
+**Archive snapshot workflow silently 4xx-ing**
+- `archive.yml` now tracks accepted (200/429) vs failed Save Page Now
+  responses, exits non-zero if zero accepted, and verifies via
+  `archive.org/wayback/available` post-dispatch.
+
+**Metadata-only build mode for loose-track artists**
+- `build_catalogue.py`'s `find_album_dirs` recognised tracks.yaml-only
+  dirs but `process_artist`'s loose-track branch still required actual
+  audio. Single-loose-track artists (Pex, Narci, Saiyaara…) would
+  disappear from the catalogue once audio moved to R2. Both branches
+  now fire on tracks.yaml alone.
+
+**`sync_r2.py` was skipping cover.jpg**
+- Front-end builds `coverUrl = media_base_url + cover_path`, so the
+  high-res covers must live on the same host as audio. `sync_r2.py`
+  now uploads `cover.jpg` / `folder.jpg` alongside audio.
+
+**Misc UX**
+- Download links produced "Save Page As" rather than the audio bytes —
+  `download` attribute + correct `Content-Disposition` semantics fixed.
+- First-play bug; CSP tightening; sakura favicon; iOS safe-area insets;
+  dark-mode toggle; mobile overhaul; autoplay handling.
+- Singles renumbered when ID3 `tracknumber` is "1/1" on every file.
+
+### Changed
+
+- `actions/checkout` v4 → v6 across all workflows.
+- `archive.yml` cron staggered onto a separate day from
+  `archive-sync.yml` to avoid runner-pool contention.
+- README updated to highlight the contribute paths + archive role.
+
 ## [0.3.0] — 2026-05-29
 
 ### Added
