@@ -118,6 +118,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   high-res covers must live on the same host as audio. `sync_r2.py`
   now uploads `cover.jpg` / `folder.jpg` alongside audio.
 
+**GitLab mirror push trap — `--mirror` from a non-bare clone**
+- `docs/SETUP_GITLAB_MIRROR.md` told users to run `git push --mirror
+  gitlab` for the initial sync. From a regular working clone that
+  pushes every ref under `refs/`, including `refs/remotes/origin/*` —
+  so GitLab received branches literally named `origin/dependabot/...`
+  and rejected them. §4 now configures a `remote.gitlab.push` refspec
+  (`refs/heads/*` + `refs/tags/*`) and uses plain `git push gitlab`.
+  §6 recovery now uses `git clone --mirror` before `push --mirror`,
+  which is the supported direction of that flag.
+
 **Misc UX**
 - Download links produced "Save Page As" rather than the audio bytes —
   `download` attribute + correct `Content-Disposition` semantics fixed.

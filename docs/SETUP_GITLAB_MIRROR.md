@@ -82,8 +82,16 @@ git config --global credential.helper store
 #   Username: oauth2
 #   Password: <paste $GITLAB_TOKEN>
 
-# Push every branch + tag
-git push --mirror gitlab
+# Configure the push refspec so `git push gitlab` only mirrors local
+# branches + tags — never your `origin/...` remote-tracking refs.
+# (Do NOT use `git push --mirror gitlab` from a non-bare clone: it
+# pushes `refs/remotes/origin/*` as branches literally named
+# `origin/dependabot/...`, which GitLab will reject.)
+git config --add remote.gitlab.push 'refs/heads/*:refs/heads/*'
+git config --add remote.gitlab.push 'refs/tags/*:refs/tags/*'
+
+# Push every local branch + tag
+git push gitlab
 
 # Then push LFS objects (5.7 GB → 1–4 h depending on uplink)
 git lfs push --all gitlab
@@ -129,13 +137,26 @@ after the next push — should match `https://github.com/SarangVehale/neiro`.
 
 ## 6. Recovery — restoring from GitLab if GitHub dies
 
+If you just need a working copy:
+
 ```bash
 # Mirror is a full clone of everything — code, history, LFS objects.
 git clone https://gitlab.com/sarang-kernel/neiro.git
 cd neiro
 git lfs pull
-# All audio + cover bytes are now on disk. You'd point a new GitHub
-# repo at this clone and push --mirror to repopulate.
+```
+
+If you need to **repopulate a fresh GitHub repo** from the GitLab mirror,
+clone *as a bare mirror* first — that way `push --mirror` only carries
+real `refs/heads/*` and `refs/tags/*`, not remote-tracking refs:
+
+```bash
+git clone --mirror https://gitlab.com/sarang-kernel/neiro.git
+cd neiro.git
+git lfs fetch --all
+git remote set-url origin git@github.com:YOUR/neiro.git
+git push --mirror origin
+git lfs push --all origin
 ```
 
 > **Realistic expectation**: GitLab's free tier serves clones at a
