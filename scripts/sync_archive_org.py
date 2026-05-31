@@ -8,17 +8,17 @@ meta.yaml / catalogue. The script is idempotent: existing IA items are
 inspected and only new or size-changed files are uploaded.
 
 Why this exists: IA is the third leg of the backup tripod
-(R2 hot / LFS warm / IA cold). Audio + covers live on the IA item
-forever — if both R2 and LFS go down, the files can be re-pulled from
-https://archive.org/details/<identifier>.
+(LFS hot / GitLab warm / IA cold; R2 deferred). Audio + covers live on
+the IA item forever — if LFS and the GitLab mirror both go down, the
+files can be re-pulled from https://archive.org/details/<identifier>.
 
 Usage:
-    pip install internetarchive PyYAML mutagen
-    ia configure                       # one-time: stash IA email + password
-    python scripts/sync_archive_org.py [--dry-run] [--collection X]
+    pip install internetarchive PyYAML
+    ia configure                       # one-time: stash IA credentials
+    python scripts/sync_archive_org.py [--dry-run] [--only ARTIST] [--collection X]
 
 CI:
-    Used by .github/workflows/archive-sync.yml on the 1st of each month
+    Used by .github/workflows/archive-sync.yml on the 7th of each month
     with IA_ACCESS_KEY / IA_SECRET_KEY secrets.
 
 Item identifier format:
@@ -99,6 +99,18 @@ def collect_album_files(album_dir: Path) -> list[Path]:
     return files
 
 
+def is_lfs_pointer(path: Path) -> bool:
+    # LFS pointer stubs are <200 bytes and start with this signature.
+    # Uploading one to IA would silently replace real audio with a stub.
+    try:
+        if path.stat().st_size > 200:
+            return False
+        with open(path, "rb") as fh:
+            return fh.read(48).startswith(b"version https://git-lfs")
+    except OSError:
+        return False
+
+
 def album_identifier(artist: str, album: str) -> str:
     """Stable IA identifier. IA constraints: lowercase, alphanumeric +
     hyphens + dots/underscores, 5–80 chars, unique forever."""
@@ -155,6 +167,15 @@ def sync_album(
     files = collect_album_files(album_dir)
     if not files:
         return 0, 0
+
+    pointers = [f for f in files if is_lfs_pointer(f)]
+    if pointers:
+        print(f"ERROR: {ident}: refusing to upload — these are LFS pointer "
+              "stubs, not real audio:", file=sys.stderr)
+        for p in pointers:
+            print(f"  {p.relative_to(ROOT)}", file=sys.stderr)
+        print("Run `git lfs pull` first, then retry.", file=sys.stderr)
+        sys.exit(2)
 
     item = get_item(ident)
     remote = remote_file_sizes(item)

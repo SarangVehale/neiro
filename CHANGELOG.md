@@ -118,6 +118,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   high-res covers must live on the same host as audio. `sync_r2.py`
   now uploads `cover.jpg` / `folder.jpg` alongside audio.
 
+**IA sync — silent corruption risk + dry-run wastes LFS bandwidth**
+- `scripts/sync_archive_org.py` now refuses to run if any audio file is
+  a git-lfs pointer stub (would silently replace real audio on IA with
+  a 130-byte stub). Hard-fails with a "run `git lfs pull` first" hint.
+- `.github/workflows/archive-sync.yml` skips LFS checkout on dry-runs
+  (`lfs: ${{ !inputs.dry_run }}`). First dry-run failed by exhausting
+  the LFS bandwidth quota pulling 5.7 GB for a no-op.
+- Stale docs in the script: cron is the 7th not the 1st; architecture
+  is `LFS hot / GitLab warm / IA cold` after R2 was deferred.
+- Workflow's missing-secrets error pointed at `INTERNET_ARCHIVE_SETUP.md`;
+  actual file is `SETUP_INTERNET_ARCHIVE.md`.
+
 **GitLab mirror push trap — `--mirror` from a non-bare clone**
 - `docs/SETUP_GITLAB_MIRROR.md` told users to run `git push --mirror
   gitlab` for the initial sync. From a regular working clone that

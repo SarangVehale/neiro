@@ -53,10 +53,14 @@ jobs:
             exit 1
           fi
 
-      - name: Checkout (with LFS — needed pre-R2)
+      - name: Checkout (with LFS unless dry-run)
         uses: actions/checkout@v6
         with:
-          lfs: true
+          # Dry-runs don't need real audio bytes — they only list what
+          # would be uploaded. Skipping LFS keeps dry-runs off the LFS
+          # bandwidth quota. Scheduled cron runs have inputs.dry_run
+          # undefined → !undefined is true → LFS still pulled.
+          lfs: ${{ !inputs.dry_run }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
