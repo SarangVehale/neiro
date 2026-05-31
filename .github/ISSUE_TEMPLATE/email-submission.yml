@@ -9,7 +9,7 @@ body:
         **For maintainer use.** When someone sends an album via the
         "Quiet — email" path on the Contribute page, open one of these
         issues to track it. The queue is then visible at
-        [issues?label=email-queue](https://github.com/SarangVehale/hibiki/issues?q=is%3Aissue+label%3Aemail-queue).
+        [issues?label=email-queue](https://github.com/SarangVehale/neiro/issues?q=is%3Aissue+label%3Aemail-queue).
 
         Contributors should not open these themselves — they'd use
         `Album submission` instead.

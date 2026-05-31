@@ -2,7 +2,7 @@
 """Generate public/sitemap.xml from _catalogue/catalogue.json.
 
 The app uses hash routing, so URLs look like
-    https://sarangvehale.github.io/hibiki/#/library/album/<id>
+    https://sarangvehale.github.io/neiro/#/library/album/<id>
 Modern crawlers (Google since 2015) follow hash fragments and execute the
 client-side JS, so listing them gives proper coverage. For perfect SEO a
 future build step should also render per-album HTML pages and link those
@@ -18,7 +18,7 @@ from pathlib import Path
 from datetime import date
 
 ROOT = Path(__file__).resolve().parent.parent
-SITE = "https://sarangvehale.github.io/hibiki"
+SITE = "https://sarangvehale.github.io/neiro"
 CATALOGUE = ROOT / "_catalogue" / "catalogue.json"
 OUT = ROOT / "public" / "sitemap.xml"
 

@@ -20,7 +20,7 @@ jobs:
       - name: Submit Save Page Now requests
         run: |
           set -euo pipefail
-          BASE="https://sarangvehale.github.io/hibiki"
+          BASE="https://sarangvehale.github.io/neiro"
           # Only archive the shell + catalogue + sitemap. Per-album pages
           # are hash routes resolved client-side, so the shell snapshot
           # already preserves the routing.
@@ -55,7 +55,7 @@ jobs:
           # Wayback's worker may take minutes to actually crawl; allow time.
           sleep 60
           ok=$(curl -fsSL --max-time 30 \
-            "https://archive.org/wayback/available?url=https%3A//sarangvehale.github.io/hibiki/" \
+            "https://archive.org/wayback/available?url=https%3A//sarangvehale.github.io/neiro/" \
             | python3 -c "import json,sys; print(int(bool(json.load(sys.stdin).get('archived_snapshots',{}).get('closest'))))")
           if [ "$ok" = "1" ]; then
             echo "✅ at least one snapshot exists"

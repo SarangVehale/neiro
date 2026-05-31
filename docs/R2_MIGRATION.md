@@ -28,9 +28,9 @@ find music -name 'tracks.yaml' | wc -l
 git ls-files 'music/**/*.m4a' 'music/**/*.mp3' 'music/**/*.flac' 'music/**/*.aac' | wc -l
 
 # Sanity: live catalogue's media_base_url should still be the LFS CDN
-curl -s https://sarangvehale.github.io/hibiki/_catalogue/catalogue.json \
+curl -s https://sarangvehale.github.io/neiro/_catalogue/catalogue.json \
   | python3 -c "import json,sys;print(json.load(sys.stdin)['meta'].get('media_base_url'))"
-# expected: https://media.githubusercontent.com/media/SarangVehale/hibiki/main
+# expected: https://media.githubusercontent.com/media/SarangVehale/neiro/main
 ```
 
 If `media_base_url` already points at an R2 URL, **stop** — migration is
@@ -44,7 +44,7 @@ Follow `docs/DEPLOY.md` §"One-time R2 setup" through step 6 (CORS). At
 the end you should have these five values written down somewhere safe:
 
 - `R2_ACCOUNT_ID` — Cloudflare account ID
-- `R2_BUCKET` — bucket name (e.g. `hibiki-music`)
+- `R2_BUCKET` — bucket name (e.g. `neiro-music`)
 - `R2_ACCESS_KEY_ID` — R2 API token access key
 - `R2_SECRET_ACCESS_KEY` — R2 API token secret key
 - `R2_PUBLIC_URL` — public hostname (e.g. `pub-xxxx.r2.dev`)
@@ -161,7 +161,7 @@ After the workflow completes, verify on the **branch deploy preview** or
 merge-to-main:
 
 ```bash
-curl -s https://sarangvehale.github.io/hibiki/_catalogue/catalogue.json \
+curl -s https://sarangvehale.github.io/neiro/_catalogue/catalogue.json \
   | python3 -c "import json,sys;print(json.load(sys.stdin)['meta'].get('media_base_url'))"
 # expected: https://<R2_PUBLIC_URL>
 ```
@@ -179,7 +179,7 @@ but harmless. Stop here and run for a week before §6.
 
 > Run this only after at least 7 days of stable R2 operation. This
 > rewrites history and force-pushes — irreversible without a backup
-> clone. Make one first: `git clone --mirror . /tmp/hibiki-backup`.
+> clone. Make one first: `git clone --mirror . /tmp/neiro-backup`.
 
 ```bash
 # 1) Drop the cached LFS entries from the current tree
@@ -235,7 +235,7 @@ Once merged, monitor for 24 h:
 | 3 | Nothing to roll back — dry run is read-only. |
 | 4 | `sync_r2.py --delete-prefix music/` to clear R2; bucket is unused at this point. |
 | 5 | Remove the five `R2_*` secrets and re-deploy — `MEDIA_BASE` falls back to the LFS CDN automatically (the `if [[ -n ... ]]` branch in `build.yml`). Audio is still in LFS, still playable. |
-| 6 | Restore from the mirror backup: `git push --force-with-lease origin r2-migration-checklist` from `/tmp/hibiki-backup`. |
+| 6 | Restore from the mirror backup: `git push --force-with-lease origin r2-migration-checklist` from `/tmp/neiro-backup`. |
 
 ---
 

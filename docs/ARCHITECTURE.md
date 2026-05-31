@@ -47,10 +47,10 @@ cover presence, posting a sticky comment. Merge only after maintainer review.
 
 ```
 index.html (shell)
-  ├── hibiki-data.js  → fetch _catalogue/catalogue.json
+  ├── neiro-data.js  → fetch _catalogue/catalogue.json
   │                   → adapt() adds artist refs, CDN URL prefixes, computed fields
-  │                   → window.HIBIKI_CATALOGUE_PROMISE resolves
-  ├── hibiki.js       → await HIBIKI_CATALOGUE_PROMISE → render library view
+  │                   → window.NEIRO_CATALOGUE_PROMISE resolves
+  ├── neiro.js       → await NEIRO_CATALOGUE_PROMISE → render library view
   └── sw.js           → registered via inline <script>; caches app shell assets
 ```
 
@@ -109,7 +109,7 @@ Catalogue is fetched at runtime — adding an album requires only regenerating
 }
 ```
 
-The adapter (`hibiki-data.js`) adds at runtime (not stored):
+The adapter (`neiro-data.js`) adds at runtime (not stored):
 `album.artist`, `album.artistId`, `album.kanjiIdx`, `album.totalSize`,
 `album.totalDuration`, `album.fmt`, `CATALOGUE.allAlbums`, `CATALOGUE.totalSongs`.
 It also prefixes `track.path` and `shard.path` with `media_base_url`.
@@ -144,7 +144,7 @@ Cloudflare R2 (audio only, immutable objects)
   music/<Artist>/<Album>/<NN> - Title.ext
 
 GitHub Pages (deployed public/)
-  index.html, hibiki.{js,css}, hibiki-data.js, manifest, sw.js
+  index.html, neiro.{js,css}, neiro-data.js, manifest, sw.js
   _catalogue/catalogue.json   (~200 KB, rebuilt on every push)
   _zips/*.zip                 (sharded album downloads)
 ```

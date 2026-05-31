@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Security / takedown report
-    url: https://github.com/SarangVehale/hibiki/security/advisories/new
+    url: https://github.com/SarangVehale/neiro/security/advisories/new
     about: Please use the Security tab to report vulnerabilities or licensing issues privately.
   - name: Discussion
-    url: https://github.com/SarangVehale/hibiki/discussions
+    url: https://github.com/SarangVehale/neiro/discussions
     about: For open-ended questions, design talk, and request-for-comment threads.

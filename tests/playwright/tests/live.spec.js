@@ -2,7 +2,7 @@
 // Live smoke tests against the deployed GitHub Pages site.
 const { test, expect } = require('@playwright/test');
 
-const LIVE = 'https://sarangvehale.github.io/hibiki';
+const LIVE = 'https://sarangvehale.github.io/neiro';
 
 async function waitForCatalogue(page) {
   await page.waitForFunction(
@@ -13,7 +13,7 @@ async function waitForCatalogue(page) {
 
 test('live: page title correct', async ({ page }) => {
   await page.goto(LIVE);
-  await expect(page).toHaveTitle(/HIBIKI/);
+  await expect(page).toHaveTitle(/NEIRO/);
 });
 
 test('live: catalogue loads with real songs', async ({ page }) => {

@@ -112,7 +112,7 @@ async function loadCatalogue() {
 
 window.FORMATS  = FORMATS;
 window.KANJI    = KANJI;
-window.HIBIKI_CATALOGUE_PROMISE = loadCatalogue().then((c) => {
+window.NEIRO_CATALOGUE_PROMISE = loadCatalogue().then((c) => {
   window.CATALOGUE = c;
   return c;
 });

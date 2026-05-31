@@ -9,7 +9,7 @@ You don't need git installed. You don't need the command line. You need
 a free GitHub account and a web browser.
 
 1. Sign up at https://github.com/join (takes ~30 seconds).
-2. Open https://github.com/SarangVehale/hibiki and press the **`.`**
+2. Open https://github.com/SarangVehale/neiro and press the **`.`**
    key. The page reloads as **github.dev** — a full editor in the
    browser, file tree on the left.
 3. Drag-and-drop your audio + `cover.jpg` into a new folder under
@@ -20,7 +20,7 @@ a free GitHub account and a web browser.
    github.dev, push, and the maintainer takes it from there.
 
 If you'd rather not touch GitHub at all, use the **email path** on the
-[Contribute page](https://sarangvehale.github.io/hibiki/#/contribute) —
+[Contribute page](https://sarangvehale.github.io/neiro/#/contribute) —
 share a Drive / Dropbox / WeTransfer link plus a one-line licence
 statement and the maintainer adds it for you.
 
@@ -33,8 +33,8 @@ statement and the maintainer adds it for you.
 
 2. **Fork and clone.**
    ```bash
-   git clone git@github.com:SarangVehale/hibiki.git
-   cd hibiki
+   git clone git@github.com:SarangVehale/neiro.git
+   cd neiro
    git lfs install
    ```
 
@@ -87,9 +87,9 @@ a couple of minutes.
 
 ## Editing the site itself
 
-- Styles: `public/hibiki.css` — design tokens at the top.
-- App logic: `public/hibiki.js` — boots after `hibiki-data.js` resolves.
-- Catalogue loader: `public/hibiki-data.js` — fetches and adapts the JSON.
+- Styles: `public/neiro.css` — design tokens at the top.
+- App logic: `public/neiro.js` — boots after `neiro-data.js` resolves.
+- Catalogue loader: `public/neiro-data.js` — fetches and adapts the JSON.
 - Builder: `scripts/build_catalogue.py`. Tests in `tests/`; run
   `pytest tests/` before opening a PR.
 

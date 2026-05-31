@@ -1,4 +1,4 @@
-# HIBIKI 響
+# NEIRO 音色
 
 A free, public music archive. Browse, preview, and download — no account, no
 ads, no paywall. Donated material only.
@@ -29,8 +29,8 @@ any number of concurrent users because every response is a static file from a CD
 ## Quickstart (local dev)
 
 ```bash
-git clone git@github.com:SarangVehale/hibiki.git
-cd hibiki
+git clone git@github.com:SarangVehale/neiro.git
+cd neiro
 
 # Audio files are in Git LFS. Pull them only if you need local playback;
 # the catalogue can be built from file metadata alone without downloading audio.
@@ -56,9 +56,9 @@ open http://localhost:8000
 .
 ├── public/                     # static web root deployed to GitHub Pages
 │   ├── index.html              #   PWA shell — no framework, no build step
-│   ├── hibiki.css              #   styles (1987 Japanese magazine × retro Mac)
-│   ├── hibiki.js               #   full app logic (~830 LOC, vanilla JS)
-│   ├── hibiki-data.js          #   catalogue loader, CDN URL adapter & path encoder
+│   ├── neiro.css              #   styles (1987 Japanese magazine × retro Mac)
+│   ├── neiro.js               #   full app logic (~830 LOC, vanilla JS)
+│   ├── neiro-data.js          #   catalogue loader, CDN URL adapter & path encoder
 │   ├── manifest.json           #   PWA manifest
 │   ├── sw.js                   #   service worker v2 (caches shell; never audio/catalogue)
 │   └── icon.svg                #   app icon
@@ -154,7 +154,7 @@ git push
 pip install boto3
 python scripts/sync_r2.py \
   --account-id  YOUR_CF_ACCOUNT_ID \
-  --bucket      hibiki-music \
+  --bucket      neiro-music \
   --access-key  R2_ACCESS_KEY \
   --secret-key  R2_SECRET_KEY
 
@@ -174,7 +174,7 @@ python scripts/sync_r2.py \
 
 ## Live site
 
-**https://sarangvehale.github.io/hibiki/**
+**https://sarangvehale.github.io/neiro/**
 
 ## Mirror archive
 
@@ -182,9 +182,9 @@ The catalogue and shell are snapshotted monthly to the **Internet Archive's
 Wayback Machine** (`17 3 1 * *` UTC, see `.github/workflows/archive.yml`)
 so the site survives repo deletion or extended GitHub Pages outage.
 
-- **Homepage:** https://web.archive.org/web/2026*/https://sarangvehale.github.io/hibiki/
-- **Catalogue JSON:** https://web.archive.org/web/2026*/https://sarangvehale.github.io/hibiki/_catalogue/catalogue.json
-- **Sitemap:** https://web.archive.org/web/2026*/https://sarangvehale.github.io/hibiki/sitemap.xml
+- **Homepage:** https://web.archive.org/web/2026*/https://sarangvehale.github.io/neiro/
+- **Catalogue JSON:** https://web.archive.org/web/2026*/https://sarangvehale.github.io/neiro/_catalogue/catalogue.json
+- **Sitemap:** https://web.archive.org/web/2026*/https://sarangvehale.github.io/neiro/sitemap.xml
 
 Wayback rewrites the catalogue's `media_base_url` to route audio fetches
 through their archive too — so a snapshot is genuinely independent of

@@ -4,7 +4,7 @@
 (async function () {
   'use strict';
 
-  await window.HIBIKI_CATALOGUE_PROMISE;
+  await window.NEIRO_CATALOGUE_PROMISE;
 
   // ── State ─────────────────────────────────────────────────
   const state = {
@@ -289,7 +289,7 @@ ${upNext.length ? `
           'album-id': album.id,
           'current-genre': album.genre || 'Unknown',
         });
-        const suggestUrl = `https://github.com/SarangVehale/hibiki/issues/new?${ghParams.toString()}`;
+        const suggestUrl = `https://github.com/SarangVehale/neiro/issues/new?${ghParams.toString()}`;
         const suggestLink = `<a class="hero-genre-suggest" href="${suggestUrl}" target="_blank" rel="noopener noreferrer" title="Suggest a different genre">${g || y ? '· edit' : 'Suggest genre'}</a>`;
         if (!g && !y) return `<div class="hero-genre-tag">${suggestLink}</div>`;
         const sep = g && y ? '<span class="sep"> · </span>' : '';
@@ -433,8 +433,8 @@ ${upNext.length ? `
     <div class="contrib-path">
       <div class="contrib-path-num">02</div>
       <div class="contrib-path-title">Direct — edit on GitHub</div>
-      <div class="contrib-path-desc">Already on GitHub? You don't need git installed — press <code>.</code> on the <a href="https://github.com/SarangVehale/hibiki" target="_blank" rel="noopener noreferrer">repo page</a> to open <strong>github.dev</strong>, drop your files into <code>music/&lt;Artist&gt;/&lt;Album&gt;/</code> with a <code>meta.yaml</code>, and commit. CI validates and the maintainer merges.</div>
-      <a class="contrib-cta" href="https://github.dev/SarangVehale/hibiki" target="_blank" rel="noopener noreferrer"><i class="ti ti-edit" aria-hidden="true"></i> Open in github.dev</a>
+      <div class="contrib-path-desc">Already on GitHub? You don't need git installed — press <code>.</code> on the <a href="https://github.com/SarangVehale/neiro" target="_blank" rel="noopener noreferrer">repo page</a> to open <strong>github.dev</strong>, drop your files into <code>music/&lt;Artist&gt;/&lt;Album&gt;/</code> with a <code>meta.yaml</code>, and commit. CI validates and the maintainer merges.</div>
+      <a class="contrib-cta" href="https://github.dev/SarangVehale/neiro" target="_blank" rel="noopener noreferrer"><i class="ti ti-edit" aria-hidden="true"></i> Open in github.dev</a>
     </div>
     <div class="contrib-path">
       <div class="contrib-path-num">03</div>
@@ -584,7 +584,7 @@ ${upNext.length ? `
   </div>
   <div class="about-block">
     <h2>License</h2>
-    <p>Site code: MIT. Music and cover art: per-album (see each album's <code>meta.yaml</code>). See <a href="https://github.com/SarangVehale/hibiki/blob/main/LICENSING.md">LICENSING.md</a> for details.</p>
+    <p>Site code: MIT. Music and cover art: per-album (see each album's <code>meta.yaml</code>). See <a href="https://github.com/SarangVehale/neiro/blob/main/LICENSING.md">LICENSING.md</a> for details.</p>
   </div>
 </div>`;
   }
@@ -747,7 +747,7 @@ ${upNext.length ? `
           year:  get('#f-year'),
           notes: get('#f-notes') ? `${get('#f-notes')}\n\nHandle: ${get('#f-handle')||'anonymous'}` : `Handle: ${get('#f-handle')||'anonymous'}`,
         });
-        const url=`https://github.com/SarangVehale/hibiki/issues/new?${params.toString()}`;
+        const url=`https://github.com/SarangVehale/neiro/issues/new?${params.toString()}`;
         window.open(url,'_blank','noopener,noreferrer');
         toast('Opening GitHub to finish your submission','花');
       });

@@ -186,7 +186,7 @@ worker-src  'self';
 
 ### 4.3 Code health
 
-- Single IIFE in `hibiki.js` (~1300 lines). Linear, well-commented.
+- Single IIFE in `neiro.js` (~1300 lines). Linear, well-commented.
   Functions are short and focused. No dependency on a framework.
 - CSS is a single file with documented section headers.
 - Inputs are sanitized at the boundary (`esc()`); state is centrally
@@ -220,8 +220,8 @@ worker-src  'self';
 ### 5.3 Restore drill
 
 A "from-scratch on a new host" restore needs only:
-1. `git clone https://github.com/SarangVehale/hibiki`
-2. `cd hibiki && python3 -m http.server 8000` for local dev, _or_
+1. `git clone https://github.com/SarangVehale/neiro`
+2. `cd neiro && python3 -m http.server 8000` for local dev, _or_
 3. Re-enable GitHub Pages on a new fork to redeploy.
 
 There's no database, no environment migration, no schema. Recovery

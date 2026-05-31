@@ -28,7 +28,7 @@
 - [ ] If the front-end changed, I served `public/` locally and confirmed
       the affected view still renders without console errors.
 - [ ] If the catalogue schema changed, I updated `docs/ARCHITECTURE.md`
-      and the `hibiki-data.js` adapter.
+      and the `neiro-data.js` adapter.
 
 ## Anything reviewers should look at first
 

@@ -23,7 +23,7 @@ Unacceptable behaviour:
 ## Enforcement
 
 Report instances to the maintainer via a confidential
-[Security Advisory](https://github.com/SarangVehale/hibiki/security/advisories/new).
+[Security Advisory](https://github.com/SarangVehale/neiro/security/advisories/new).
 All complaints will be reviewed and investigated promptly and fairly.
 
 ## Attribution

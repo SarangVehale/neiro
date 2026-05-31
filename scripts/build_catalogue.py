@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-HIBIKI 響 — catalogue + ZIP builder (spec §2, §3).
+NEIRO 音色 — catalogue + ZIP builder (spec §2, §3).
 
 Walks /music/<Artist>/…/<Album>/, reads ID3/MP4 tags (mutagen, optional),
 honours meta.yaml / bio.md / artist.yaml / tracks.yaml overrides, extracts
@@ -643,7 +643,7 @@ def main(build_zips: bool | None = None) -> int:
             cdn_base="",
         )
     else:
-        ap = argparse.ArgumentParser(description="HIBIKI catalogue + ZIP builder")
+        ap = argparse.ArgumentParser(description="NEIRO catalogue + ZIP builder")
         ap.add_argument("--zips", action="store_true", help="Also build sharded ZIPs")
         ap.add_argument(
             "--thumb-size", type=int, default=96, metavar="N",

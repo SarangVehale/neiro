@@ -28,7 +28,7 @@ source: "Donated by the artist, Jan 2026."
 
 If you are a rights-holder and find material here you did not licence for
 redistribution, please open a confidential
-[Security Advisory](https://github.com/SarangVehale/hibiki/security/advisories/new)
+[Security Advisory](https://github.com/SarangVehale/neiro/security/advisories/new)
 or email the maintainer. We will remove it within 72 hours of verification.
 
 ## Why this split?

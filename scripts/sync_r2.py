@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-HIBIKI 響 — sync music/ to Cloudflare R2.
+NEIRO 音色 — sync music/ to Cloudflare R2.
 
 Uploads audio files to an R2 bucket, skipping files that already exist with
 the same size (ETag check). Cover images and YAML metadata stay in git.

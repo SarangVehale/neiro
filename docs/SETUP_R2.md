@@ -124,9 +124,9 @@ GitHub Pages.
    ```
 4. Click **Save**.
 
-> After the repo rename to `neiro`, `AllowedOrigins` stays the same — the
-> Pages origin is `sarangvehale.github.io` whether the repo is `hibiki`
-> or `neiro`. The path changes; the origin doesn't.
+> `AllowedOrigins` is keyed on the GitHub Pages origin
+> (`sarangvehale.github.io`), not the repo path — repo renames don't
+> require CORS updates.
 
 ---
 
@@ -145,7 +145,7 @@ export R2_SECRET_ACCESS_KEY="..."  # from §6
 Sanity test — list the bucket (should print nothing the first time):
 
 ```bash
-cd /home/sarang/Development/hibiki-music
+cd /home/sarang/Development/neiro-music
 .venv/bin/python -c "
 import os, boto3
 c = boto3.client('s3',

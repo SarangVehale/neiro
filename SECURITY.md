@@ -5,7 +5,7 @@
 Please **do not open a public issue** for security problems.
 
 Instead, open a
-[GitHub Security Advisory](https://github.com/SarangVehale/hibiki/security/advisories/new)
+[GitHub Security Advisory](https://github.com/SarangVehale/neiro/security/advisories/new)
 (Security tab → "Report a vulnerability"). We'll acknowledge within 72 hours
 and aim to ship a fix within 14 days for high-severity issues.
 

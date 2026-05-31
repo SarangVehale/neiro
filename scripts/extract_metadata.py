@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-HIBIKI 響 — extract track metadata into tracks.yaml files.
+NEIRO 音色 — extract track metadata into tracks.yaml files.
 
 Run this ONCE before migrating audio to external storage.
 It reads each audio file with mutagen and writes a tracks.yaml beside it so

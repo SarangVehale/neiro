@@ -9,12 +9,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-**Brand: NEIRO 音色**
-- User-facing rename from HIBIKI 響 to NEIRO 音色. *Internal* identifiers
-  (`hibiki.js`, `HIBIKI_CATALOGUE_PROMISE`, repo `SarangVehale/hibiki`)
-  preserved deliberately to avoid breaking CDN/Pages URLs *for now* — a
-  full purge of the old name (including the GitHub repo rename to
-  `neiro`) is pending and will land alongside the R2 cutover.
+**Brand: NEIRO 音色 — full purge**
+- Rename from HIBIKI 響 to NEIRO 音色 extended through every layer.
+  Previous changelog drafts described the rename as "user-facing only"
+  with internal identifiers preserved; that decision was reversed on
+  2026-05-31 ("we can't have the old anywhere").
+- Files renamed: `public/hibiki.{js,css}` and `public/hibiki-data.js`
+  → `public/neiro.{js,css}` and `public/neiro-data.js`;
+  `tests/playwright/tests/hibiki.spec.js` → `neiro.spec.js`.
+- JS global: `HIBIKI_CATALOGUE_PROMISE` → `NEIRO_CATALOGUE_PROMISE`.
+- localStorage keys: `hibiki-theme` / `hibiki-resume` → `neiro-*`. Users
+  will see the default theme + lose resume position once on first load
+  post-deploy (one-time cost, no migration shim).
+- All URL references (`sarangvehale.github.io/hibiki/`,
+  `SarangVehale/hibiki`, sitemap entries) updated to `/neiro`.
+- Service worker `VERSION` bumped to `neiro-v6` so users on any prior
+  cache (back through `hibiki-v1`/`v2`) force-refresh.
+- 31 files modified, 169 total replacements. CHANGELOG historical
+  entries (v0.1.0–v0.3.0) intentionally preserve the old name as
+  recording of state-at-the-time.
+- The GitHub repo itself (`SarangVehale/hibiki` → `SarangVehale/neiro`)
+  is the final manual step — see `docs/RENAME_REPO.md` for the cutover.
 
 **Backup tier 3 — Internet Archive cold storage**
 - `scripts/sync_archive_org.py` — one IA item per album, identifier

@@ -3,13 +3,13 @@
 // sees the skeleton + chrome instantly; stale-while-revalidate the
 // catalogue so it loads from cache and refreshes in the background.
 // Audio files are never cached — they stream on demand.
-const VERSION = "neiro-v5";
+const VERSION = "neiro-v6";
 const SHELL = [
   "./",
   "index.html",
-  "hibiki.css",
-  "hibiki.js",
-  "hibiki-data.js",
+  "neiro.css",
+  "neiro.js",
+  "neiro-data.js",
   "boot.js",
   "tabler.css",
   "manifest.json",

@@ -66,7 +66,7 @@ export IA_SECRET_KEY="..."   # ~16 chars
 ## 4. Install the `ia` CLI locally + configure
 
 ```bash
-cd /home/sarang/Development/hibiki-music
+cd /home/sarang/Development/neiro-music
 .venv/bin/pip install internetarchive   # already done if you ran §0 of R2 migration
 
 # Configure interactively — writes ~/.config/internetarchive/ia.ini

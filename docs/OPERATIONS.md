@@ -28,12 +28,12 @@ git revert <bad-sha>       # creates a new commit that undoes the bad one
 git push origin main       # triggers Build & Deploy
 ```
 
-Watch the workflow at `https://github.com/SarangVehale/hibiki/actions`.
+Watch the workflow at `https://github.com/SarangVehale/neiro/actions`.
 Once it completes, the rolled-back shell is live.
 
 If the bad commit corrupted `_catalogue/catalogue.json`, the client falls
 back to an empty grid + a "Catalogue failed to load" banner (see
-`hibiki-data.js`). The user can still navigate — playback is just empty.
+`neiro-data.js`). The user can still navigate — playback is just empty.
 
 > Do **not** force-push to `main`. The audit calls this out: there is no
 > branch protection, but force-pushes will skip the Pages workflow and
@@ -57,7 +57,7 @@ check, ~24 h max) the old cache is purged. There is no way to force a SW
 refresh remotely — the user has to revisit the page.
 
 Bump conditions:
-- Any change to `index.html`, `hibiki.js`, `hibiki.css`, `hibiki-data.js`,
+- Any change to `index.html`, `neiro.js`, `neiro.css`, `neiro-data.js`,
   or `tabler.css` that's behavior-affecting.
 - A CSP tightening (see Audit #2) — the old SW may have cached the looser
   CSP'd shell.
@@ -158,7 +158,7 @@ it in GitHub so it's visible alongside PRs:
    apply a label (e.g. `neiro/submission`). Star anything that looks
    in-scope; archive anything that's clearly out of scope.
 2. **Open a tracking issue.** From the repo's
-   [New Issue](https://github.com/SarangVehale/hibiki/issues/new/choose)
+   [New Issue](https://github.com/SarangVehale/neiro/issues/new/choose)
    page, pick **"Email submission (maintainer-only)"**. Fill in the
    submitter handle, artist/album, file link, and paste their licence
    statement verbatim. Status starts as `received — awaiting download`.
@@ -168,7 +168,7 @@ it in GitHub so it's visible alongside PRs:
    catch authoring errors before the PR step.
 4. **Update the issue.** Move the status dropdown forward as you go
    (`downloaded → encoded → PR open → merged`). The queue is visible at
-   [issues?label=email-queue](https://github.com/SarangVehale/hibiki/issues?q=is%3Aissue+label%3Aemail-queue).
+   [issues?label=email-queue](https://github.com/SarangVehale/neiro/issues?q=is%3Aissue+label%3Aemail-queue).
 5. **Open the PR** the normal way (push to a feature branch). Link the
    tracking issue with `Closes #<n>` in the PR body so the issue auto-
    resolves on merge.
@@ -205,13 +205,13 @@ single thing that fixes it.
 |---|---|---|---|
 | **LFS bandwidth quota** (10 GB/mo) exhausted by visitor traffic | Audio 429s on live site, build workflow fails at LFS checkout step | Execute `docs/R2_MIGRATION.md` — tooling and CI conditional are ready, secrets just need to be set | ⏰ pressing — at ~70% as of last check |
 | **LFS storage quota** (10 GB) exhausted | Push rejected: `GH008: This repository has exceeded its LFS quota` | Same R2 migration purges audio from LFS and reclaims space | ⏰ ~57% (5.7 GB of 10 GB) |
-| **GitHub Pages outage** | Live site 5xx; no announcement, no SLA | Wayback monthly mirror — first auto-run 2026-06-01 03:17 UTC; `archive.yml` cron. README points users at `web.archive.org/web/*/sarangvehale.github.io/hibiki/` | ✅ in place |
+| **GitHub Pages outage** | Live site 5xx; no announcement, no SLA | Wayback monthly mirror — first auto-run 2026-06-01 03:17 UTC; `archive.yml` cron. README points users at `web.archive.org/web/*/sarangvehale.github.io/neiro/` | ✅ in place |
 | **Google Fonts removes a referenced weight** | Text falls back to system font silently | `font-display: swap` keeps the page usable. Could self-host woff2 files (~230 KB) to remove the dep | 🟡 acceptable |
 | **Stale service worker on returning visitors** | Users see old chrome after a deploy until SW updates | Bump `VERSION` in `public/sw.js` on every shell-affecting change | 🟡 manual — easy to forget |
 | **Python build deps drift** (mutagen, Pillow, PyYAML) | Build script crashes on a clean install, or thumb hashes shift after `pip install` | Pin versions in `requirements.txt`; add Dependabot for pip ecosystem in `.github/dependabot.yml` | ❌ not pinned, no pip Dependabot |
-| **Hardcoded email** (`sarang.kernel@gmail.com`) | Email path silently breaks if address changes | Lives in `public/hibiki.js`, `docs/OPERATIONS.md`, `.github/ISSUE_TEMPLATE/email-submission.yml`. Grep before changing; ideally consolidate into a single config | 🟡 known, search-and-replace required |
+| **Hardcoded email** (`sarang.kernel@gmail.com`) | Email path silently breaks if address changes | Lives in `public/neiro.js`, `docs/OPERATIONS.md`, `.github/ISSUE_TEMPLATE/email-submission.yml`. Grep before changing; ideally consolidate into a single config | 🟡 known, search-and-replace required |
 | **Hardcoded GitHub username** (`SarangVehale`) | All deploy URLs, issue links, archive snapshots break on account rename | Same as above — grep first. The mirror archive doesn't rotate; old snapshots stay accessible | 🟡 known |
-| **New audio format** (`.ogg`, `.opus`, `.wav`) added under `music/` | File silently ignored — doesn't appear in catalogue | Update `AUDIO_EXT` in `scripts/build_catalogue.py` + the validator in `validate-pr.yml` + drop-zone `accept=` in `hibiki.js` | 🟡 trivial fix when needed |
+| **New audio format** (`.ogg`, `.opus`, `.wav`) added under `music/` | File silently ignored — doesn't appear in catalogue | Update `AUDIO_EXT` in `scripts/build_catalogue.py` + the validator in `validate-pr.yml` + drop-zone `accept=` in `neiro.js` | 🟡 trivial fix when needed |
 | **New binary asset format under `public/`** (`.heic`, `.avif`, `.webm`) | If LFS-tracked, Pages serves the 129-byte stub | CI guard in `build.yml` covers `jpg/png/gif/webp/ico`; extend the find filter when new types land | 🟡 trivial fix when needed |
 | **Bus-factor 1** | No co-maintainer; R2 secrets, Cloudflare login, Gmail filters all live with one person | `docs/AUDIT.md` §6.1 flags this. Documented hand-off (where the secrets live, how to rotate, who has Pages publish rights) is overdue | ❌ no co-maintainer listed |
 | **Archive workflow silently 4xx-ing** | All 4 Wayback Save requests come back non-200 but the workflow still reports success because the loop swallows curl errors | Tighten `archive.yml` to assert at least one snapshot per quarter via `archive.org/wayback/available` | 🟡 acceptable — re-tries monthly anyway |

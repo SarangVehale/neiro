@@ -1,4 +1,4 @@
-# Deploying HIBIKI
+# Deploying NEIRO
 
 ## First-time setup
 
@@ -7,7 +7,7 @@
    - Push to `main` — the `Build & Deploy` workflow does the rest.
 
 2. **Sanity check** after first deploy:
-   - Open `https://<your-username>.github.io/hibiki/`
+   - Open `https://<your-username>.github.io/neiro/`
    - Confirm the album grid renders with real data.
    - Click a track row — audio should start (or 404 if LFS isn't downloaded).
 
@@ -23,7 +23,7 @@ right solution is to host audio on Cloudflare R2, which has:
 ### One-time R2 setup
 
 1. Create a [Cloudflare account](https://cloudflare.com) (free).
-2. Go to **R2** → **Create bucket** (name it e.g. `hibiki-music`).
+2. Go to **R2** → **Create bucket** (name it e.g. `neiro-music`).
 3. Under **Settings → Public access**, enable the public R2.dev subdomain
    *or* connect a custom domain.
 4. Go to **R2 → Manage R2 API Tokens** → **Create API Token**:
@@ -34,7 +34,7 @@ right solution is to host audio on Cloudflare R2, which has:
    | Secret | Value |
    |--------|-------|
    | `R2_ACCOUNT_ID` | Your Cloudflare account ID |
-   | `R2_BUCKET` | Bucket name (`hibiki-music`) |
+   | `R2_BUCKET` | Bucket name (`neiro-music`) |
    | `R2_ACCESS_KEY_ID` | R2 API token access key |
    | `R2_SECRET_ACCESS_KEY` | R2 API token secret key |
    | `R2_PUBLIC_URL` | Public hostname (e.g. `pub-xxxx.r2.dev` or `cdn.yourdomain.com`) |
@@ -66,7 +66,7 @@ git push
 pip install boto3
 python scripts/sync_r2.py \
   --account-id  YOUR_CF_ACCOUNT_ID \
-  --bucket      hibiki-music \
+  --bucket      neiro-music \
   --access-key  R2_ACCESS_KEY \
   --secret-key  R2_SECRET_KEY
 

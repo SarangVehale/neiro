@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://sarangvehale.github.io/hibiki/sitemap.xml
+Sitemap: https://sarangvehale.github.io/neiro/sitemap.xml

@@ -11,7 +11,7 @@ async function waitForCatalogue(page) {
 // ── Boot & initial render ──────────────────────────────────────────────────
 test('page loads with correct title', async ({ page }) => {
   await page.goto(BASE);
-  await expect(page).toHaveTitle(/HIBIKI/);
+  await expect(page).toHaveTitle(/NEIRO/);
 });
 
 test('catalogue loads and song count badge is populated', async ({ page }) => {
