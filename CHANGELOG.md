@@ -159,6 +159,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Workflow's missing-secrets error pointed at `INTERNET_ARCHIVE_SETUP.md`;
   actual file is `SETUP_INTERNET_ARCHIVE.md`.
 
+**GitLab mirror CI raced local pushes — cosmetic red status**
+- `mirror-gitlab.yml` rejected with "incorrect old value" when a local
+  `git push gitlab` shipped the same commit before the CI workflow.
+  Mirror was already in sync; only the CI status flagged red.
+- Fix: pre-fetch `gitlab/main` and exit cleanly if it already matches
+  the local SHA (no-op). Added a `concurrency:` group so concurrent
+  workflow runs serialize instead of racing each other.
+
 **GitLab mirror push trap — `--mirror` from a non-bare clone**
 - `docs/SETUP_GITLAB_MIRROR.md` told users to run `git push --mirror
   gitlab` for the initial sync. From a regular working clone that

@@ -22,6 +22,13 @@ on:
 permissions:
   contents: read
 
+# Serialize mirror runs so two back-to-back pushes can't race each
+# other to GitLab. cancel-in-progress=false → later runs queue rather
+# than getting cancelled; we want every push to actually mirror.
+concurrency:
+  group: gitlab-mirror
+  cancel-in-progress: false
+
 jobs:
   mirror:
     runs-on: ubuntu-latest
@@ -68,6 +75,22 @@ jobs:
           AUTH_URL="${GITLAB_REPO_URL/https:\/\//https://oauth2:${GITLAB_TOKEN}@}"
 
           git remote add gitlab "$AUTH_URL"
+
+          # Race-tolerant: if a local push (or another concurrent
+          # mirror run) already shipped this commit, the workflow
+          # below would race against the moving ref and GitLab's
+          # atomic-update enforcement would reject with "incorrect
+          # old value". Pre-check by fetching gitlab's view of main
+          # and skip if it already matches.
+          git fetch --depth=1 gitlab main 2>/dev/null || true
+          LOCAL_SHA=$(git rev-parse HEAD)
+          REMOTE_SHA=$(git rev-parse gitlab/main 2>/dev/null || echo "none")
+          if [ "$LOCAL_SHA" = "$REMOTE_SHA" ]; then
+            echo "✅ GitLab already at $LOCAL_SHA — mirror is in sync, no-op."
+            exit 0
+          fi
+
+          echo "Mirroring $LOCAL_SHA → gitlab/main (was $REMOTE_SHA)"
           git push gitlab main --force
 
           if [ "${{ steps.changes.outputs.lfs }}" = "true" ]; then
