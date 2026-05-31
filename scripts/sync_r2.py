@@ -2,6 +2,12 @@
 """
 NEIRO 音色 — sync music/ to Cloudflare R2.
 
+⚠ DEFERRED as of 2026-05-31. Cloudflare R2 requires a credit card on file
+  even for the free tier; under the project's no-personal-billing
+  constraint this script is not in active use. The active backup tiers
+  are Git LFS (live serving) + Internet Archive (cold). Script is kept
+  intact so re-activation is a 5-minute job if R2 ever becomes viable.
+
 Uploads audio files to an R2 bucket, skipping files that already exist with
 the same size (ETag check). Cover images and YAML metadata stay in git.
 

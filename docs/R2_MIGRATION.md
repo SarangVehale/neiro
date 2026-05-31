@@ -1,5 +1,14 @@
 # R2 migration checklist
 
+> ⚠ **Deferred — not in use.** Cloudflare R2 requires a credit card on
+> file even for the free tier. The project operates under a no-personal-
+> billing constraint, so this migration is paused indefinitely. Active
+> tiers: Git LFS (live) + GitLab mirror (warm) + Internet Archive
+> (cold). The §2 work (per-album `tracks.yaml`, embedded covers
+> extracted to disk) was retained — it makes catalogue rebuilds
+> independent of LFS audio downloads, which is useful regardless of
+> R2. The §3–§6 work below is the part that's paused.
+
 Step-by-step executable plan to move audio from Git LFS (currently 5.7 GB
 of 10 GB free quota, no R2 secrets set) to Cloudflare R2. Run each block
 in order from the repo root; **stop and verify after every block**.

@@ -127,6 +127,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+**Backup architecture pivoted — R2 deferred**
+- Cloudflare R2 requires a credit card on file even for the free tier
+  and auto-bills if quotas are exceeded; that risk profile doesn't fit
+  the project. R2 tooling stays on disk (`scripts/sync_r2.py`,
+  `docs/SETUP_R2.md`, `docs/R2_MIGRATION.md`) with deferred-banner
+  notes — re-activation is a 5-minute job if billing situation changes.
+- Replacement warm tier: GitLab mirror via
+  `.github/workflows/mirror-gitlab.yml`. Per-push refs sync; LFS only
+  pulled into the runner when a push includes audio changes (so most
+  commits don't burn GH LFS bandwidth). Setup runbook at
+  `docs/SETUP_GITLAB_MIRROR.md`.
+- Revised 3-tier architecture: **LFS hot / GitLab warm / IA cold**.
+
 - `actions/checkout` v4 → v6 across all workflows.
 - `archive.yml` cron staggered onto a separate day from
   `archive-sync.yml` to avoid runner-pool contention.

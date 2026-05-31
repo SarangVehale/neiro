@@ -1,5 +1,16 @@
 # Setting up Cloudflare R2 — step-by-step
 
+> ⚠ **Deferred — not part of current setup.** Cloudflare R2 requires a
+> credit card on file (even for the free tier) and auto-bills if the
+> 10 GB / 10 M-class-A-ops monthly free quota is exceeded. Under the
+> project's no-personal-billing constraint this tier is not in use.
+> The active backup architecture is **Git LFS (live) + Internet Archive
+> (cold) + GitLab mirror (warm)** — see
+> [SETUP_GITLAB_MIRROR.md](SETUP_GITLAB_MIRROR.md) and
+> [SETUP_INTERNET_ARCHIVE.md](SETUP_INTERNET_ARCHIVE.md). This document
+> is preserved so re-activation is a single change if the billing
+> situation changes.
+
 This is the hand-over-hand version. For the high-level overview see
 [DEPLOY.md §"Audio CDN"](DEPLOY.md). When you finish you'll have the **5
 values** that go into GitHub Secrets (later) and into

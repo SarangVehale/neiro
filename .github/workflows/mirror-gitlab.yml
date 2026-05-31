@@ -1,0 +1,80 @@
+name: Mirror to GitLab (warm backup)
+
+# Tier 2 of the 3-point backup architecture (LFS hot / GitLab warm /
+# IA cold). Pushes main to a GitLab mirror on every commit, including
+# LFS objects, so the entire repo is recoverable from a second
+# independent host if GitHub goes down or kicks us off.
+#
+# Bandwidth note: pushing LFS-tracked audio to GitLab requires pulling
+# LFS objects into the runner first. To preserve GitHub LFS bandwidth
+# quota (10 GB/month), the workflow only does a full LFS push when the
+# committed files include audio changes. Doc updates / catalogue-only
+# changes use sparse checkout and push refs only.
+#
+# Initial setup (one-time, MUST run locally to avoid burning GH LFS
+# quota): see docs/SETUP_GITLAB_MIRROR.md §4.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+      GITLAB_REPO_URL: ${{ secrets.GITLAB_REPO_URL }}
+    steps:
+      - name: Guard against missing secrets
+        run: |
+          if [ -z "${GITLAB_TOKEN:-}" ] || [ -z "${GITLAB_REPO_URL:-}" ]; then
+            echo "::warning::GITLAB_TOKEN / GITLAB_REPO_URL not configured — see docs/SETUP_GITLAB_MIRROR.md"
+            echo "Skipping mirror (this is a no-op until secrets are set)."
+            exit 0
+          fi
+
+      - name: Detect whether this push changed audio
+        id: changes
+        run: |
+          # Compare against the previous commit on main. If any audio
+          # file changed, we need a full LFS-aware checkout + push.
+          # Otherwise refs-only is enough.
+          changed=$(git -C "$GITHUB_WORKSPACE" diff --name-only ${{ github.event.before }}..${{ github.sha }} 2>/dev/null \
+            | grep -E '\.(mp3|m4a|flac|aac)$' || true)
+          if [ -n "$changed" ]; then
+            echo "lfs=true" >> "$GITHUB_OUTPUT"
+            echo "Audio files changed — full LFS mirror required"
+          else
+            echo "lfs=false" >> "$GITHUB_OUTPUT"
+            echo "No audio changes — refs-only mirror sufficient"
+          fi
+
+      - name: Checkout (LFS-aware if audio changed)
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          lfs: ${{ steps.changes.outputs.lfs == 'true' }}
+
+      - name: Push to GitLab mirror
+        run: |
+          set -euo pipefail
+          # GITLAB_REPO_URL format: https://gitlab.com/USER/REPO.git
+          # Inject token via oauth2 user — GitLab personal access token.
+          AUTH_URL="${GITLAB_REPO_URL/https:\/\//https://oauth2:${GITLAB_TOKEN}@}"
+
+          git remote add gitlab "$AUTH_URL"
+          git push gitlab main --force
+
+          if [ "${{ steps.changes.outputs.lfs }}" = "true" ]; then
+            # Push LFS objects too. Requires git-lfs on the runner
+            # (preinstalled on ubuntu-latest).
+            git lfs push gitlab main --all
+            echo "✅ Mirror push complete (with LFS objects)"
+          else
+            echo "✅ Mirror push complete (refs only — no LFS changes this push)"
+          fi
