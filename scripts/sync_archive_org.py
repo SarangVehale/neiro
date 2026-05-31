@@ -162,20 +162,44 @@ def sync_album(
     dry_run: bool,
     collection: str | None,
 ) -> tuple[int, int]:
-    """Sync one album. Returns (uploaded_count, skipped_count)."""
-    ident = album_identifier(artist_dir.name, album_name)
+    """Sync one album using files discovered by walking album_dir.
+
+    Thin wrapper around sync_album_files. Returns (uploaded, skipped) —
+    failed-file list is dropped here because the full-walk caller (main)
+    doesn't surface it. Delta callers should use sync_album_files
+    directly.
+    """
     files = collect_album_files(album_dir)
     if not files:
         return 0, 0
+    u, s, _ = sync_album_files(
+        artist_dir, album_dir, album_name, files, dry_run, collection
+    )
+    return u, s
+
+
+def sync_album_files(
+    artist_dir: Path,
+    album_dir: Path,
+    album_name: str,
+    files: list[Path],
+    dry_run: bool,
+    collection: str | None,
+) -> tuple[int, int, list[Path]]:
+    """Sync the given explicit file list to the IA item for this album.
+
+    Returns (uploaded, skipped, failed). On any per-file failure, emits a
+    machine-readable `FAILED\\t<repo-relative-path>` line to stderr so
+    the pre-push hook and sync_ia_delta.py can build the backup manifest.
+    """
+    ident = album_identifier(artist_dir.name, album_name)
 
     pointers = [f for f in files if is_lfs_pointer(f)]
     if pointers:
         if dry_run:
-            # Pointer sizes would falsely flag every file as needing upload.
-            # Skipping is more honest than reporting bad deltas.
             print(f"  [dry-run] {ident}: skipped — {len(pointers)} LFS "
                   "pointer(s); run `git lfs pull` to preview deltas accurately")
-            return 0, 0
+            return 0, 0, []
         print(f"ERROR: {ident}: refusing to upload — these are LFS pointer "
               "stubs, not real audio:", file=sys.stderr)
         for p in pointers:
@@ -189,18 +213,17 @@ def sync_album(
     if collection:
         metadata["collection"] = collection
 
-    uploaded = skipped = 0
+    skipped = 0
     to_upload: list[Path] = []
     for f in files:
-        local_size = f.stat().st_size
-        if f.name in remote and remote[f.name] == local_size:
+        if f.name in remote and remote[f.name] == f.stat().st_size:
             skipped += 1
             continue
         to_upload.append(f)
 
     if not to_upload and item.exists:
         print(f"  {ident}: {skipped} file(s) already up to date")
-        return 0, skipped
+        return 0, skipped, []
 
     label = "[dry-run] " if dry_run else ""
     print(f"  {label}{ident}: upload {len(to_upload)} file(s) "
@@ -210,11 +233,8 @@ def sync_album(
         print(f"    ↑ {f.relative_to(ROOT)} ({size_mb} MB)")
 
     if dry_run:
-        return len(to_upload), skipped
+        return len(to_upload), skipped, []
 
-    # Real upload. `upload` is idempotent per-file (overwrites by name),
-    # so we pass only the changed set. Metadata is applied on each call
-    # but IA dedupes — repeat calls are cheap.
     responses = upload(
         ident,
         files=[str(p) for p in to_upload],
@@ -222,12 +242,23 @@ def sync_album(
         verbose=False,
         retries=3,
     )
-    for r in responses:
+    uploaded = 0
+    failed: list[Path] = []
+    for f, r in zip(to_upload, responses):
         if r.status_code != 200:
             print(f"    FAILED ({r.status_code}): {r.text[:200]}")
-            return uploaded, skipped
-        uploaded += 1
-    return uploaded, skipped
+            failed.append(f)
+            print(f"FAILED\t{f.relative_to(ROOT)}", file=sys.stderr)
+        else:
+            uploaded += 1
+    # If responses ran short of to_upload (early termination), the
+    # remaining files were never attempted — mark them failed too.
+    attempted = uploaded + len(failed)
+    for f in to_upload[attempted:]:
+        failed.append(f)
+        print(f"FAILED\t{f.relative_to(ROOT)}", file=sys.stderr)
+
+    return uploaded, skipped, failed
 
 
 def main() -> int:

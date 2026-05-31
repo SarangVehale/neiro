@@ -118,6 +118,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   high-res covers must live on the same host as audio. `sync_r2.py`
   now uploads `cover.jpg` / `folder.jpg` alongside audio.
 
+**Backup architecture — IA-direct, LFS-bandwidth thrift**
+- Backup path no longer pulls from LFS to push to IA — that burned
+  bandwidth proportional to the whole library on every cron. New
+  flow: maintainer pre-push hook uploads from local disk (zero LFS
+  cost) before allowing `git push origin main`; on-push CI workflow
+  catches PR merges with a *sparse* LFS pull proportional only to
+  the delta (~MB instead of GB).
+- `scripts/git-hooks/pre-push` + `scripts/install_hooks.sh` — local
+  hook chains to `git lfs pre-push` after IA succeeds; on failure,
+  queues a redundant copy under `~/neiro-backup/<utc-ts>/` with a
+  sha256-verified manifest and **blocks the push** until drained.
+- `scripts/sync_ia_delta.py` — file-list-driven counterpart to
+  `sync_archive_org.py`; reuses helpers from the bulk script.
+- `scripts/drain_ia_queue.py` — drains queued backups when IA
+  recovers; supports `--list`, `--queue TS`, `--enqueue` (used by
+  the hook). Per-file state in `manifest.json` so partial drains
+  don't double-upload.
+- `scripts/audit_ia.py` — metadata-only IA audit (HEAD per item,
+  count comparison); no LFS pull required.
+- `.github/workflows/ia-on-push.yml` (new) — sparse-LFS delta push
+  on every commit to `main` touching `music/**`.
+- `.github/workflows/archive-sync.yml` (demoted) — was the upload
+  cron; now reconciliation-only (`audit_ia.py`). Monthly run costs
+  zero LFS bandwidth.
+- `scripts/sync_archive_org.py` refactored: `sync_album_files()` lifted
+  out for delta + drain reuse; emits `FAILED\t<path>` stderr markers.
+- `docs/SETUP_INTERNET_ARCHIVE.md` rewritten with hook install,
+  drain workflow, contributor flow, and the new CI split.
+
 **IA sync — silent corruption risk + dry-run wastes LFS bandwidth**
 - `scripts/sync_archive_org.py` now refuses to run if any audio file is
   a git-lfs pointer stub (would silently replace real audio on IA with

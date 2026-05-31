@@ -1,0 +1,171 @@
+#!/usr/bin/env bash
+# NEIRO 音色 — pre-push hook: mirror new audio to Internet Archive
+# before allowing the push to GitHub.
+#
+# Installed via: bash scripts/install_hooks.sh (creates a symlink at
+# .git/hooks/pre-push). See docs/SETUP_INTERNET_ARCHIVE.md §5.
+#
+# Behavior:
+#   1. Skip if not pushing main to origin (other remotes/branches OK).
+#   2. Refuse to push if .git/neiro-pending-ia is non-empty — must
+#      drain queued backups first.
+#   3. Diff the incoming commits for new/changed audio + covers.
+#   4. Call sync_ia_delta.py to upload them.
+#   5. On failure, enqueue a backup under ~/neiro-backup/<ts>/ and
+#      block the push.
+#
+# Bypass for emergencies:
+#   git push --no-verify origin main
+# (CI workflow .github/workflows/ia-on-push.yml acts as the safety net
+# when the hook is bypassed.)
+
+set -euo pipefail
+
+REMOTE_NAME="$1"
+REMOTE_URL="${2:-}"
+ZERO="0000000000000000000000000000000000000000"
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+PENDING_MARKER="$REPO_ROOT/.git/neiro-pending-ia"
+
+# Save stdin (ref list) so we can both inspect it AND replay it to
+# git-lfs's pre-push (which we're shadowing).
+STDIN_SAVE=$(mktemp)
+trap 'rm -f "$STDIN_SAVE"' EXIT
+cat > "$STDIN_SAVE"
+
+# Always defer to git-lfs at the end (it ships LFS objects). If the
+# user uninstalls git-lfs, fall through cleanly.
+run_lfs() {
+    if command -v git-lfs >/dev/null 2>&1; then
+        git lfs pre-push "$REMOTE_NAME" "$REMOTE_URL" < "$STDIN_SAVE"
+    fi
+}
+
+# For non-origin remotes, we don't do IA backup, but git-lfs still
+# needs to run (the gitlab mirror also stores LFS objects).
+if [[ "$REMOTE_NAME" != "origin" ]]; then
+    run_lfs
+    exit $?
+fi
+
+# Pick Python with internetarchive available
+if [[ -x "$REPO_ROOT/.venv/bin/python" ]]; then
+    PY="$REPO_ROOT/.venv/bin/python"
+else
+    PY=$(command -v python3 || command -v python || true)
+    if [[ -z "$PY" ]]; then
+        echo "pre-push: cannot find a Python interpreter" >&2
+        exit 1
+    fi
+fi
+
+# Refuse if there are queued backups from a prior failed push
+if [[ -s "$PENDING_MARKER" ]]; then
+    {
+        echo ""
+        echo "ERROR: Previous IA sync(s) are still queued:"
+        sed 's/^/  /' "$PENDING_MARKER"
+        echo ""
+        echo "Drain them, then retry your push:"
+        echo "  $PY scripts/drain_ia_queue.py"
+        echo ""
+    } >&2
+    exit 1
+fi
+
+# Build the list of new/changed audio + cover files across all refs
+# being pushed to main on origin.
+NEEDS_SYNC=$(mktemp)
+trap 'rm -f "$STDIN_SAVE" "$NEEDS_SYNC"' EXIT
+
+PUSHING_MAIN=0
+while read -r local_ref local_sha remote_ref remote_sha; do
+    [[ "$local_sha" == "$ZERO" ]] && continue           # ref delete
+    [[ "$remote_ref" != "refs/heads/main" ]] && continue
+    PUSHING_MAIN=1
+
+    if [[ "$remote_sha" == "$ZERO" ]]; then
+        # First push to remote — list all audio/cover files in history
+        git -c core.quotePath=false log "$local_sha" --pretty=format: \
+            --name-only --diff-filter=AM -- \
+            'music/**/*.flac' 'music/**/*.mp3' 'music/**/*.m4a' \
+            'music/**/*.aac' 'music/**/cover.*' 'music/**/folder.*' \
+            2>/dev/null >> "$NEEDS_SYNC" || true
+    else
+        git -c core.quotePath=false diff --name-only --diff-filter=AM \
+            "$remote_sha..$local_sha" -- \
+            'music/**/*.flac' 'music/**/*.mp3' 'music/**/*.m4a' \
+            'music/**/*.aac' 'music/**/cover.*' 'music/**/folder.*' \
+            2>/dev/null >> "$NEEDS_SYNC" || true
+    fi
+done < "$STDIN_SAVE"
+
+if [[ "$PUSHING_MAIN" -eq 0 ]]; then
+    run_lfs
+    exit $?
+fi
+
+# Dedup and drop blanks
+sort -u "$NEEDS_SYNC" -o "$NEEDS_SYNC"
+sed -i '/^$/d' "$NEEDS_SYNC"
+
+if [[ ! -s "$NEEDS_SYNC" ]]; then
+    # No audio changes — still need git-lfs to ship any LFS objects
+    # this push touches (e.g. images).
+    run_lfs
+    exit $?
+fi
+
+COUNT=$(wc -l < "$NEEDS_SYNC")
+echo "pre-push: $COUNT audio/cover file(s) to mirror to Internet Archive" >&2
+
+# Run the delta sync. Tee stderr so we can extract FAILED markers
+# while still showing the user what's happening live.
+IA_STDERR=$(mktemp)
+trap 'rm -f "$STDIN_SAVE" "$NEEDS_SYNC" "$IA_STDERR"' EXIT
+
+if "$PY" "$REPO_ROOT/scripts/sync_ia_delta.py" \
+        --files-from "$NEEDS_SYNC" \
+        2> >(tee "$IA_STDERR" >&2); then
+    echo "pre-push: IA sync OK — handing off to git-lfs." >&2
+    run_lfs
+    exit $?
+fi
+
+# Failure path — enqueue a backup so the user has a redundant copy
+# and can retry once IA recovers.
+FAILED_LIST=$(mktemp)
+# Extract repo-relative paths from "FAILED\t<path>" stderr lines
+grep -E '^FAILED'$'\t' "$IA_STDERR" 2>/dev/null | cut -f2- > "$FAILED_LIST" || true
+
+if [[ ! -s "$FAILED_LIST" ]]; then
+    # Script failed without per-file markers (auth, pointer stub, etc.)
+    # — back up the full input list since none of it landed.
+    cp "$NEEDS_SYNC" "$FAILED_LIST"
+fi
+
+REASON=$(grep -E '^(ERROR|FAILED)' "$IA_STDERR" | head -1 | cut -c1-200)
+[[ -z "$REASON" ]] && REASON="sync_ia_delta.py exited non-zero"
+
+LOCAL_SHA=$(git rev-parse HEAD)
+QDIR=$("$PY" "$REPO_ROOT/scripts/drain_ia_queue.py" \
+        --enqueue \
+        --commit "$LOCAL_SHA" \
+        --reason "$REASON" \
+        --files-from "$FAILED_LIST")
+rm -f "$FAILED_LIST"
+
+{
+    echo ""
+    echo "============================================================"
+    echo "  IA backup failed."
+    echo "  Files queued at: $QDIR"
+    echo ""
+    echo "  When IA recovers, drain the queue:"
+    echo "    $PY scripts/drain_ia_queue.py"
+    echo "  Then retry: git push origin main"
+    echo "============================================================"
+} >&2
+
+exit 1

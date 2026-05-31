@@ -1,0 +1,133 @@
+name: IA sync (delta on push)
+
+# Pushes new/changed audio + cover files to Internet Archive on every
+# push to main. The maintainer's pre-push hook normally handles this
+# from local disk (zero LFS bandwidth), but PR merges and pushes that
+# bypass the hook (--no-verify, contributor merges via the GitHub UI)
+# still need backup. This is the safety net.
+#
+# Bandwidth profile: a sparse LFS pull, fetching only the changed
+# files. A typical PR-merge adding one album is ~50–400 MB instead of
+# the full 5.7 GB library. See docs/SETUP_INTERNET_ARCHIVE.md §5–§7.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'music/**'
+
+permissions:
+  contents: read
+
+jobs:
+  ia-delta:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      IA_ACCESS_KEY: ${{ secrets.IA_ACCESS_KEY }}
+      IA_SECRET_KEY: ${{ secrets.IA_SECRET_KEY }}
+    steps:
+      - name: Guard against missing credentials
+        run: |
+          if [ -z "${IA_ACCESS_KEY:-}" ] || [ -z "${IA_SECRET_KEY:-}" ]; then
+            echo "::error::IA_ACCESS_KEY / IA_SECRET_KEY secrets are not set."
+            echo "See docs/SETUP_INTERNET_ARCHIVE.md for one-time setup."
+            exit 1
+          fi
+
+      - name: Checkout (no LFS yet — we'll sparse-pull just the delta)
+        uses: actions/checkout@v6
+        with:
+          lfs: false
+          # Need enough history to diff against github.event.before
+          fetch-depth: 50
+
+      - name: Compute audio delta
+        id: diff
+        run: |
+          set -euo pipefail
+          BEFORE="${{ github.event.before }}"
+          AFTER="${{ github.sha }}"
+          ZERO="0000000000000000000000000000000000000000"
+
+          # First-push or force-push edge case — fall back to HEAD only
+          if [ "$BEFORE" = "$ZERO" ] || ! git cat-file -e "$BEFORE" 2>/dev/null; then
+            echo "Base commit unavailable; diffing HEAD only."
+            git -c core.quotePath=false diff-tree --no-commit-id \
+              --name-only -r --diff-filter=AM "$AFTER" -- \
+              'music/**/*.flac' 'music/**/*.mp3' 'music/**/*.m4a' \
+              'music/**/*.aac' 'music/**/cover.*' 'music/**/folder.*' \
+              > /tmp/audio-files.txt || true
+          else
+            git -c core.quotePath=false diff --name-only --diff-filter=AM \
+              "$BEFORE..$AFTER" -- \
+              'music/**/*.flac' 'music/**/*.mp3' 'music/**/*.m4a' \
+              'music/**/*.aac' 'music/**/cover.*' 'music/**/folder.*' \
+              > /tmp/audio-files.txt || true
+          fi
+
+          # Dedup, drop blanks
+          sort -u -o /tmp/audio-files.txt /tmp/audio-files.txt
+          sed -i '/^$/d' /tmp/audio-files.txt
+
+          if [ ! -s /tmp/audio-files.txt ]; then
+            echo "No audio changes in this push."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            COUNT=$(wc -l < /tmp/audio-files.txt)
+            echo "$COUNT audio/cover file(s) to mirror:"
+            cat /tmp/audio-files.txt
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Sparse LFS pull (only changed files)
+        if: steps.diff.outputs.skip != 'true'
+        run: |
+          set -euo pipefail
+          # Build comma-separated include list. git-lfs treats it as globs;
+          # exact paths work as degenerate globs.
+          INCLUDE=$(paste -sd, /tmp/audio-files.txt)
+          echo "Sparse LFS pull: $INCLUDE" | head -c 500
+          echo ""
+          git lfs pull --include="$INCLUDE"
+
+      - name: Set up Python
+        if: steps.diff.outputs.skip != 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install deps
+        if: steps.diff.outputs.skip != 'true'
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt internetarchive
+
+      - name: Configure ia CLI
+        if: steps.diff.outputs.skip != 'true'
+        run: |
+          mkdir -p ~/.config/internetarchive
+          cat > ~/.config/internetarchive/ia.ini <<EOF
+          [s3]
+          access = ${IA_ACCESS_KEY}
+          secret = ${IA_SECRET_KEY}
+          [general]
+          screenname = neiro-music
+          EOF
+          chmod 600 ~/.config/internetarchive/ia.ini
+
+      - name: Push delta to Internet Archive
+        if: steps.diff.outputs.skip != 'true'
+        run: |
+          python scripts/sync_ia_delta.py --files-from /tmp/audio-files.txt
+
+      - name: Summary
+        if: always()
+        run: |
+          if [ "${{ steps.diff.outputs.skip }}" = "true" ]; then
+            echo "::notice::No audio changed in this push; IA sync skipped."
+          else
+            echo "::notice::IA delta sync — ${{ steps.diff.outputs.count }} file(s) processed."
+          fi
