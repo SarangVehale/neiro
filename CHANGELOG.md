@@ -86,6 +86,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+**IA audit cron failing — `internetarchive` not installed in CI**
+- `archive-sync.yml`'s "Install deps" step installed only
+  `requirements.txt` (build-time deps: `mutagen`, `Pillow`, `PyYAML`).
+  `scripts/audit_ia.py` imports helpers from `sync_archive_org.py`,
+  which imports `internetarchive` at module load and exits 1 with
+  "ERROR: pip install internetarchive" when missing. Workflow now
+  installs it explicitly alongside `requirements.txt`.
+
+**IA push throttling + observability**
+- `scripts/sync_archive_org.py`: added `--throttle SECONDS` (default
+  15s) inter-album sleep, `--skip ARTIST` (repeatable) for excluding
+  bad directories, and ISO-8601 UTC timestamps on every status line
+  (`[YYYY-MM-DDTHH:MM:SSZ] …`) so a nohup'd run leaves a useful trace.
+  `queue_derive=False` on `upload()` to skip IA-side waveform/spectrogram
+  generation, reducing server load and the chance of soft rate-limits.
+
+**`.gitignore` — local agent state + IA push artefacts**
+- Added `.claude/`, `agent-state/`, and `ia-push.*` to keep transient
+  local tooling state and IA push logs out of the index.
+
 **LFS pointers shipped as `public/` binaries via GitHub Pages**
 - Pages does not resolve LFS — it served the 129-byte pointer stub
   under `content-type: image/jpeg`, causing `EncodingError: cannot be

@@ -36,7 +36,17 @@ import argparse
 import os
 import re
 import sys
+import time
+from datetime import datetime, timezone
 from pathlib import Path
+
+
+def _ts() -> str:
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def log(msg: str) -> None:
+    print(f"[{_ts()}] {msg}", flush=True)
 
 try:
     import yaml  # type: ignore
@@ -251,12 +261,18 @@ def sync_album_files(
     if dry_run:
         return len(to_upload), skipped, []
 
+    # queue_derive=False: skip IA-side derivative generation (waveform
+    # PNGs, spectrograms, alt-formats). We don't need them for a backup;
+    # skipping them dramatically reduces IA-side load → fewer throttle
+    # responses and items are ready immediately rather than sitting in
+    # "derivation pending" for hours.
     responses = upload(
         ident,
         files=[str(p) for p in to_upload],
         metadata=metadata,
         verbose=False,
         retries=3,
+        queue_derive=False,
     )
     uploaded = 0
     failed: list[Path] = []
@@ -285,6 +301,12 @@ def main() -> int:
                     help="IA collection (default: opensource_audio)")
     ap.add_argument("--only", default=None, metavar="ARTIST",
                     help="Sync only this artist directory (matches by name)")
+    ap.add_argument("--skip", action="append", default=[], metavar="ARTIST",
+                    help="Skip this artist directory. Repeatable.")
+    ap.add_argument("--throttle", type=float, default=15.0, metavar="SECONDS",
+                    help="Pause between album uploads (default 15s). New IA "
+                         "item creation is the rate-limited path; this gap "
+                         "keeps us under the per-IP soft cap.")
     args = ap.parse_args()
 
     # Sanity: must have IA creds set
@@ -294,12 +316,23 @@ def main() -> int:
         return 2
 
     total_uploaded = total_skipped = total_albums = 0
+    start = time.monotonic()
+    log(f"IA sync starting (dry_run={args.dry_run}, throttle={args.throttle}s)")
+
+    def _maybe_throttle(uploaded: int) -> None:
+        # Only sleep when we actually hit IA — skipped/no-op items don't
+        # consume any rate-budget so they shouldn't pay the penalty.
+        if uploaded > 0 and not args.dry_run and args.throttle > 0:
+            time.sleep(args.throttle)
 
     for artist_dir in sorted(p for p in MUSIC.iterdir()
                              if p.is_dir() and not p.name.startswith("_")):
         if args.only and artist_dir.name != args.only:
             continue
-        print(f"\n{artist_dir.name}")
+        if artist_dir.name in args.skip:
+            log(f"skip: {artist_dir.name} (--skip)")
+            continue
+        log(f"artist: {artist_dir.name}")
 
         # Loose tracks → "Singles" album
         loose = sorted(p for p in artist_dir.iterdir()
@@ -310,6 +343,7 @@ def main() -> int:
             total_uploaded += u
             total_skipped += s
             total_albums += 1
+            _maybe_throttle(u)
 
         for album_dir in find_album_dirs(artist_dir):
             album_name = " / ".join(album_dir.relative_to(artist_dir).parts)
@@ -318,10 +352,12 @@ def main() -> int:
             total_uploaded += u
             total_skipped += s
             total_albums += 1
+            _maybe_throttle(u)
 
+    elapsed = int(time.monotonic() - start)
     verb = "would upload" if args.dry_run else "uploaded"
-    print(f"\nDone: {total_albums} albums, {total_uploaded} file(s) "
-          f"{verb}, {total_skipped} unchanged")
+    log(f"Done: {total_albums} albums, {total_uploaded} file(s) {verb}, "
+        f"{total_skipped} unchanged, elapsed {elapsed}s")
     return 0
 
 

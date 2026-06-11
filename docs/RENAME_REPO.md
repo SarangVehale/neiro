@@ -109,8 +109,8 @@ grep -rIn -i "hibiki" \
   --include="*.py" --include="*.html" --include="*.js" \
   --include="*.css" --include="*.json" --include="*.xml" \
   | grep -v "CHANGELOG.md" \
-  | grep -v ".claude/"
-# Expected output: nothing (CHANGELOG and Claude internal state are
+  | grep -v "agent-state/"
+# Expected output: nothing (CHANGELOG and local agent state are
 # the only files allowed to retain the historical name)
 ```
 
