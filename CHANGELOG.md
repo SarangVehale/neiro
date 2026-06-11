@@ -96,11 +96,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **IA push throttling + observability**
 - `scripts/sync_archive_org.py`: added `--throttle SECONDS` (default
-  15s) inter-album sleep, `--skip ARTIST` (repeatable) for excluding
-  bad directories, and ISO-8601 UTC timestamps on every status line
+  300s after IA's anti-abuse system flagged the account on a 15s
+  cadence), `--skip ARTIST` (repeatable) for excluding bad
+  directories, and ISO-8601 UTC timestamps on every status line
   (`[YYYY-MM-DDTHH:MM:SSZ] …`) so a nohup'd run leaves a useful trace.
   `queue_derive=False` on `upload()` to skip IA-side waveform/spectrogram
-  generation, reducing server load and the chance of soft rate-limits.
+  generation. `internetarchive` library `retries` lowered from 3 to 1
+  — burst-retrying on a `503 Slow Down` was what tipped IA from a
+  soft rate-limit into a hard spam flag.
 
 **`.gitignore` — local agent state + IA push artefacts**
 - Added `.claude/`, `agent-state/`, and `ia-push.*` to keep transient

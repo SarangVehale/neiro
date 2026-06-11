@@ -271,7 +271,7 @@ def sync_album_files(
         files=[str(p) for p in to_upload],
         metadata=metadata,
         verbose=False,
-        retries=3,
+        retries=1,
         queue_derive=False,
     )
     uploaded = 0
@@ -303,10 +303,11 @@ def main() -> int:
                     help="Sync only this artist directory (matches by name)")
     ap.add_argument("--skip", action="append", default=[], metavar="ARTIST",
                     help="Skip this artist directory. Repeatable.")
-    ap.add_argument("--throttle", type=float, default=15.0, metavar="SECONDS",
-                    help="Pause between album uploads (default 15s). New IA "
-                         "item creation is the rate-limited path; this gap "
-                         "keeps us under the per-IP soft cap.")
+    ap.add_argument("--throttle", type=float, default=300.0, metavar="SECONDS",
+                    help="Pause between album uploads (default 300s = 5 min). "
+                         "New IA item creation is the rate-limited path; "
+                         "creating items faster than ~1 per 100s has tripped "
+                         "the anti-abuse flag on this account before.")
     args = ap.parse_args()
 
     # Sanity: must have IA creds set
