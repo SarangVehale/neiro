@@ -82,6 +82,11 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="Audit IA items vs local catalogue")
     ap.add_argument("--quiet", action="store_true",
                     help="Only print drift; suppress per-album OK lines")
+    ap.add_argument("--skip", action="append", default=[], metavar="ARTIST",
+                    help="Skip this artist directory. Repeatable. "
+                         "Mirror the --skip list used by sync_archive_org.py "
+                         "so the audit doesn't false-positive on intentionally "
+                         "unsynced artists (e.g. placeholder-only dirs).")
     args = ap.parse_args()
 
     drift: list[dict] = []
@@ -127,6 +132,10 @@ def main() -> int:
 
     for artist_dir in sorted(p for p in MUSIC.iterdir()
                              if p.is_dir() and not p.name.startswith("_")):
+        if artist_dir.name in args.skip:
+            if not args.quiet:
+                print(f"\n{artist_dir.name}\n  — skipped (--skip)")
+            continue
         if not args.quiet:
             print(f"\n{artist_dir.name}")
         # Loose tracks → "Singles" pseudo-album

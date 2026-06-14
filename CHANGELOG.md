@@ -94,6 +94,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   "ERROR: pip install internetarchive" when missing. Workflow now
   installs it explicitly alongside `requirements.txt`.
 
+**IA audit false-positive on intentionally unsynced dirs**
+- `scripts/audit_ia.py` now takes `--skip ARTIST` (repeatable) so
+  `archive-sync.yml` can pass `--skip "Kaoru Tanaka"` and stop the
+  audit from reporting drift on the placeholder-only `Kaoru Tanaka /
+  River Without Banks` album that `sync_archive_org.py` is already
+  skipping. Both scripts now share the same skip surface.
+
 **IA push throttling + observability**
 - `scripts/sync_archive_org.py`: added `--throttle SECONDS` (default
   300s after IA's anti-abuse system flagged the account on a 15s

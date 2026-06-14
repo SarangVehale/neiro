@@ -55,7 +55,9 @@ jobs:
           if [ "${{ inputs.verbose }}" = "true" ]; then
             QUIET_FLAG=""
           fi
-          python scripts/audit_ia.py $QUIET_FLAG > /tmp/audit.json
+          python scripts/audit_ia.py $QUIET_FLAG \
+            --skip "Kaoru Tanaka" \
+            > /tmp/audit.json
           echo "exit=$?" >> "$GITHUB_OUTPUT"
 
       - name: Show drift (if any)
