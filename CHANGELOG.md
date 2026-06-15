@@ -94,6 +94,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   "ERROR: pip install internetarchive" when missing. Workflow now
   installs it explicitly alongside `requirements.txt`.
 
+**Dependabot silently failing on every PR — missing repo labels**
+- `.github/dependabot.yml` references labels `dependencies` and `ci`;
+  `.github/ISSUE_TEMPLATE/*.yml` references `classify-genre`,
+  `submission`, `email-queue`. None of these existed in the repo.
+  Dependabot creates a PR, fails the label step ("The following
+  labels could not be found"), then the PR sits broken (#7 pyyaml,
+  #8 pillow both closed unmerged). All 5 labels now created with
+  sensible colors and descriptions. Next dependabot run will land
+  the queued bumps cleanly.
+
+**Stragglers from the v5→v6 setup-python bump**
+- `archive-sync.yml` and `ia-on-push.yml` still pinned
+  `actions/setup-python@v5` — only `test.yml` and `validate-pr.yml`
+  were updated when dependabot PR #2 merged on 2026-05-28. Both
+  bumped to v6, silencing the Node 20 deprecation warning that
+  accompanied every audit run.
+
+**requirements.txt — accept the dependabot bumps locally**
+- `Pillow>=10.0` → `>=12.2.0`, `PyYAML>=6.0` → `>=6.0.3` (matches
+  dependabot PRs #7/#8 that couldn't land due to the label issue).
+
 **IA audit false-positive on intentionally unsynced dirs**
 - `scripts/audit_ia.py` now takes `--skip ARTIST` (repeatable) so
   `archive-sync.yml` can pass `--skip "Kaoru Tanaka"` and stop the
