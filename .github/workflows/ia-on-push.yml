@@ -36,7 +36,7 @@ jobs:
           fi
 
       - name: Checkout (no LFS yet — we'll sparse-pull just the delta)
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           lfs: false
           # Need enough history to diff against github.event.before
