@@ -62,7 +62,7 @@ jobs:
           fi
 
       - name: Checkout (LFS-aware if audio changed)
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           lfs: ${{ steps.changes.outputs.lfs == 'true' }}
